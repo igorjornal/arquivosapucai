@@ -229,7 +229,11 @@ function action_newsletter(): void
         ? $_SERVER['HTTP_REFERER'] . '#newsletter'
         : '/#newsletter';
     $email = mb_strtolower(mb_substr(input('email'), 0, 190));
-    if (looks_like_spam(2) || !filter_var($email, FILTER_VALIDATE_EMAIL)) {
+    if (looks_like_spam(2)) {
+        flash('newsletter_error', 'Não foi possível enviar. Tente de novo em alguns segundos.');
+        redirect($back);
+    }
+    if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         flash('newsletter_error', 'Confira o e-mail digitado.');
         redirect($back);
     }

@@ -55,6 +55,12 @@ function settings_defaults(): array
             'comments_enabled'  => true,
             'comments_moderate' => true,
             'share_buttons'     => true,
+            'card_title_lines'   => 3, // 0 = sem limite
+            'card_excerpt_lines' => 3,
+        ],
+        'footer' => [
+            'word'      => 'ARQUIVO SAPUCAÍ', // texto grande ao fundo do rodapé
+            'show_word' => true,
         ],
         'newsletter' => [
             'title' => 'Receba as novidades',

@@ -41,7 +41,9 @@ $names = ['youtube' => 'YouTube', 'instagram' => 'Instagram', 'facebook' => 'Fac
       <p class="footer-contact"><a href="mailto:<?= e($site['email']) ?>"><?= e($site['email']) ?></a></p>
     </div>
   </div>
-  <div class="footer-word" aria-hidden="true">SAPUCAÍ</div>
+  <?php $footer = setting('footer'); if ($footer['show_word'] && $footer['word'] !== ''): ?>
+    <div class="footer-word" aria-hidden="true"><?= e($footer['word']) ?></div>
+  <?php endif; ?>
   <div class="wrap footer-bottom">
     <span>© <?= date('Y') ?> <?= e($site['title']) ?>. Todos os direitos reservados.</span>
     <a href="/admin">Área do autor</a>

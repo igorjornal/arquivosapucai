@@ -22,7 +22,17 @@ $totalComments = array_sum(array_map('count', $comments));
       </header>
 
       <?php if ($post['cover_image']): ?>
-        <figure class="post-cover"><img src="<?= e(media_url($post['cover_image'])) ?>" alt="<?= e($post['cover_alt'] ?: $post['title']) ?>"></figure>
+        <?php
+        $ratios = ['banner' => '3 / 1', 'wide' => '16 / 9', 'landscape' => '4 / 3', 'square' => '1 / 1', 'portrait' => '4 / 5'];
+        $coverAlign = in_array($post['cover_align'], ['left', 'center', 'right'], true) ? $post['cover_align'] : 'center';
+        $coverWidth = max(20, min(100, (int) $post['cover_width']));
+        $imgStyle = isset($ratios[$post['cover_ratio']])
+            ? 'aspect-ratio:' . $ratios[$post['cover_ratio']] . ';object-fit:cover;object-position:' . e(preg_replace('/[^0-9% ]/', '', $post['cover_position']))
+            : '';
+        ?>
+        <figure class="post-cover cover-<?= $coverAlign ?>" style="width:<?= $coverWidth ?>%">
+          <img src="<?= e(media_url($post['cover_image'])) ?>" alt="<?= e($post['cover_alt'] ?: $post['title']) ?>"<?= $imgStyle ? ' style="' . $imgStyle . '"' : '' ?>>
+        </figure>
       <?php endif; ?>
 
       <div class="post-content">

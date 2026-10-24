@@ -78,6 +78,19 @@
     });
   });
 
+  // Texto grande do rodapé: ajusta o tamanho para caber numa linha só
+  var word = document.querySelector('.footer-word');
+  if (word) {
+    var fit = function () {
+      word.style.fontSize = '100px';
+      var size = 100 * (word.clientWidth * 0.9) / word.scrollWidth;
+      word.style.fontSize = Math.min(size, 220) + 'px';
+    };
+    fit();
+    window.addEventListener('resize', fit);
+    if (document.fonts) document.fonts.ready.then(fit);
+  }
+
   // Tabelas largas rolam de lado no celular
   document.querySelectorAll('.post-content table').forEach(function (t) {
     if (t.parentElement.classList.contains('table-scroll')) return;

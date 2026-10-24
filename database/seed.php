@@ -43,6 +43,7 @@ function seed_initial_content(int $adminId): void
             'content'      => sanitize_html(sample_post_html()),
             'cover_image'  => 'assets/img/sample/desfile-1.webp',
             'cover_alt'    => 'Desfile na Marquês de Sapucaí',
+            'cover_ratio'  => 'banner',
             'category_id'  => $catId ?: null,
             'author_id'    => $adminId,
             'status'       => 'published',

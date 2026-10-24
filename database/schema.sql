@@ -37,6 +37,10 @@ CREATE TABLE IF NOT EXISTS posts (
   content MEDIUMTEXT NULL,
   cover_image VARCHAR(255) NULL,
   cover_alt VARCHAR(255) NULL,
+  cover_ratio VARCHAR(12) NOT NULL DEFAULT 'original', -- original | banner | wide | landscape | square | portrait
+  cover_width TINYINT UNSIGNED NOT NULL DEFAULT 100,    -- % da largura do post
+  cover_align VARCHAR(10) NOT NULL DEFAULT 'center',    -- left | center | right
+  cover_position VARCHAR(20) NOT NULL DEFAULT '50% 50%', -- ponto de foco do recorte
   category_id INT UNSIGNED NULL,
   author_id INT UNSIGNED NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'draft', -- draft | published

@@ -38,6 +38,11 @@ function appearance_css(): string
             $lines[] = '--c-' . str_replace('_', '-', $name) . ':' . $value;
         }
     }
+    $blog = setting('blog');
+    foreach (['card_title_lines' => '--card-title-lines', 'card_excerpt_lines' => '--card-excerpt-lines'] as $key => $var) {
+        $n = (int) $blog[$key];
+        $lines[] = $var . ':' . ($n > 0 ? $n : 'none');
+    }
     foreach ($a['fonts'] as $role => $family) {
         $family = preg_replace('/[^A-Za-z0-9 ]/', '', (string) $family);
         $fallback = $role === 'body' ? 'Georgia, serif' : 'system-ui, sans-serif';

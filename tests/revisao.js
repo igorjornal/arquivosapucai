@@ -8,19 +8,22 @@ const IMG2 = '/home/user/arquivosapucai/assets/img/banner-serie-ouro-2027.webp';
 const results = [];
 let area = '';
 const ok = (name, cond, extra) => { results.push({ area, name, pass: !!cond, extra: extra || '' }); };
-const safe = async (name, fn) => { try { await fn(); } catch (e) { ok(name, false, 'erro: ' + e.message.split('\n')[0]); } };
+const safe = async (name, fn) => { try { await fn(); } catch (e) { ok(name, false, 'erro: ' + e.message.split('\n')[0] + ' em ' + (pageRef && pageRef.url())); } };
+let pageRef = null;
 
 (async () => {
   const b = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium' });
   const ctx = await b.newContext({ viewport: { width: 1366, height: 900 } });
   const p = await ctx.newPage();
+  pageRef = p;
   const jsErrors = [];
   p.on('pageerror', e => jsErrors.push(p.url() + ' → ' + e.message));
-  p.on('dialog', d => d.accept());
+  let lastDialog = '';
+  p.on('dialog', d => { lastDialog = d.message(); d.accept(); });
   const go = async (path) => (await p.goto(base + path)).text();
   const pub = async (path) => { const r = await fetch(base + path); return r.text(); };
   const submit = async (locator) => { await Promise.all([p.waitForNavigation(), locator.click()]); };
-  const notice = async () => (await p.locator('.notice').first().textContent().catch(() => '')) || '';
+  const notice = async () => (await p.locator('.a-toast, .notice').first().textContent({ timeout: 3000 }).catch(() => '')) || '';
   const login = async (email, pass) => {
     await p.goto(base + '/admin/login');
     await p.fill('input[name=email]', email); await p.fill('input[name=senha]', pass);
@@ -519,6 +522,161 @@ const safe = async (name, fn) => { try { await fn(); } catch (e) { ok(name, fals
     await p.click('[data-next]');
     const after = await p.locator('.slide.is-active img').getAttribute('src');
     ok('carrossel troca com a seta', before !== after);
+  });
+
+
+  /* ---------------- Rodada 3: pedidos do Igor ---------------- */
+  area = 'Aparência: fonte e tamanho';
+  await safe('menu, título dos posts e faixa', async () => {
+    await p.goto(base + '/admin/aparencia');
+    await p.selectOption('select[name="type[menu][font]"]', 'Oswald');
+    await p.locator('input[name="type[menu][size]"]').fill('20');
+    await p.selectOption('select[name="type[post_title][font]"]', 'Bitter');
+    await p.locator('input[name="type[post_title][size]"]').fill('32');
+    await p.selectOption('select[name="type[ticker][font]"]', 'Bebas Neue');
+    await p.locator('input[name="type[ticker][size]"]').fill('18');
+    await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
+    const home = await pub('/');
+    ok('menu: fonte e tamanho no site', home.includes("--f-menu:'Oswald'") && home.includes('--fs-menu:20px'));
+    ok('título dos posts: fonte e tamanho no site', home.includes("--f-post-title:'Bitter'") && home.includes('--fs-post-title:32px'));
+    ok('faixa: fonte e tamanho no site', home.includes("--f-ticker:'Bebas Neue'") && home.includes('--fs-ticker:18px'));
+    ok('fontes novas carregam do Google', home.includes('family=Oswald') && home.includes('family=Bebas+Neue'));
+    await p.goto(base + '/blog/mangueira-1988-o-samba-que-contou-a-historia');
+    const fs = await p.evaluate(() => getComputedStyle(document.querySelector('.post-title')).fontSize);
+    ok('título do post aparece com 32px', fs === '32px', fs);
+    const menuFs = await p.evaluate(() => getComputedStyle(document.querySelector('.main-nav a')).fontSize);
+    ok('menu aparece com 20px', menuFs === '20px', menuFs);
+    await p.goto(base + '/admin/aparencia');
+    ok('valores continuam salvos no painel', (await p.inputValue('input[name="type[post_title][size]"]')) === '32');
+  });
+
+  area = 'Editor: tamanho inicial 16';
+  await safe('texto começa em 16', async () => {
+    await p.goto(base + '/admin/posts/novo'); await editorReady();
+    const fs = await p.frameLocator('.tox-edit-area iframe').locator('body').evaluate(b => getComputedStyle(b).fontSize);
+    ok('editor começa em 16px', fs === '16px', fs);
+    const site = await (await b.newContext()).newPage();
+    await site.goto(base + '/blog/mangueira-1988-o-samba-que-contou-a-historia');
+    const sfs = await site.evaluate(() => getComputedStyle(document.querySelector('.post-content')).fontSize);
+    ok('texto do post no site em 16px', sfs === '16px', sfs);
+  });
+
+  area = 'Painel: avisos e voltar';
+  await safe('aviso antes de sair sem salvar', async () => {
+    await p.goto(base + '/admin/posts/novo'); await editorReady();
+    await p.fill('[data-title]', 'Não salvo');
+    lastDialog = '';
+    p.once('dialog', () => {}); // o aviso é aceito pelo ouvinte geral
+    await Promise.all([p.waitForNavigation().catch(() => {}), p.click('.a-side a:has-text("Imagens")')]);
+    ok('aviso aparece ao clicar fora do post', lastDialog.includes('não foram salvas'), lastDialog);
+    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.fill('input[name=arquivo_title]', 'mexi');
+    lastDialog = '';
+    await Promise.all([p.waitForNavigation().catch(() => {}), p.click('.a-side a:has-text("Menu")')]);
+    ok('aviso também em outras telas (Textos da home)', lastDialog.includes('não foram salvas'));
+    lastDialog = '';
+    await p.goto(base + '/admin/menu'); await p.click('.a-side a:has-text("Tags")'); await p.waitForLoadState();
+    ok('sem mudanças, sai sem aviso', lastDialog === '');
+  });
+  await safe('“Salvando…” e aviso de salvo', async () => {
+    await p.goto(base + '/admin/conteudo?aba=rodape');
+    await p.route(/\/admin\/conteudo/, async r => { try { if (r.request().method() === 'POST') await new Promise(x => setTimeout(x, 1200)); await r.continue(); } catch (e) {} });
+    await p.fill('input[name=word]', 'ARQUIVO SAPUCAÍ');
+    const r = await p.evaluate(async () => { const btn = document.querySelector('.a-sticky-save button'); btn.click(); await new Promise(x => setTimeout(x, 150)); return [btn.textContent, document.body.classList.contains('is-saving')]; });
+    ok('botão mostra “Salvando…” enquanto salva', r[0].includes('Salvando'), r[0]);
+    ok('barra de carregamento no topo', r[1]);
+    await p.waitForURL(/aba=rodape/); await p.waitForLoadState(); await p.unroute(/\/admin\/conteudo/);
+    await p.waitForSelector('.a-toast-success');
+    ok('aviso verde de salvo aparece', (await p.textContent('.a-toast-success')).includes('salvas'));
+  });
+  await safe('botão Voltar', async () => {
+    await p.goto(base + '/admin/posts/' + postId);
+    ok('Voltar no post leva à lista de posts', (await p.getAttribute('.a-back', 'href')) === '/admin/posts');
+    await p.goto(base + '/admin/secoes'); await p.locator('.a-section-row a:has-text("Editar")').first().click(); await p.waitForLoadState();
+    ok('Voltar na seção leva às seções', (await p.getAttribute('.a-back', 'href')) === '/admin/secoes');
+    await p.goto(base + '/admin/posts');
+    ok('telas principais não mostram Voltar', await p.locator('.a-back').count() === 0);
+  });
+
+  area = 'Imagens em pastas';
+  await safe('pastas', async () => {
+    await p.goto(base + '/admin/midia');
+    await p.fill('input[name=nome]', 'Desfiles 1987');
+    await submit(p.locator('button:has-text("+ Criar")'));
+    ok('criar pasta', (await notice()).includes('criada') || (await p.content()).includes('Desfiles 1987'));
+    const url = p.url();
+    await Promise.all([p.waitForNavigation(), p.setInputFiles('input[name="arquivos[]"]', IMG1)]);
+    ok('enviar imagem dentro da pasta', p.url() === url && await p.locator('.a-gallery-item').count() === 1);
+    await p.goto(base + '/admin/midia?pasta=-1');
+    const before = await p.locator('.a-gallery-item').count();
+    await p.locator('[data-media-check]').first().check();
+    await p.selectOption('select[name=destino]', { label: 'Mover para: Desfiles 1987' });
+    await submit(p.locator('button:has-text("Mover marcadas")'));
+    ok('mover imagem para a pasta', await p.locator('.a-gallery-item').count() === before - 1);
+    await p.goto(url);
+    ok('pasta mostra 2 imagens', await p.locator('.a-gallery-item').count() === 2);
+    await p.fill('#renomear', 'Desfiles 1987 e 1988'); await submit(p.locator('button:has-text("Renomear")'));
+    ok('renomear pasta', (await p.content()).includes('Desfiles 1987 e 1988'));
+    // seletor de imagens filtra por pasta
+    await p.goto(base + '/admin/posts/' + postId); await editorReady();
+    await p.locator('[data-cover] [data-pick]').click();
+    await p.waitForSelector('[data-media-grid] button');
+    const allCount = await p.locator('[data-media-grid] button').count();
+    await p.selectOption('[data-media-folder]', { label: '📁 Desfiles 1987 e 1988' });
+    await p.waitForTimeout(600);
+    ok('seletor filtra pela pasta', await p.locator('[data-media-grid] button').count() === 2 && allCount > 2, allCount + ' → 2');
+    await p.click('[data-close]');
+    await p.goto(url);
+    await submit(p.locator('button:has-text("Excluir esta pasta")'));
+    ok('excluir pasta não apaga imagens', (await notice()).includes('Sem pasta') && (await (await fetch(base + '/admin/midia')).status) === 200);
+  });
+
+  area = 'Imagens da home';
+  await safe('opções de imagem em O Arquivo e Acervo', async () => {
+    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.locator('input[name="arquivo_img[width]"]').fill('60');
+    await p.selectOption('select[name="arquivo_img[radius]"]', '999');
+    await p.selectOption('select[name="arquivo_img[ratio]"]', 'square');
+    await p.selectOption('select[name="acervo_img[align]"]', 'center');
+    await submit(p.locator('.a-sticky-save button'));
+    const home = await pub('/');
+    ok('O Arquivo: tamanho, cantos e formato', /split-media"><img style="width:60%;border-radius:999px;aspect-ratio:1 \/ 1/.test(home));
+    ok('Acervo: alinhado ao centro', /acervo-media"><img style="[^"]*margin-left:auto;margin-right:auto/.test(home));
+    await p.goto(base + '/admin/conteudo?aba=home');
+    ok('opções continuam salvas', (await p.inputValue('select[name="arquivo_img[ratio]"]')) === 'square');
+  });
+
+  area = 'Páginas';
+  await safe('páginas', async () => {
+    await p.goto(base + '/admin/paginas');
+    ok('Acervo e História já criadas como rascunho', (await p.content()).includes('/acervo') && (await p.content()).includes('/historia'));
+    ok('rascunho não aparece no site', (await fetch(base + '/acervo')).status === 404);
+    await p.locator('a.a-strong:has-text("Acervo")').click(); await p.waitForLoadState(); await editorReady();
+    await p.fill('input[name=subtitle]', 'Desfiles do Grupo Especial ano a ano');
+    await p.evaluate(() => tinymce.activeEditor.setContent('<h2>Como o acervo é organizado</h2><p>Por ano e por escola.</p>'));
+    await pickFromLibrary(p.locator('[data-image-field]').first(), 0);
+    await p.check('input[name=width][value=wide]', { force: true });
+    await p.check('input[name=bg_color_on]');
+    await p.locator('input[name=bg_color]').evaluate(el => { el.value = '#fdfcf0'; });
+    await p.click('details.a-card summary'); await p.fill('textarea[name=meta_description]', 'Acervo de desfiles do carnaval carioca.');
+    await submit(p.locator('button[value=publicar]'));
+    ok('publicar página', (await notice()).includes('publicada'));
+    const r = await fetch(base + '/acervo'); const html = await r.text();
+    ok('página abre em /acervo', r.status === 200 && html.includes('Como o acervo é organizado'));
+    ok('banner com título por cima', html.includes('page-banner has-title') && html.includes('Desfiles do Grupo Especial ano a ano'));
+    ok('largura larga e cor de fundo', !/wrap narrow page-body/.test(html) && html.includes('--pg-bg:#FDFCF0'));
+    ok('descrição para o Google', html.includes('content="Acervo de desfiles do carnaval carioca."'));
+    ok('página sem autor, data e comentários', !html.includes('comment-form') && !html.includes('post-meta'));
+    ok('página entra no sitemap', (await pub('/sitemap.xml')).includes('/acervo'));
+    await p.goto(base + '/admin/paginas/nova'); await editorReady();
+    await p.fill('[data-title]', 'Teste'); await p.fill('[data-slug]', 'blog');
+    await submit(p.locator('button[value=publicar]'));
+    ok('endereço reservado é recusado', (await p.content()).includes('usado pelo próprio site'));
+    await p.goto(base + '/admin/menu');
+    ok('página aparece nas sugestões do menu', (await p.content()).includes('Página: Acervo'));
+    await p.goto(base + '/admin/paginas'); await p.locator('a.a-strong:has-text("História")').click(); await p.waitForLoadState();
+    await submit(p.locator('button:has-text("Excluir página")'));
+    ok('excluir página', (await notice()).includes('excluída'));
   });
 
   area = 'Geral';

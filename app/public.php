@@ -5,10 +5,9 @@ function page_home(): void
 {
     $home = setting('home');
     render('home', [
-        'title'  => setting('site')['title'],
-        'slides' => active_slides(),
-        'posts'  => latest_posts((int) $home['blog_count']),
-        'home'   => $home,
+        'title'    => setting('site')['title'],
+        'sections' => home_sections(),
+        'home'     => $home,
         'bodyClass' => 'is-home',
     ]);
 }

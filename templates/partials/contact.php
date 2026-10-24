@@ -1,4 +1,4 @@
-<section class="sec sec-contact" id="contato">
+<section class="sec sec-contact" id="<?= e($anchor ?? 'contato') ?>">
   <div class="wrap narrow">
     <h2 class="sec-title center"><?= e($home['contact_title']) ?></h2>
     <?php if ($home['contact_text']): ?><p class="center"><?= e($home['contact_text']) ?></p><?php endif; ?>

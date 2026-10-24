@@ -240,3 +240,13 @@ details.a-card[open] summary::before { content: "▾ "; }
   .a-menu-form { grid-template-columns: 1fr; }
   .a-filters select, .a-filters input[type="search"] { width: 100%; }
 }
+
+/* Seções da home */
+.a-section-row { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 14px 18px; margin-bottom: 10px; }
+.a-section-row .a-order { grid-auto-flow: column; }
+.a-section-info { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.a-add-sections { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.a-add-card { display: grid; gap: 8px; align-content: start; margin: 0; }
+.a-add-card .a-btn { justify-self: start; }
+.a-ticker-row label { margin-bottom: 10px; }
+@media (max-width: 860px) { .a-section-row { grid-template-columns: 1fr; } }

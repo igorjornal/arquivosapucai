@@ -26,13 +26,19 @@ $headerBg = media_url($site['header_bg']);
     </nav>
   </div>
 </header>
-<?php if (setting('home')['ticker'] !== ''): ?>
-<div class="ticker" aria-label="Aviso">
-  <div class="ticker-track">
-    <?php for ($i = 0; $i < 4; $i++): ?>
-      <span<?= $i ? ' aria-hidden="true"' : '' ?>><?= e(setting('home')['ticker']) ?></span>
+<?php $ticker = ticker_items(); if ($ticker):
+    // Repete a sequência até encher a largura e emenda sem pulo
+    $reps = max(2, (int) ceil(6 / count($ticker)) * 2); ?>
+<div class="ticker" aria-label="Avisos">
+  <div class="ticker-track" style="animation-duration: <?= max(25, 8 * count($ticker) * $reps / 2) ?>s">
+    <?php for ($r = 0; $r < $reps; $r++): foreach ($ticker as $item): ?>
+      <?php if ($item['link'] ?? ''): ?>
+        <a href="<?= e($item['link']) ?>"<?= $r ? ' tabindex="-1" aria-hidden="true"' : '' ?><?= str_starts_with((string) $item['link'], 'http') ? ' target="_blank" rel="noopener"' : '' ?>><?= e($item['text']) ?></a>
+      <?php else: ?>
+        <span<?= $r ? ' aria-hidden="true"' : '' ?>><?= e($item['text']) ?></span>
+      <?php endif; ?>
       <img src="<?= e(asset('img/ticker-icone.svg')) ?>" alt="" width="18" height="18">
-    <?php endfor; ?>
+    <?php endforeach; endfor; ?>
   </div>
 </div>
 <?php endif; ?>

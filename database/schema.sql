@@ -150,3 +150,13 @@ CREATE TABLE IF NOT EXISTS rate_limits (
   created_at DATETIME NOT NULL,
   INDEX idx_rate (action, ip, created_at)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS home_sections (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  type VARCHAR(30) NOT NULL,        -- hero | blog | arquivo | playlists | acervo | contact | text_image | category_posts | rich_text | video
+  label VARCHAR(120) NOT NULL,      -- nome que aparece no painel
+  anchor VARCHAR(60) NULL,          -- âncora para o menu (/#ancora)
+  active TINYINT(1) NOT NULL DEFAULT 1,
+  sort_order INT NOT NULL DEFAULT 0,
+  data MEDIUMTEXT NULL              -- configurações da seção em JSON
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

@@ -24,6 +24,7 @@ require ROOT . '/app/auth.php';
 require ROOT . '/app/sanitizer.php';
 require ROOT . '/app/view.php';
 require ROOT . '/app/content.php';
+require ROOT . '/app/sections.php';
 
 session_name('arquivo_sess');
 session_set_cookie_params([

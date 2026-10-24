@@ -375,3 +375,22 @@ input:focus, textarea:focus { outline: 2px solid var(--c-button-bg); outline-off
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; }
 }
+
+/* ---------- Seções adicionadas pelo painel ---------- */
+.sec-custom { background: var(--s-bg, var(--c-arquivo-bg)); color: var(--s-text, var(--c-arquivo-text)); }
+.sec-custom .sec-title { color: var(--s-title, var(--c-arquivo-title)); }
+.sec-custom.sec-blog { color: var(--s-text, var(--c-card-bg)); }
+.split-reverse .split-media { order: 2; }
+.split-reverse { grid-template-columns: minmax(0, 7fr) minmax(0, 5fr); }
+.split-noimg { grid-template-columns: 1fr; }
+.section-content { font-size: 18px; }
+.section-content::after { content: ""; display: table; clear: both; }
+.video-feature { position: relative; aspect-ratio: 16 / 9; max-width: 1000px; margin: 28px auto 0; border-radius: 18px; overflow: hidden; background: #000; box-shadow: 0 18px 40px rgba(0,0,0,.35); }
+.video-feature iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+.ticker a { color: inherit; text-decoration: none; }
+.ticker a:hover { text-decoration: underline; }
+.ticker:hover .ticker-track { animation-play-state: paused; }
+@media (max-width: 960px) {
+  .split-reverse { grid-template-columns: 1fr; }
+  .split-reverse .split-media { order: 0; }
+}

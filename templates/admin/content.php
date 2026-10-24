@@ -30,13 +30,25 @@
 
   <?php elseif ($tab === 'home'): ?>
     <section class="a-card">
-      <h2>Faixa corrida e Blog</h2>
-      <label>Texto da faixa vermelha (vazio = esconde a faixa)<input name="ticker" value="<?= e($home['ticker']) ?>"></label>
+      <h2>Faixa corrida (avisos)</h2>
+      <p class="a-muted">Um aviso ou vários, um atrás do outro. Link é opcional. Sem nenhum aviso, a faixa some.</p>
+      <?php $avisos = ticker_items(); $avisos[] = ['text' => '', 'link' => '']; $avisos[] = ['text' => '', 'link' => '']; ?>
+      <div class="a-ticker-list" data-ticker-list>
+        <?php foreach ($avisos as $i => $av): ?>
+          <div class="a-row-2 a-ticker-row">
+            <label>Aviso <?= $i + 1 ?><input name="ticker_items[<?= $i ?>][text]" value="<?= e($av['text']) ?>" maxlength="200"></label>
+            <label>Link <small>(opcional)</small><input name="ticker_items[<?= $i ?>][link]" value="<?= e($av['link'] ?? '') ?>"></label>
+          </div>
+        <?php endforeach; ?>
+      </div>
+      <button type="button" class="a-btn a-btn-sm a-btn-ghost" data-add-ticker>+ Mais um aviso</button>
+      <small class="a-help" style="margin-top:8px">Para apagar um aviso, deixe o texto vazio e salve.</small>
+      <h2 style="margin-top:22px">Blog</h2>
       <div class="a-row-2">
         <label>Título da seção Blog<input name="blog_title" value="<?= e($home['blog_title']) ?>"></label>
         <label>Quantos posts mostrar na home<input type="number" name="blog_count" min="1" max="24" value="<?= (int) $home['blog_count'] ?>"></label>
       </div>
-      <p class="a-help">Os banners do topo ficam em <a href="/admin/banners">Banners do topo</a>.</p>
+      <p class="a-help">Os banners do topo ficam em <a href="/admin/banners">Banners do topo</a>. A ordem das seções fica em <a href="/admin/secoes">Seções da home</a>.</p>
     </section>
     <section class="a-card">
       <h2>O Arquivo</h2>

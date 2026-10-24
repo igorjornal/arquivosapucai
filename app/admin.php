@@ -9,6 +9,7 @@ function admin_dispatch(string $path): void
 {
     header('X-Robots-Tag: noindex, nofollow');
     header('Cache-Control: no-store');
+    run_migrations();
 
     $routes = [
         ['#^/admin/login$#',                          'admin_login', false],
@@ -41,6 +42,8 @@ function admin_dispatch(string $path): void
         ['#^/admin/aparencia$#',                      'admin_appearance', true],
         ['#^/admin/conteudo$#',                       'admin_content', true],
         ['#^/admin/banners$#',                        'admin_banners', true],
+        ['#^/admin/secoes$#',                         'admin_sections', true],
+        ['#^/admin/secoes/(\d+)$#',                  'admin_section_edit', true],
         ['#^/admin/menu$#',                           'admin_menu', true],
     ];
     foreach ($routes as [$pattern, $handler, $needsLogin]) {
@@ -814,7 +817,16 @@ function admin_content(): void
             save_setting('site', $site);
         } elseif ($tab === 'home') {
             $home = setting('home');
-            $text = ['ticker', 'blog_title', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'arquivo_link', 'playlists_title', 'playlists_intro', 'playlists_outro', 'acervo_title', 'acervo_text', 'historia_title', 'historia_text', 'acervo_button', 'acervo_link', 'contact_title', 'contact_text', 'arquivo_image', 'acervo_image'];
+            $ticker = [];
+            foreach ((array) ($_POST['ticker_items'] ?? []) as $item) {
+                $t = mb_substr(trim((string) ($item['text'] ?? '')), 0, 200);
+                if ($t !== '') {
+                    $ticker[] = ['text' => $t, 'link' => mb_substr(trim((string) ($item['link'] ?? '')), 0, 255)];
+                }
+            }
+            $home['ticker_items'] = $ticker;
+            $home['ticker'] = '';
+            $text = ['blog_title', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'arquivo_link', 'playlists_title', 'playlists_intro', 'playlists_outro', 'acervo_title', 'acervo_text', 'historia_title', 'historia_text', 'acervo_button', 'acervo_link', 'contact_title', 'contact_text', 'arquivo_image', 'acervo_image'];
             foreach ($text as $k) {
                 $home[$k] = mb_substr((string) ($_POST[$k] ?? ''), 0, 3000);
             }
@@ -854,6 +866,110 @@ function admin_content(): void
         'footer' => setting('footer'),
         'news'   => setting('newsletter'),
         'blog'   => setting('blog'),
+    ]);
+}
+
+/* ---------------- Seções da home ---------------- */
+
+function admin_sections(): void
+{
+    require_admin();
+    if (is_post()) {
+        $action = input('acao');
+        $id = (int) input('id');
+        $row = $id ? db_one('SELECT * FROM home_sections WHERE id = ?', [$id]) : null;
+        if ($action === 'mover' && $row) {
+            move_row('home_sections', $id, input('direcao'));
+        } elseif ($action === 'alternar' && $row) {
+            db_exec('UPDATE home_sections SET active = 1 - active WHERE id = ?', [$id]);
+            flash('success', $row['active'] ? '“' . $row['label'] . '” escondida da home.' : '“' . $row['label'] . '” voltou para a home.');
+        } elseif ($action === 'excluir' && $row && !section_types()[$row['type']]['builtin']) {
+            db_exec('DELETE FROM home_sections WHERE id = ?', [$id]);
+            flash('success', 'Seção removida.');
+        } elseif ($action === 'duplicar' && $row && !section_types()[$row['type']]['builtin']) {
+            $newId = db_insert('home_sections', [
+                'type' => $row['type'], 'label' => mb_substr($row['label'] . ' (cópia)', 0, 120), 'anchor' => null,
+                'active' => 0, 'sort_order' => (int) $row['sort_order'] + 1, 'data' => $row['data'],
+            ]);
+            flash('success', 'Seção duplicada. A cópia começa escondida.');
+            redirect('/admin/secoes/' . $newId);
+        } elseif ($action === 'adicionar') {
+            $type = input('tipo');
+            $types = section_types();
+            if (isset($types[$type]) && !$types[$type]['builtin']) {
+                $newId = db_insert('home_sections', [
+                    'type' => $type, 'label' => $types[$type]['label'], 'anchor' => null, 'active' => 0,
+                    'sort_order' => (int) db_val('SELECT COALESCE(MAX(sort_order), 0) + 1 FROM home_sections'),
+                    'data' => json_encode(default_section_data($type), JSON_UNESCAPED_UNICODE),
+                ]);
+                flash('success', 'Seção criada. Preencha e marque “Mostrar na home”.');
+                redirect('/admin/secoes/' . $newId);
+            }
+        }
+        redirect('/admin/secoes');
+    }
+    admin_render('sections', ['title' => 'Seções da home', 'sections' => home_sections(false), 'types' => section_types()]);
+}
+
+function admin_section_edit(string $id): void
+{
+    require_admin();
+    $section = null;
+    foreach (home_sections(false) as $s) {
+        if ((int) $s['id'] === (int) $id) {
+            $section = $s;
+        }
+    }
+    if (!$section) {
+        redirect('/admin/secoes');
+    }
+    $type = $section['type'];
+    $builtin = section_types()[$type]['builtin'];
+    if (is_post()) {
+        $anchor = slugify(input('anchor'));
+        $update = [
+            'label'  => mb_substr(input('label'), 0, 120) ?: $section['label'],
+            'anchor' => input('anchor') !== '' ? $anchor : null,
+            'active' => post_bool('active'),
+        ];
+        if (!$builtin) {
+            $d = $section['data'];
+            foreach (['bg', 'title_color', 'text_color'] as $c) {
+                $d[$c] = valid_color(input($c), $d[$c]);
+            }
+            $d['title'] = mb_substr(input('title'), 0, 200);
+            if ($type === 'text_image') {
+                $d['text'] = mb_substr((string) ($_POST['text'] ?? ''), 0, 5000);
+                $d['button_text'] = mb_substr(input('button_text'), 0, 80);
+                $d['button_link'] = mb_substr(input('button_link'), 0, 255);
+                $d['image'] = mb_substr(input('image'), 0, 255);
+                $d['image_side'] = input('image_side') === 'right' ? 'right' : 'left';
+            } elseif ($type === 'category_posts') {
+                $d['category_id'] = (int) input('category_id');
+                $d['count'] = max(1, min(24, (int) input('count', 3)));
+                $d['button_text'] = mb_substr(input('button_text'), 0, 80);
+            } elseif ($type === 'rich_text') {
+                $d['html'] = sanitize_html((string) ($_POST['html'] ?? ''));
+                $d['narrow'] = (bool) post_bool('narrow');
+            } elseif ($type === 'video') {
+                $d['url'] = mb_substr(input('url'), 0, 255);
+                $d['text'] = mb_substr((string) ($_POST['text'] ?? ''), 0, 3000);
+                if ($d['url'] !== '' && !youtube_id($d['url'])) {
+                    flash('error', 'Não reconheci o link do YouTube.');
+                }
+            }
+            $update['data'] = json_encode($d, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+        }
+        db_update('home_sections', (int) $section['id'], $update);
+        flash('success', 'Seção salva.');
+        redirect('/admin/secoes/' . (int) $section['id']);
+    }
+    admin_render('section-edit', [
+        'title'        => 'Seção: ' . $section['label'],
+        's'            => $section,
+        'builtin'      => $builtin,
+        'categories'   => db_all('SELECT id, name FROM categories ORDER BY sort_order, name'),
+        'editorAssets' => $type === 'rich_text',
     ]);
 }
 

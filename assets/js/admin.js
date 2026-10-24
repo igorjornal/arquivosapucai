@@ -88,6 +88,24 @@
     });
   });
 
+  // Mais um aviso na faixa corrida
+  var addTicker = document.querySelector('[data-add-ticker]');
+  if (addTicker) {
+    addTicker.addEventListener('click', function () {
+      var list = document.querySelector('[data-ticker-list]');
+      var rows = list.querySelectorAll('.a-ticker-row');
+      var clone = rows[rows.length - 1].cloneNode(true);
+      var n = rows.length;
+      clone.querySelectorAll('input').forEach(function (input) {
+        input.name = input.name.replace(/\[\d+\]/, '[' + n + ']');
+        input.value = '';
+      });
+      clone.querySelector('label').firstChild.textContent = 'Aviso ' + (n + 1);
+      list.appendChild(clone);
+      clone.querySelector('input').focus();
+    });
+  }
+
   /* ---------- Biblioteca de imagens (janela) ---------- */
   var modal = document.getElementById('media-modal');
   var grid = modal && modal.querySelector('[data-media-grid]');

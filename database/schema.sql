@@ -48,6 +48,7 @@ CREATE TABLE IF NOT EXISTS posts (
   featured TINYINT(1) NOT NULL DEFAULT 0,
   allow_comments TINYINT(1) NOT NULL DEFAULT 1,
   card_bg VARCHAR(20) NULL,
+  card_ratio VARCHAR(12) NULL, -- exceção ao formato padrão da foto do card
   meta_title VARCHAR(255) NULL,
   meta_description VARCHAR(300) NULL,
   views INT UNSIGNED NOT NULL DEFAULT 0,

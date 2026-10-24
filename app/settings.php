@@ -55,6 +55,9 @@ function settings_defaults(): array
             'comments_enabled'  => true,
             'comments_moderate' => true,
             'share_buttons'     => true,
+            'cards_per_row'      => 3,       // 2 a 5 (no celular sempre 1)
+            'cards_layout'       => 'grid',  // grid = grade reta | masonry = mosaico
+            'card_ratio'         => 'wide',  // original | banner | wide | landscape | square | portrait
             'card_title_lines'   => 3, // 0 = sem limite
             'card_excerpt_lines' => 3,
         ],

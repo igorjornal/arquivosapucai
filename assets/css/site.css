@@ -129,7 +129,13 @@ button, input, textarea, select { font: inherit; }
 .sec-blog { background: var(--c-blog-bg); color: var(--c-card-bg); }
 .sec-blog .sec-title { color: var(--c-blog-title); }
 
-.cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 22px; }
+.cards { display: grid; grid-template-columns: repeat(var(--cols, 3), minmax(0, 1fr)); gap: 22px; align-items: start; }
+.cards.cols-2 { --cols: 2; } .cards.cols-3 { --cols: 3; } .cards.cols-4 { --cols: 4; } .cards.cols-5 { --cols: 5; }
+.cards:not(.is-masonry) { align-items: stretch; }
+.cards.is-masonry { display: block; column-count: var(--cols, 3); column-gap: 22px; }
+.cards.is-masonry .card { break-inside: avoid; margin-bottom: 22px; display: inline-block; width: 100%; }
+.cards.cols-4 .card-title, .cards.cols-5 .card-title { font-size: 16px; }
+.card-media.is-original img { height: auto; }
 .card { --card-bg-final: var(--card-bg, var(--c-card-bg)); background: var(--card-bg-final); color: var(--c-card-text); border-radius: 18px; overflow: hidden; box-shadow: 0 6px 18px rgba(0,0,0,.18); transition: transform .25s, box-shadow .25s; }
 .card:hover { transform: translateY(-4px); box-shadow: 0 14px 30px rgba(0,0,0,.3); }
 .card-link { display: flex; flex-direction: column; height: 100%; text-decoration: none; color: inherit; }
@@ -348,6 +354,7 @@ input:focus, textarea:focus { outline: 2px solid var(--c-button-bg); outline-off
   .menu-toggle[aria-expanded="true"] span:nth-child(2) { opacity: 0; }
   .menu-toggle[aria-expanded="true"] span:nth-child(3) { transform: translateY(-8px) rotate(-45deg); }
   .split { grid-template-columns: 1fr; gap: 28px; }
+  .cards.cols-3, .cards.cols-4, .cards.cols-5 { --cols: 2; }
   .footer-grid { grid-template-columns: 1fr 1fr; }
   .footer-news { grid-column: 1 / -1; }
 }
@@ -356,6 +363,7 @@ input:focus, textarea:focus { outline: 2px solid var(--c-button-bg); outline-off
   .post-cover { float: none !important; width: 100% !important; margin: 0 0 24px !important; }
   .sec { padding: 46px 0; }
   .playlists { grid-template-columns: 1fr; }
+  .cards { --cols: 1 !important; }
   .acervo-cols, .row, .footer-grid { grid-template-columns: 1fr; gap: 24px; }
   .news-form { flex-direction: column; }
   .post-content { font-size: 18px; }

@@ -15,7 +15,7 @@
     <?php endif; ?>
 
     <?php if ($posts): ?>
-      <div class="cards">
+      <div class="<?= e(cards_class()) ?>">
         <?php foreach ($posts as $post) partial('post-card', ['post' => $post]); ?>
       </div>
     <?php elseif (isset($search) && $search === ''): ?>

@@ -121,6 +121,31 @@ function paginate(int $total, int $perPage, int $page): array
     return ['page' => $page, 'pages' => $pages, 'offset' => ($page - 1) * $perPage, 'per_page' => $perPage];
 }
 
+// Formatos de imagem oferecidos no painel
+function image_ratios(): array
+{
+    return [
+        'original'  => ['label' => 'Original (sem cortar)', 'css' => null],
+        'banner'    => ['label' => 'Banner fininho (3x1)', 'css' => '3 / 1'],
+        'wide'      => ['label' => 'Retangular (16x9)', 'css' => '16 / 9'],
+        'landscape' => ['label' => 'Retangular (4x3)', 'css' => '4 / 3'],
+        'square'    => ['label' => 'Quadrada (1x1)', 'css' => '1 / 1'],
+        'portrait'  => ['label' => 'Em pé (4x5)', 'css' => '4 / 5'],
+    ];
+}
+
+function ratio_css(?string $key): ?string
+{
+    return image_ratios()[$key ?? '']['css'] ?? null;
+}
+
+function cards_class(): string
+{
+    $blog = setting('blog');
+    $cols = max(2, min(5, (int) $blog['cards_per_row']));
+    return 'cards cols-' . $cols . ($blog['cards_layout'] === 'masonry' ? ' is-masonry' : '');
+}
+
 function avatar_url(?string $avatar): string
 {
     return $avatar ? media_url($avatar) : asset('img/avatar-padrao.svg');

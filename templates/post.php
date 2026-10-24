@@ -23,11 +23,10 @@ $totalComments = array_sum(array_map('count', $comments));
 
       <?php if ($post['cover_image']): ?>
         <?php
-        $ratios = ['banner' => '3 / 1', 'wide' => '16 / 9', 'landscape' => '4 / 3', 'square' => '1 / 1', 'portrait' => '4 / 5'];
         $coverAlign = in_array($post['cover_align'], ['left', 'center', 'right'], true) ? $post['cover_align'] : 'center';
         $coverWidth = max(20, min(100, (int) $post['cover_width']));
-        $imgStyle = isset($ratios[$post['cover_ratio']])
-            ? 'aspect-ratio:' . $ratios[$post['cover_ratio']] . ';object-fit:cover;object-position:' . e(preg_replace('/[^0-9% ]/', '', $post['cover_position']))
+        $imgStyle = ratio_css($post['cover_ratio'])
+            ? 'aspect-ratio:' . ratio_css($post['cover_ratio']) . ';object-fit:cover;object-position:' . e(preg_replace('/[^0-9% ]/', '', $post['cover_position']))
             : '';
         ?>
         <figure class="post-cover cover-<?= $coverAlign ?>" style="width:<?= $coverWidth ?>%">

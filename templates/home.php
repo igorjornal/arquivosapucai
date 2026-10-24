@@ -27,7 +27,7 @@ $nl2p = fn (string $text) => implode('', array_map(fn ($p) => '<p>' . e(trim($p)
       <a class="btn btn-red" href="/blog">VER TODAS</a>
     </div>
     <?php if ($posts): ?>
-      <div class="cards">
+      <div class="<?= e(cards_class()) ?>">
         <?php foreach ($posts as $post) partial('post-card', ['post' => $post]); ?>
       </div>
     <?php else: ?>

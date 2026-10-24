@@ -77,6 +77,8 @@ function sample_post_html(): string
 <tr><td style="background-color: #fff6c8; border: 1px solid #ffffff">Uso no Arquivo</td><td style="background-color: #fff6c8; border: 1px solid #ffffff">Ficha técnica e notas por quesito</td></tr>
 </tbody>
 </table>
+<h3>Vídeo do YouTube no meio do post</h3>
+<div class="video"><iframe src="https://www.youtube.com/watch?v=SLrGaE65GSM" title="Vídeo do canal Arquivo Sapucaí"></iframe></div>
 <hr class="divider-double divider-short">
 <ul><li>Lista com marcadores</li><li>Fácil de ler</li></ul>
 <ol><li>Lista numerada</li><li>Para passo a passo</li></ol>

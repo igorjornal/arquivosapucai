@@ -1,0 +1,7 @@
+/config.php
+/uploads/*
+!/uploads/.htaccess
+!/uploads/sample/
+/storage/*
+!/storage/.htaccess
+.DS_Store

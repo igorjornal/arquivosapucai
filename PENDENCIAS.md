@@ -14,5 +14,9 @@ O site atual (arquivosapucai.com.br) continua intocado.
 - [ ] **Testes do Igor.** O Igor está testando e anotando o que mudar. Trazer a lista para a próxima conversa.
 - [ ] **Links das playlists.** Trocar os links das 3 imagens de Playlists pelos links de cada playlist (Painel → Conteúdo do site → Textos da home).
 - [ ] **Redes sociais.** Preencher Instagram e as outras redes (Painel → Conteúdo do site → Site e redes).
+- [ ] **Carrossel do topo (banners):**
+  - escolher no painel a velocidade da troca;
+  - escolher o efeito da troca (sumir/aparecer ou deslizar para o lado);
+  - título e botão por cima da imagem, escritos no painel (opcional por banner; o Igor ainda vai avaliar).
 - [ ] **Animações GSAP.** Montar uma demonstração com efeitos na própria home para o Igor aprovar.
 - [ ] **Publicação final.** Depois dos testes aprovados, apontar `arquivosapucai.com.br` para o site novo (substituindo o Builder).

@@ -826,6 +826,7 @@ function admin_appearance(): void
     if (is_post()) {
         if (input('acao') === 'restaurar') {
             save_setting('appearance', $defaults);
+            save_setting('saved_type', []);
             flash('success', 'Cores e fontes voltaram ao padrão.');
             redirect('/admin/aparencia');
         }
@@ -851,6 +852,7 @@ function admin_appearance(): void
             ];
         }
         save_setting('appearance', ['colors' => $colors, 'fonts' => $fonts, 'sizes' => $sizes, 'type' => $type]);
+        save_setting('saved_type', ['menu' => true, 'post_title' => true, 'ticker' => true]);
         $blog = setting('blog');
         $blog['cards_per_row'] = max(2, min(5, (int) input('cards_per_row', 3)));
         $blog['cards_layout'] = input('cards_layout') === 'masonry' ? 'masonry' : 'grid';

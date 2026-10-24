@@ -34,7 +34,13 @@ function type_settings(): array
     $limits = ['menu' => [11, 28], 'post_title' => [20, 90], 'ticker' => [10, 28]];
     $out = [];
     foreach ($limits as $key => [$min, $max]) {
+        $saved = setting('saved_type') ?? [];
         $t = setting('appearance')['type'][$key] ?? [];
+        // Enquanto não foi escolhida no painel, usa a fonte que já valia antes (Títulos ou Menus/botões)
+        if (empty($saved[$key])) {
+            $fonts = setting('appearance')['fonts'];
+            $t['font'] = $key === 'post_title' ? $fonts['heading'] : $fonts['ui'];
+        }
         $font = preg_replace('/[^A-Za-z0-9 ]/', '', (string) ($t['font'] ?? '')) ?: 'Instrument Sans';
         $out[$key] = ['font' => $font, 'size' => max($min, min($max, (int) ($t['size'] ?? $min)))];
     }

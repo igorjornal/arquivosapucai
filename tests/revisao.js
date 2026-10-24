@@ -8,7 +8,8 @@ const IMG2 = '/home/user/arquivosapucai/assets/img/banner-serie-ouro-2027.webp';
 const results = [];
 let area = '';
 const ok = (name, cond, extra) => { results.push({ area, name, pass: !!cond, extra: extra || '' }); };
-const safe = async (name, fn) => { try { await fn(); } catch (e) { ok(name, false, 'erro: ' + e.message.split('\n')[0] + ' em ' + (pageRef && pageRef.url())); } };
+let failShots = 0;
+const safe = async (name, fn) => { try { await fn(); } catch (e) { if (pageRef && failShots < 3) { failShots++; await pageRef.screenshot({ path: process.argv[3] + '/falha-' + failShots + '.png' }).catch(() => {}); } ok(name, false, 'erro: ' + e.message.split('\n')[0] + ' em ' + (pageRef && pageRef.url())); } };
 let pageRef = null;
 
 (async () => {

@@ -43,6 +43,19 @@
     </section>
   </div>
 
+  <section class="a-card">
+    <h2>Cabeçalho e logo</h2>
+    <div class="a-row-2">
+      <label>Tamanho do logo: <output data-range-out><?= (int) ($a['sizes']['logo'] ?? 96) ?></output> px
+        <input type="range" name="size_logo" min="40" max="220" step="4" value="<?= (int) ($a['sizes']['logo'] ?? 96) ?>" data-range>
+      </label>
+      <label>Altura do cabeçalho: <output data-range-out><?= (int) ($a['sizes']['header'] ?? 120) ?></output> px
+        <input type="range" name="size_header" min="60" max="320" step="10" value="<?= (int) ($a['sizes']['header'] ?? 120) ?>" data-range>
+      </label>
+    </div>
+    <small class="a-help">No celular os dois ficam um pouco menores, automaticamente.</small>
+  </section>
+
   <h2 class="a-section-title">Cores</h2>
   <div class="a-color-groups">
     <?php foreach ($groups as $group => $fields): ?>

@@ -38,6 +38,10 @@ function appearance_css(): string
             $lines[] = '--c-' . str_replace('_', '-', $name) . ':' . $value;
         }
     }
+    $logo = max(40, min(220, (int) ($a['sizes']['logo'] ?? 96)));
+    $header = max(60, min(320, (int) ($a['sizes']['header'] ?? 120)));
+    $lines[] = '--logo-size:' . $logo . 'px';
+    $lines[] = '--header-height:' . $header . 'px';
     $blog = setting('blog');
     foreach (['card_title_lines' => '--card-title-lines', 'card_excerpt_lines' => '--card-excerpt-lines'] as $key => $var) {
         $n = (int) $blog[$key];

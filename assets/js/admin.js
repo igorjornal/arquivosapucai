@@ -71,6 +71,12 @@
     input.addEventListener('input', function () { code.textContent = input.value.toUpperCase(); });
   });
 
+  // Número ao lado das réguas
+  document.querySelectorAll('[data-range]').forEach(function (r) {
+    var out = r.closest('label').querySelector('[data-range-out]');
+    r.addEventListener('input', function () { out.textContent = r.value; });
+  });
+
   // Amostra de fonte na Aparência
   var loadedFonts = {};
   document.querySelectorAll('[data-font-select]').forEach(function (select) {

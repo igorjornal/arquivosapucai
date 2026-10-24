@@ -776,7 +776,11 @@ function admin_appearance(): void
             $font = (string) ($_POST['fonts'][$role] ?? '');
             $fonts[$role] = in_array($font, font_choices(), true) ? $font : $current['fonts'][$role];
         }
-        save_setting('appearance', ['colors' => $colors, 'fonts' => $fonts]);
+        $sizes = [
+            'logo'   => max(40, min(220, (int) input('size_logo', 96))),
+            'header' => max(60, min(320, (int) input('size_header', 120))),
+        ];
+        save_setting('appearance', ['colors' => $colors, 'fonts' => $fonts, 'sizes' => $sizes]);
         $blog = setting('blog');
         $blog['cards_per_row'] = max(2, min(5, (int) input('cards_per_row', 3)));
         $blog['cards_layout'] = input('cards_layout') === 'masonry' ? 'masonry' : 'grid';

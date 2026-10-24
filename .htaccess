@@ -9,7 +9,7 @@ DirectoryIndex index.php
   # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
   # Pastas internas nunca são servidas diretamente
-  RewriteRule ^(app|templates|database|storage)(/|$) - [F,L]
+  RewriteRule ^(app|templates|database|storage|tests)(/|$) - [F,L]
   RewriteRule ^config\.php$ - [F,L]
 
   # Arquivos e pastas reais (css, js, imagens) são servidos normalmente

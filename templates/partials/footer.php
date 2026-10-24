@@ -21,7 +21,7 @@ $names = ['youtube' => 'YouTube', 'instagram' => 'Instagram', 'facebook' => 'Fac
       <h2>Navegue</h2>
       <ul>
         <?php foreach (menu_items() as $item): ?>
-          <li><a href="<?= e($item['url']) ?>"><?= e($item['label']) ?></a></li>
+          <li><a href="<?= e($item['url']) ?>"<?= $item['new_tab'] ? ' target="_blank" rel="noopener"' : '' ?>><?= e($item['label']) ?></a></li>
         <?php endforeach; ?>
         <li><a href="/feed.xml">RSS</a></li>
       </ul>

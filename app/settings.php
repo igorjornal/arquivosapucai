@@ -70,6 +70,10 @@ function settings_defaults(): array
             'text'  => 'Novos posts, playlists e estudos de caso direto no seu e-mail.',
         ],
         'appearance' => [
+            'sizes' => [
+                'logo'   => 96,  // tamanho do logo no cabeçalho (px)
+                'header' => 120, // altura do cabeçalho (px)
+            ],
             'fonts' => [
                 'heading' => 'Syne',
                 'body'    => 'Bitter',

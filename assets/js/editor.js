@@ -28,6 +28,33 @@
     return String(s == null ? '' : s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; });
   }
 
+  // Se o cursor estiver dentro de uma imagem (ou da legenda), leva para o parágrafo logo depois dela,
+  // para o próximo conteúdo não entrar na legenda.
+  function moveOutOfFigure(editor) {
+    var fig = editor.dom.getParent(editor.selection.getNode(), 'figure');
+    if (!fig) return;
+    var next = fig.nextElementSibling;
+    if (!next || next.nodeName !== 'P') {
+      next = editor.dom.create('p', {}, '<br data-mce-bogus="1">');
+      editor.dom.insertAfter(next, fig);
+    }
+    editor.selection.setCursorLocation(next, 0);
+  }
+
+  // Insere conteúdo e deixa o cursor num parágrafo novo logo depois
+  var insertingBlock = false;
+  function insertBlock(editor, html) {
+    moveOutOfFigure(editor);
+    insertingBlock = true;
+    editor.insertContent(html + '<p data-arq-after="1"><br data-mce-bogus="1"></p>');
+    var after = editor.getBody().querySelector('p[data-arq-after]');
+    if (after) {
+      after.removeAttribute('data-arq-after');
+      editor.selection.setCursorLocation(after, 0);
+    }
+    insertingBlock = false;
+  }
+
   /* ---------- Imagem ---------- */
   function imageDialog(editor) {
     var fig = editor.dom.getParent(editor.selection.getNode(), 'figure.image');
@@ -110,7 +137,7 @@
         if (fig) {
           editor.undoManager.transact(function () { editor.dom.setOuterHTML(fig, html); });
         } else {
-          editor.insertContent(html + (d.align === 'left' || d.align === 'right' ? '' : '<p></p>'));
+          insertBlock(editor, html);
         }
         api.close();
       }
@@ -146,7 +173,7 @@
       onSubmit: function (api) {
         var id = youtubeId(api.getData().url);
         if (!id) { editor.notificationManager.open({ text: 'Não reconheci esse link do YouTube.', type: 'warning', timeout: 3000 }); return; }
-        editor.insertContent(videoHtml(id));
+        insertBlock(editor, videoHtml(id).replace('<p></p>', ''));
         api.close();
       }
     });
@@ -202,7 +229,7 @@
         if (a && p) {
           editor.undoManager.transact(function () { editor.dom.setOuterHTML(p, html); });
         } else {
-          editor.insertContent(html);
+          insertBlock(editor, html);
         }
         api.close();
       }
@@ -219,7 +246,7 @@
       initialData: { h: '40' },
       buttons: [{ type: 'cancel', text: 'Cancelar' }, { type: 'submit', text: 'Inserir', primary: true }],
       onSubmit: function (api) {
-        editor.insertContent('<div class="spacer" style="height: ' + api.getData().h + 'px"></div><p></p>');
+        insertBlock(editor, '<div class="spacer" style="height: ' + api.getData().h + 'px"></div>');
         api.close();
       }
     });
@@ -318,7 +345,7 @@
           var styles = [['', 'Simples'], ['divider-dashed', 'Tracejada'], ['divider-dotted', 'Pontilhada'], ['divider-double', 'Dupla'],
             ['divider-short', 'Simples curta'], ['divider-dashed divider-short', 'Tracejada curta']];
           cb(styles.map(function (s) {
-            return { type: 'menuitem', text: s[1], onAction: function () { editor.insertContent('<hr' + (s[0] ? ' class="' + s[0] + '"' : '') + '><p></p>'); } };
+            return { type: 'menuitem', text: s[1], onAction: function () { insertBlock(editor, '<hr' + (s[0] ? ' class="' + s[0] + '"' : '') + '>'); } };
           }));
         }
       });
@@ -339,6 +366,14 @@
             { type: 'nestedmenuitem', text: 'Antes e depois', getSubmenuItems: function () { return sub('both'); } },
             { type: 'menuitem', text: 'Voltar ao padrão', onAction: function () { setBlockSpacing(editor, 'both', null); } }
           ]);
+        }
+      });
+
+      // Tabela ou qualquer comando de inserir não pode cair dentro da legenda da imagem
+      editor.on('BeforeExecCommand', function (e) {
+        if (/^(mceInsertTable|mceInsertContent|InsertHorizontalRule|InsertUnorderedList|InsertOrderedList)$/.test(e.command) && !insertingBlock) {
+          var fig = editor.dom.getParent(editor.selection.getNode(), 'figcaption');
+          if (fig) moveOutOfFigure(editor);
         }
       });
 

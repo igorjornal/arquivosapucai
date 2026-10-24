@@ -23,7 +23,7 @@ Na área de **Bancos de Dados MySQL**, crie um banco novo. Anote estes 4 dados:
 5. Pode apagar o zip depois.
 
 ## 4. Rodar o instalador
-1. Abra no navegador: `https://novo.arquivosapucai.com.br/install.php`
+1. Abra no navegador: `http://novo.arquivosapucai.com.br/install.php` (ou `https://` se o cadeado já estiver ativo)
 2. Confira se todos os itens da lista estão com ✅.
 3. Preencha os dados do banco (passo 2), o endereço do site e o **seu** e-mail e senha do painel.
 4. Clique em **Instalar**. Você cai direto na tela de login do painel.
@@ -34,7 +34,7 @@ Depois de instalado, o instalador se bloqueia sozinho.
 `https://novo.arquivosapucai.com.br/admin`. Também dá para entrar pelo link “Área do autor”, no rodapé.
 
 ## Se algo der errado
-- **Página com “muitos redirecionamentos” ou erro de segurança (SSL):** o certificado do subdomínio ainda não foi ativado. Ative o SSL para o subdomínio no painel da Hostinger e espere alguns minutos.
+- **SSL (cadeado):** enquanto o certificado não estiver ativo, use o endereço com `http://`. Depois de ativo, peça para religar o redirecionamento para `https` (duas linhas no arquivo `.htaccess`).
 - **Erro 500:** confira a versão do PHP do subdomínio (precisa ser 8.1 ou mais nova).
 - **Qualquer outra coisa:** mande um print na conversa.
 

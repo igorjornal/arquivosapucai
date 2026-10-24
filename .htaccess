@@ -4,9 +4,9 @@ DirectoryIndex index.php
 <IfModule mod_rewrite.c>
   RewriteEngine On
 
-  # Força HTTPS (desativar comentando as duas linhas se o SSL ainda não estiver ativo)
-  RewriteCond %{HTTPS} !=on
-  RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+  # Força HTTPS. Só ative (tirando o # das duas linhas) depois que o certificado SSL estiver ativo.
+  # RewriteCond %{HTTPS} !=on
+  # RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
   # Pastas internas nunca são servidas diretamente
   RewriteRule ^(app|templates|database|storage)(/|$) - [F,L]

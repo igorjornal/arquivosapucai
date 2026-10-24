@@ -38,6 +38,7 @@
           <div class="a-row-2 a-ticker-row">
             <label>Aviso <?= $i + 1 ?><input name="ticker_items[<?= $i ?>][text]" value="<?= e($av['text']) ?>" maxlength="200"></label>
             <label>Link <small>(opcional)</small><input name="ticker_items[<?= $i ?>][link]" value="<?= e($av['link'] ?? '') ?>"></label>
+            <label class="a-check a-span-2"><input type="checkbox" name="ticker_items[<?= $i ?>][new_tab]" value="1"<?= !empty($av['new_tab']) ? ' checked' : '' ?>> Abrir em nova aba</label>
           </div>
         <?php endforeach; ?>
       </div>
@@ -58,6 +59,7 @@
         <label>Texto do botão<input name="arquivo_button" value="<?= e($home['arquivo_button']) ?>"></label>
         <label>Link do botão<input name="arquivo_link" value="<?= e($home['arquivo_link']) ?>"></label>
       </div>
+      <label class="a-check"><input type="checkbox" name="arquivo_new_tab" value="1"<?= ($home['arquivo_new_tab'] ?? preg_match('#^https?://#', (string) $home['arquivo_link'])) ? ' checked' : '' ?>> Abrir o link em nova aba</label>
       <?= image_field('arquivo_image', $home['arquivo_image'], 'Imagem') ?>
     </section>
     <section class="a-card">
@@ -71,6 +73,7 @@
             <legend><?= $pl['title'] !== '' ? e($pl['title']) : 'Nova playlist' ?></legend>
             <label>Nome<input name="playlists[<?= $i ?>][title]" value="<?= e($pl['title']) ?>"></label>
             <label>Link da playlist no YouTube<input name="playlists[<?= $i ?>][link]" value="<?= e($pl['link']) ?>" placeholder="https://www.youtube.com/playlist?list=..."></label>
+            <label class="a-check"><input type="checkbox" name="playlists[<?= $i ?>][new_tab]" value="1"<?= ($pl['new_tab'] ?? true) ? ' checked' : '' ?>> Abrir em nova aba</label>
             <?= image_field("playlists[{$i}][image]", $pl['image'], 'Imagem') ?>
             <?php if ($pl['title'] !== ''): ?><small class="a-help">Para remover, apague o nome e a imagem e salve.</small><?php endif; ?>
           </fieldset>
@@ -95,6 +98,7 @@
         <label>Texto do botão<input name="acervo_button" value="<?= e($home['acervo_button']) ?>"></label>
         <label>Link do botão<input name="acervo_link" value="<?= e($home['acervo_link']) ?>"></label>
       </div>
+      <label class="a-check"><input type="checkbox" name="acervo_new_tab" value="1"<?= !empty($home['acervo_new_tab']) ? ' checked' : '' ?>> Abrir o link em nova aba</label>
     </section>
     <section class="a-card">
       <h2>Contato</h2>

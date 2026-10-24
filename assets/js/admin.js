@@ -98,7 +98,7 @@
       var n = rows.length;
       clone.querySelectorAll('input').forEach(function (input) {
         input.name = input.name.replace(/\[\d+\]/, '[' + n + ']');
-        input.value = '';
+        if (input.type === 'checkbox') { input.checked = false; } else { input.value = ''; }
       });
       clone.querySelector('label').firstChild.textContent = 'Aviso ' + (n + 1);
       list.appendChild(clone);

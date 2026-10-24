@@ -8,7 +8,7 @@
       <?php if ($d['title'] !== ''): ?><h2 class="sec-title"><?= e($d['title']) ?></h2><?php endif; ?>
       <?= $nl2p((string) $d['text']) ?>
       <?php if ($d['button_text'] !== '' && $d['button_link'] !== ''): ?>
-        <a class="btn" href="<?= e($d['button_link']) ?>"<?= str_starts_with($d['button_link'], 'http') ? ' target="_blank" rel="noopener"' : '' ?>><?= e($d['button_text']) ?></a>
+        <a class="btn" href="<?= e($d['button_link']) ?>"<?= link_target($d['button_link'], $d['button_new_tab'] ?? null) ?>><?= e($d['button_text']) ?></a>
       <?php endif; ?>
     </div>
   </div>

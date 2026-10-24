@@ -33,7 +33,7 @@ $headerBg = media_url($site['header_bg']);
   <div class="ticker-track" style="animation-duration: <?= max(25, 8 * count($ticker) * $reps / 2) ?>s">
     <?php for ($r = 0; $r < $reps; $r++): foreach ($ticker as $item): ?>
       <?php if ($item['link'] ?? ''): ?>
-        <a href="<?= e($item['link']) ?>"<?= $r ? ' tabindex="-1" aria-hidden="true"' : '' ?><?= str_starts_with((string) $item['link'], 'http') ? ' target="_blank" rel="noopener"' : '' ?>><?= e($item['text']) ?></a>
+        <a href="<?= e($item['link']) ?>"<?= $r ? ' tabindex="-1" aria-hidden="true"' : '' ?><?= link_target((string) $item['link'], $item['new_tab'] ?? null) ?>><?= e($item['text']) ?></a>
       <?php else: ?>
         <span<?= $r ? ' aria-hidden="true"' : '' ?>><?= e($item['text']) ?></span>
       <?php endif; ?>

@@ -213,9 +213,8 @@ details.a-card[open] summary::before { content: "▾ "; }
 
 /* Banners e menu */
 .a-banner, .a-menu-item { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 16px; align-items: start; }
-.a-banner { grid-template-columns: 300px minmax(0, 1fr) auto; }
+.a-banner { grid-template-columns: minmax(0, 1fr) auto; }
 .a-banner-img { width: 100%; border-radius: 8px; }
-.a-banner .a-image-preview { display: none; }
 .a-order { display: grid; gap: 6px; }
 .a-menu-form { display: grid; grid-template-columns: 1fr 1.4fr auto auto; gap: 12px; align-items: end; }
 .a-menu-form label { margin: 0; }
@@ -250,3 +249,4 @@ details.a-card[open] summary::before { content: "▾ "; }
 .a-add-card .a-btn { justify-self: start; }
 .a-ticker-row label { margin-bottom: 10px; }
 @media (max-width: 860px) { .a-section-row { grid-template-columns: 1fr; } }
+.a-span-2 { grid-column: 1 / -1; margin-top: -6px; }

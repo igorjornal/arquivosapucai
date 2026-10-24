@@ -100,6 +100,13 @@ function run_migrations(): void
         seed_home_sections();
         save_setting_raw('schema_version', 2);
     }
+    if ($version < 3) {
+        $has = db_val("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'slides' AND COLUMN_NAME = 'new_tab'");
+        if (!(int) $has) {
+            db()->exec('ALTER TABLE slides ADD COLUMN new_tab TINYINT(1) NOT NULL DEFAULT 0 AFTER link');
+        }
+        save_setting_raw('schema_version', 3);
+    }
 }
 
 function save_setting_raw(string $name, $value): void

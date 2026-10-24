@@ -291,6 +291,13 @@ function youtube_id(string $url): ?string
     return null;
 }
 
+// Atributos de link: abre em nova aba se pedido (ou, sem escolha salva, se for site de fora)
+function link_target(string $url, $newTab = null): string
+{
+    $open = $newTab === null ? (bool) preg_match('#^https?://#', $url) : (bool) $newTab;
+    return $open ? ' target="_blank" rel="noopener"' : '';
+}
+
 function send_mail(string $to, string $subject, string $body, ?string $replyTo = null): bool
 {
     if ($to === '') {

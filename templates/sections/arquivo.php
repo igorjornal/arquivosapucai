@@ -7,7 +7,7 @@
       <h2 class="sec-title"><?= e($home['arquivo_title']) ?></h2>
       <?= $nl2p($home['arquivo_text']) ?>
       <?php if ($home['arquivo_button']): ?>
-        <a class="btn" href="<?= e($home['arquivo_link'] ?: '#') ?>"<?= $home['arquivo_link'] && str_starts_with($home['arquivo_link'], 'http') ? ' target="_blank" rel="noopener"' : '' ?>><?= e($home['arquivo_button']) ?></a>
+        <a class="btn" href="<?= e($home['arquivo_link'] ?: '#') ?>"<?= link_target((string) $home['arquivo_link'], $home['arquivo_new_tab'] ?? null) ?>><?= e($home['arquivo_button']) ?></a>
       <?php endif; ?>
     </div>
   </div>

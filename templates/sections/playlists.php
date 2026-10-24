@@ -4,7 +4,7 @@
     <div class="sec-intro"><?= $nl2p($home['playlists_intro']) ?></div>
     <div class="playlists">
       <?php foreach ($home['playlists'] as $pl): ?>
-        <a class="playlist" href="<?= e($pl['link'] ?: '#') ?>"<?= $pl['link'] ? ' target="_blank" rel="noopener"' : '' ?>>
+        <a class="playlist" href="<?= e($pl['link'] ?: '#') ?>"<?= $pl['link'] ? link_target($pl['link'], $pl['new_tab'] ?? true) : '' ?>>
           <img src="<?= e(media_url($pl['image'])) ?>" alt="" loading="lazy">
           <span><?= e($pl['title']) ?></span>
         </a>

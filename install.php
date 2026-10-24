@@ -96,7 +96,7 @@ if ($cli || ($_SERVER['REQUEST_METHOD'] ?? '') === 'POST') {
         }
         seed_initial_content($adminId);
         seed_home_sections();
-        save_setting_raw('schema_version', 2);
+        save_setting_raw('schema_version', 3);
         if (!is_dir(ROOT . '/storage')) mkdir(ROOT . '/storage', 0755, true);
         file_put_contents($lockFile, date('c'));
         if ($cli) {

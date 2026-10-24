@@ -9,6 +9,7 @@ function admin_dispatch(string $path): void
 {
     header('X-Robots-Tag: noindex, nofollow');
     header('Cache-Control: no-store');
+    header('X-LiteSpeed-Cache-Control: no-cache');
     run_migrations();
 
     $routes = [
@@ -821,7 +822,7 @@ function admin_content(): void
             foreach ((array) ($_POST['ticker_items'] ?? []) as $item) {
                 $t = mb_substr(trim((string) ($item['text'] ?? '')), 0, 200);
                 if ($t !== '') {
-                    $ticker[] = ['text' => $t, 'link' => mb_substr(trim((string) ($item['link'] ?? '')), 0, 255)];
+                    $ticker[] = ['text' => $t, 'link' => mb_substr(trim((string) ($item['link'] ?? '')), 0, 255), 'new_tab' => !empty($item['new_tab'])];
                 }
             }
             $home['ticker_items'] = $ticker;
@@ -831,6 +832,8 @@ function admin_content(): void
                 $home[$k] = mb_substr((string) ($_POST[$k] ?? ''), 0, 3000);
             }
             $home['blog_count'] = max(1, min(24, (int) input('blog_count', 6)));
+            $home['arquivo_new_tab'] = (bool) post_bool('arquivo_new_tab');
+            $home['acervo_new_tab'] = (bool) post_bool('acervo_new_tab');
             $playlists = [];
             foreach ((array) ($_POST['playlists'] ?? []) as $pl) {
                 if (trim((string) ($pl['title'] ?? '')) === '' && trim((string) ($pl['image'] ?? '')) === '') {
@@ -840,6 +843,7 @@ function admin_content(): void
                     'title' => mb_substr(trim((string) $pl['title']), 0, 120),
                     'image' => mb_substr(trim((string) $pl['image']), 0, 255),
                     'link'  => mb_substr(trim((string) $pl['link']), 0, 255),
+                    'new_tab' => !empty($pl['new_tab']),
                 ];
             }
             $home['playlists'] = $playlists;
@@ -942,6 +946,7 @@ function admin_section_edit(string $id): void
                 $d['text'] = mb_substr((string) ($_POST['text'] ?? ''), 0, 5000);
                 $d['button_text'] = mb_substr(input('button_text'), 0, 80);
                 $d['button_link'] = mb_substr(input('button_link'), 0, 255);
+                $d['button_new_tab'] = (bool) post_bool('button_new_tab');
                 $d['image'] = mb_substr(input('image'), 0, 255);
                 $d['image_side'] = input('image_side') === 'right' ? 'right' : 'left';
             } elseif ($type === 'category_posts') {
@@ -990,8 +995,9 @@ function admin_banners(): void
             $data = [
                 'image'  => mb_substr(input('image'), 0, 255),
                 'alt'    => mb_substr(input('alt'), 0, 255) ?: null,
-                'link'   => mb_substr(input('link'), 0, 255) ?: null,
-                'active' => post_bool('active'),
+                'link'    => mb_substr(input('link'), 0, 255) ?: null,
+                'new_tab' => post_bool('new_tab'),
+                'active'  => post_bool('active'),
             ];
             if ($data['image'] === '') {
                 flash('error', 'Escolha a imagem do banner.');

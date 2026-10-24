@@ -14,7 +14,7 @@
       </div>
     </div>
     <?php if ($home['acervo_button']): ?>
-      <div class="center"><a class="btn btn-dark" href="<?= e($home['acervo_link'] ?: '#') ?>"><?= e($home['acervo_button']) ?></a></div>
+      <div class="center"><a class="btn btn-dark" href="<?= e($home['acervo_link'] ?: '#') ?>"<?= link_target((string) $home['acervo_link'], $home['acervo_new_tab'] ?? null) ?>><?= e($home['acervo_button']) ?></a></div>
     <?php endif; ?>
   </div>
 </section>

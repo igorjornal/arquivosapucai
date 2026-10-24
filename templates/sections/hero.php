@@ -4,7 +4,7 @@
   <div class="slider" data-slider>
     <?php foreach ($slides as $i => $slide): ?>
       <div class="slide<?= $i === 0 ? ' is-active' : '' ?>" data-slide>
-        <?php if ($slide['link']): ?><a href="<?= e($slide['link']) ?>"><?php endif; ?>
+        <?php if ($slide['link']): ?><a href="<?= e($slide['link']) ?>"<?= link_target($slide['link'], $slide['new_tab'] ?? null) ?>><?php endif; ?>
         <img src="<?= e(media_url($slide['image'])) ?>" alt="<?= e($slide['alt']) ?>"<?= $i ? ' loading="lazy"' : ' fetchpriority="high"' ?>>
         <?php if ($slide['link']): ?></a><?php endif; ?>
       </div>

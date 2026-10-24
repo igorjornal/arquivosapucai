@@ -41,6 +41,7 @@ $editTexts = [
             <label>Texto do botão <small>(opcional)</small><input name="button_text" value="<?= e($d['button_text']) ?>"></label>
             <label>Link do botão<input name="button_link" value="<?= e($d['button_link']) ?>"></label>
           </div>
+          <label class="a-check"><input type="checkbox" name="button_new_tab" value="1"<?= ($d['button_new_tab'] ?? preg_match('#^https?://#', (string) $d['button_link'])) ? ' checked' : '' ?>> Abrir o link em nova aba</label>
           <?= image_field('image', $d['image'], 'Imagem') ?>
           <div class="a-label">Imagem do lado</div>
           <div class="a-seg">

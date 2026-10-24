@@ -1,0 +1,38 @@
+/* Painel administrativo */
+*, *::before, *::after { box-sizing: border-box; }
+body { margin: 0; font-family: 'Instrument Sans', system-ui, sans-serif; background: #F4F2EA; color: #1E0D06; }
+a { color: inherit; }
+.notice { padding: 12px 16px; border-radius: 8px; font-size: 15px; }
+.notice-success { background: #E3F7D4; color: #1F4D0D; }
+.notice-error { background: #FDE2E2; color: #7A1010; }
+label { display: grid; gap: 6px; font-weight: 600; font-size: 14px; margin-bottom: 14px; }
+input, textarea, select { width: 100%; padding: 10px 12px; border: 1px solid #CFC9B2; border-radius: 8px; font: inherit; background: #fff; }
+.a-btn { background: #CDF50D; color: #1E0D06; border: 0; border-radius: 6px; padding: 12px 22px; font: inherit; font-weight: 700; cursor: pointer; }
+.a-btn:hover { background: #20063A; color: #CDF50D; }
+.a-link { background: none; border: 0; padding: 0; color: inherit; text-decoration: underline; cursor: pointer; font: inherit; }
+
+.admin-login { background: #20063A; min-height: 100vh; display: grid; place-items: center; padding: 20px; }
+.login-box { background: #FDFCF0; border-radius: 16px; padding: 36px; width: min(420px, 100%); text-align: center; }
+.login-box img { margin: 0 auto 10px; }
+.login-box form { text-align: left; margin-top: 20px; }
+.login-box .a-btn { width: 100%; }
+
+.admin { display: grid; grid-template-columns: 240px 1fr; min-height: 100vh; }
+.a-side { background: #20063A; color: #E9E6D3; padding: 22px 18px; display: flex; flex-direction: column; gap: 22px; }
+.a-brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 18px; text-decoration: none; color: #CDF50D; }
+.a-side nav { display: grid; gap: 4px; }
+.a-side nav a, .a-soon { padding: 9px 12px; border-radius: 8px; text-decoration: none; }
+.a-side nav a:hover { background: rgba(255,255,255,.08); }
+.a-soon { opacity: .5; }
+.a-soon em { font-size: 11px; font-style: normal; }
+.a-side form { margin-top: auto; font-size: 14px; }
+.a-main { padding: 34px clamp(18px, 4vw, 48px); }
+.a-stats { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 16px; margin-top: 24px; }
+.a-stat { background: #fff; border-radius: 12px; padding: 18px; display: grid; gap: 4px; box-shadow: 0 2px 8px rgba(0,0,0,.05); }
+.a-stat strong { font-size: 30px; }
+@media (max-width: 760px) {
+  .admin { grid-template-columns: 1fr; }
+  .a-side { flex-direction: row; flex-wrap: wrap; align-items: center; }
+  .a-side nav { display: flex; flex-wrap: wrap; }
+  .a-side form { margin: 0; }
+}

@@ -1,0 +1,134 @@
+<?php
+declare(strict_types=1);
+
+// Consultas de conteúdo usadas pelo site público
+
+const POST_SELECT = 'SELECT p.*, c.name AS category_name, c.slug AS category_slug,
+        u.name AS author_name, u.slug AS author_slug, u.avatar AS author_avatar
+    FROM posts p
+    LEFT JOIN categories c ON c.id = p.category_id
+    JOIN users u ON u.id = p.author_id';
+
+// Publicado e com data já alcançada (posts agendados aparecem sozinhos na hora certa)
+function published_clause(): string
+{
+    return "p.status = 'published' AND p.published_at <= ?";
+}
+
+function latest_posts(int $limit, int $offset = 0, array $filter = []): array
+{
+    [$where, $params] = post_filter($filter);
+    $params[] = $limit;
+    $params[] = $offset;
+    return db_all(POST_SELECT . " WHERE {$where} ORDER BY p.featured DESC, p.published_at DESC LIMIT ? OFFSET ?", $params);
+}
+
+function count_posts(array $filter = []): int
+{
+    [$where, $params] = post_filter($filter);
+    return (int) db_val("SELECT COUNT(*) FROM posts p WHERE {$where}", $params);
+}
+
+function post_filter(array $filter): array
+{
+    $where = [published_clause()];
+    $params = [now()];
+    if (!empty($filter['category_id'])) {
+        $where[] = 'p.category_id = ?';
+        $params[] = (int) $filter['category_id'];
+    }
+    if (!empty($filter['author_id'])) {
+        $where[] = 'p.author_id = ?';
+        $params[] = (int) $filter['author_id'];
+    }
+    if (!empty($filter['tag_id'])) {
+        $where[] = 'p.id IN (SELECT post_id FROM post_tag WHERE tag_id = ?)';
+        $params[] = (int) $filter['tag_id'];
+    }
+    if (!empty($filter['exclude'])) {
+        $where[] = 'p.id <> ?';
+        $params[] = (int) $filter['exclude'];
+    }
+    if (isset($filter['q']) && $filter['q'] !== '') {
+        $like = '%' . addcslashes($filter['q'], '%_\\') . '%';
+        $where[] = '(p.title LIKE ? OR p.excerpt LIKE ? OR p.content LIKE ?)';
+        array_push($params, $like, $like, $like);
+    }
+    return [implode(' AND ', $where), $params];
+}
+
+function find_published_post(string $slug): ?array
+{
+    return db_one(POST_SELECT . ' WHERE p.slug = ? AND ' . published_clause(), [$slug, now()]);
+}
+
+function post_url(array $post): string
+{
+    return '/blog/' . $post['slug'];
+}
+
+function post_excerpt(array $post, int $length = 160): string
+{
+    return $post['excerpt'] ? text_excerpt($post['excerpt'], $length) : text_excerpt($post['content'], $length);
+}
+
+function post_tags(int $postId): array
+{
+    return db_all('SELECT t.* FROM tags t JOIN post_tag pt ON pt.tag_id = t.id WHERE pt.post_id = ? ORDER BY t.name', [$postId]);
+}
+
+function categories_with_posts(): array
+{
+    return db_all(
+        'SELECT c.*, (SELECT COUNT(*) FROM posts p WHERE p.category_id = c.id AND ' . published_clause() . ') AS total
+         FROM categories c ORDER BY c.sort_order, c.name',
+        [now()]
+    );
+}
+
+function approved_comments(int $postId): array
+{
+    $rows = db_all(
+        "SELECT * FROM comments WHERE post_id = ? AND status = 'approved' ORDER BY created_at ASC",
+        [$postId]
+    );
+    // Organiza respostas embaixo do comentário original
+    $byParent = [];
+    foreach ($rows as $row) {
+        $byParent[(int) ($row['parent_id'] ?? 0)][] = $row;
+    }
+    return $byParent;
+}
+
+function menu_items(): array
+{
+    try {
+        return db_all('SELECT * FROM menu_items ORDER BY sort_order, id');
+    } catch (PDOException $e) {
+        return [];
+    }
+}
+
+function active_slides(): array
+{
+    return db_all('SELECT * FROM slides WHERE active = 1 ORDER BY sort_order, id');
+}
+
+function paginate(int $total, int $perPage, int $page): array
+{
+    $pages = max(1, (int) ceil($total / $perPage));
+    $page = min(max(1, $page), $pages);
+    return ['page' => $page, 'pages' => $pages, 'offset' => ($page - 1) * $perPage, 'per_page' => $perPage];
+}
+
+function avatar_url(?string $avatar): string
+{
+    return $avatar ? media_url($avatar) : asset('img/avatar-padrao.svg');
+}
+
+function gravatar_initials(string $name): string
+{
+    $parts = preg_split('/\s+/', trim($name));
+    $initials = mb_substr($parts[0] ?? '', 0, 1) . (count($parts) > 1 ? mb_substr(end($parts), 0, 1) : '');
+    return mb_strtoupper($initials ?: '?');
+}

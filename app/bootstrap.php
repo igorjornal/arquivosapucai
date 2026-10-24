@@ -1,8 +1,8 @@
 <?php
 declare(strict_types=1);
 
-define('ROOT', dirname(__DIR__));
-define('APP_VERSION', '0.1.0');
+defined('ROOT') || define('ROOT', dirname(__DIR__));
+defined('APP_VERSION') || define('APP_VERSION', '0.1.0');
 
 $configFile = ROOT . '/config.php';
 if (!is_file($configFile)) {

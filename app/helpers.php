@@ -157,9 +157,28 @@ function flash(string $type, string $message): void
 
 function take_flashes(): array
 {
-    $items = $_SESSION['flash'] ?? [];
-    unset($_SESSION['flash']);
+    // Só as mensagens gerais; as de grupo ("contact_…") ficam para take_flash_group()
+    $items = [];
+    foreach ($_SESSION['flash'] ?? [] as $i => $item) {
+        if (!str_contains($item['type'], '_')) {
+            $items[] = $item;
+            unset($_SESSION['flash'][$i]);
+        }
+    }
     return $items;
+}
+
+// Mensagens de um bloco específico da página (ex.: "newsletter_success" → grupo "newsletter")
+function take_flash_group(string $group): array
+{
+    $mine = [];
+    foreach ($_SESSION['flash'] ?? [] as $i => $item) {
+        if (str_starts_with($item['type'], $group . '_')) {
+            $mine[] = ['type' => substr($item['type'], strlen($group) + 1), 'message' => $item['message']];
+            unset($_SESSION['flash'][$i]);
+        }
+    }
+    return $mine;
 }
 
 function remember_old(array $data): void

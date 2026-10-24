@@ -74,13 +74,18 @@
   // Número ao lado das réguas
   document.querySelectorAll('[data-range]').forEach(function (r) {
     var out = r.closest('label').querySelector('[data-range-out]');
-    r.addEventListener('input', function () { out.textContent = r.value; });
+    r.addEventListener('input', function () {
+      out.textContent = r.value;
+      var sample = r.closest('fieldset') && r.closest('fieldset').querySelector('[data-size-sample]');
+      if (sample) sample.style.fontSize = Math.min(r.value, 40) + 'px';
+    });
   });
 
   // Amostra de fonte na Aparência
   var loadedFonts = {};
   document.querySelectorAll('[data-font-select]').forEach(function (select) {
     var sample = select.closest('label').nextElementSibling;
+    if (!sample || !sample.classList.contains('a-font-sample')) return;
     select.addEventListener('change', function () {
       var family = select.value;
       if (['Syne', 'Bitter', 'Instrument Sans'].indexOf(family) === -1 && !loadedFonts[family]) {
@@ -112,6 +117,79 @@
     });
   }
 
+  /* ---------- Não perder o que não foi salvo ---------- */
+  // Vale para todo formulário com campos de verdade (não para botões soltos como “Excluir”)
+  var dirtyForms = [];
+  var leaving = false;
+  document.querySelectorAll('form[method=post]').forEach(function (f) {
+    var fields = f.querySelectorAll('input:not([type=hidden]):not([type=file]), textarea, select');
+    if (!fields.length || f.closest('.a-modal') || f.hasAttribute('data-no-protect')) return;
+    f.addEventListener('input', function () { if (dirtyForms.indexOf(f) === -1) dirtyForms.push(f); });
+    f.addEventListener('change', function () { if (dirtyForms.indexOf(f) === -1) dirtyForms.push(f); });
+  });
+  function hasUnsaved() {
+    var editorDirty = window.tinymce && tinymce.activeEditor && tinymce.activeEditor.isDirty();
+    return !leaving && (dirtyForms.length > 0 || editorDirty);
+  }
+  window.addEventListener('beforeunload', function (e) {
+    if (hasUnsaved()) { e.preventDefault(); e.returnValue = ''; }
+  });
+  // Clique em link do painel: aviso em português antes de sair
+  document.addEventListener('click', function (e) {
+    var a = e.target.closest('a[href]');
+    if (!a || a.target === '_blank' || a.getAttribute('href').charAt(0) === '#' || e.defaultPrevented) return;
+    if (hasUnsaved()) {
+      if (window.confirm('Você tem alterações que ainda não foram salvas.\n\nQuer realmente sair desta tela e perder essas alterações?')) {
+        leaving = true;
+      } else {
+        e.preventDefault();
+      }
+    }
+  });
+
+  /* ---------- “Salvando…” ao enviar ---------- */
+  document.addEventListener('submit', function (e) {
+    var f = e.target;
+    leaving = true;
+    if (window.tinymce && tinymce.activeEditor) tinymce.activeEditor.setDirty(false);
+    var btn = e.submitter || f.querySelector('button[type=submit], button:not([type])');
+    if (!btn || f.closest('.a-modal')) return;
+    var label = btn.textContent.trim();
+    var busy = /excluir|apagar|remover|×/i.test(label) ? 'Excluindo…' : (/entrar/i.test(label) ? 'Entrando…' : 'Salvando…');
+    // Desativa depois que o envio começou, para o botão clicado ainda contar
+    setTimeout(function () {
+      btn.dataset.label = btn.innerHTML;
+      btn.classList.add('is-busy');
+      btn.innerHTML = '<span class="a-spin" aria-hidden="true"></span> ' + busy;
+      f.querySelectorAll('button').forEach(function (b) { b.disabled = true; });
+      document.body.classList.add('is-saving');
+    }, 0);
+  });
+  // Botão “voltar” do navegador traz a página com os botões travados: destrava
+  window.addEventListener('pageshow', function () {
+    leaving = false;
+    document.body.classList.remove('is-saving');
+    document.querySelectorAll('button.is-busy').forEach(function (b) { b.innerHTML = b.dataset.label; b.classList.remove('is-busy'); });
+    document.querySelectorAll('form button[disabled]').forEach(function (b) { if (!b.hasAttribute('data-keep-disabled')) b.disabled = false; });
+  });
+
+  // Aviso de “salvo” some sozinho depois de alguns segundos
+  document.querySelectorAll('.a-toast').forEach(function (t) {
+    setTimeout(function () { t.classList.add('is-hiding'); }, 4500);
+    t.querySelector('button').addEventListener('click', function () { t.remove(); });
+  });
+
+  // Marcar imagens para mover de pasta
+  var checks = document.querySelectorAll('[data-media-check]');
+  var countEl = document.querySelector('[data-selected-count]');
+  var updateCount = function () {
+    var n = document.querySelectorAll('[data-media-check]:checked').length;
+    if (countEl) countEl.textContent = n + (n === 1 ? ' marcada' : ' marcadas');
+  };
+  checks.forEach(function (c) { c.addEventListener('change', updateCount); });
+  var all = document.querySelector('[data-select-all]');
+  if (all) all.addEventListener('change', function () { checks.forEach(function (c) { c.checked = all.checked; }); updateCount(); });
+
   /* ---------- Biblioteca de imagens (janela) ---------- */
   var modal = document.getElementById('media-modal');
   var grid = modal && modal.querySelector('[data-media-grid]');
@@ -119,12 +197,21 @@
   var statusEl = modal && modal.querySelector('[data-media-status]');
   var page = 1;
   var onPick = null;
+  var folderSel = modal && modal.querySelector('[data-media-folder]');
+  if (folderSel) folderSel.addEventListener('change', function () { loadMedia(true); });
 
   function loadMedia(reset) {
     if (reset) { page = 1; grid.innerHTML = ''; }
-    fetch('/admin/midia/lista?pagina=' + page, { credentials: 'same-origin' })
+    fetch('/admin/midia/lista?pagina=' + page + '&pasta=' + (folderSel.value || 0), { credentials: 'same-origin' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
+        if (folderSel.options.length <= 2) {
+          (data.folders || []).forEach(function (f) {
+            var o = document.createElement('option');
+            o.value = f.id; o.textContent = '📁 ' + f.name;
+            folderSel.appendChild(o);
+          });
+        }
         data.items.forEach(addThumb);
         moreBtn.hidden = !data.more;
         if (!data.items.length && page === 1) grid.innerHTML = '<p class="a-muted">Nenhuma imagem ainda. Envie a primeira.</p>';
@@ -167,6 +254,7 @@
     var fd = new FormData();
     fd.append('arquivo', file);
     fd.append('_csrf', window.ARQUIVO_CSRF);
+    if (folderSel && folderSel.value > 0) fd.append('folder_id', folderSel.value);
     return fetch('/admin/midia/enviar', { method: 'POST', body: fd, credentials: 'same-origin' })
       .then(function (r) { return r.json(); })
       .then(function (data) {
@@ -234,6 +322,10 @@
     });
 
     var cover = form.querySelector('[data-cover]');
+    if (cover) setupCover(cover);
+  }
+
+  function setupCover(cover) {
     var coverValue = cover.querySelector('input[name="cover_image"]');
     var ratio = cover.querySelector('[data-cover-ratio]');
     var width = cover.querySelector('[data-cover-width]');
@@ -274,19 +366,5 @@
       updateCover();
     });
     updateCover();
-
-    // Avisa se sair sem salvar
-    var dirty = false;
-    form.addEventListener('input', function () { dirty = true; });
-    form.addEventListener('submit', function () {
-      dirty = false;
-      if (window.tinymce && tinymce.activeEditor) tinymce.activeEditor.setDirty(false);
-    });
-    window.addEventListener('beforeunload', function (e) {
-      if (dirty || (window.tinymce && tinymce.activeEditor && tinymce.activeEditor.isDirty())) {
-        e.preventDefault();
-        e.returnValue = '';
-      }
-    });
   }
 })();

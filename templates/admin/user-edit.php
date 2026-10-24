@@ -1,5 +1,4 @@
 <?php $isSelf = $u['id'] && (int) $u['id'] === (int) current_user()['id']; ?>
-<?php if ($adminMode): ?><p><a href="/admin/autores">← Todos os autores</a></p><?php endif; ?>
 <div class="a-head"><h1><?= e($title) ?></h1></div>
 <?php if ($errors): ?><div class="notice notice-error"><?= implode('<br>', array_map('e', $errors)) ?></div><?php endif; ?>
 <form class="a-cols a-cols-form" method="post" autocomplete="off">

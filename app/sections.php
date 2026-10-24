@@ -107,6 +107,28 @@ function run_migrations(): void
         }
         save_setting_raw('schema_version', 3);
     }
+    if ($version < 4) {
+        $schema = (string) file_get_contents(ROOT . '/database/schema.sql');
+        foreach (['media_folders', 'pages'] as $table) {
+            if (preg_match('/CREATE TABLE IF NOT EXISTS ' . $table . ' .*?;/s', $schema, $m)) {
+                db()->exec($m[0]);
+            }
+        }
+        $has = db_val("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'media' AND COLUMN_NAME = 'folder_id'");
+        if (!(int) $has) {
+            db()->exec('ALTER TABLE media ADD COLUMN folder_id INT UNSIGNED NULL AFTER alt');
+        }
+        if (!(int) db_val('SELECT COUNT(*) FROM pages')) {
+            foreach (['Acervo', 'História'] as $title) {
+                db_insert('pages', [
+                    'title' => $title, 'slug' => slugify($title), 'subtitle' => null,
+                    'content' => '<p>Escreva aqui o conteúdo da página ' . $title . '.</p>',
+                    'status' => 'draft', 'created_at' => now(), 'updated_at' => now(),
+                ]);
+            }
+        }
+        save_setting_raw('schema_version', 4);
+    }
 }
 
 function save_setting_raw(string $name, $value): void

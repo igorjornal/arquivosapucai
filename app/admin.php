@@ -44,6 +44,10 @@ function admin_dispatch(string $path): void
         ['#^/admin/conteudo$#',                       'admin_content', true],
         ['#^/admin/banners$#',                        'admin_banners', true],
         ['#^/admin/secoes$#',                         'admin_sections', true],
+        ['#^/admin/paginas$#',                        'admin_pages', true],
+        ['#^/admin/paginas/nova$#',                   'admin_page_edit', true],
+        ['#^/admin/paginas/(\d+)$#',                 'admin_page_edit', true],
+        ['#^/admin/paginas/(\d+)/excluir$#',         'admin_page_delete', true],
         ['#^/admin/secoes/(\d+)$#',                  'admin_section_edit', true],
         ['#^/admin/menu$#',                           'admin_menu', true],
     ];
@@ -389,31 +393,84 @@ function admin_post_delete(string $id): void
 
 /* ---------------- Imagens ---------------- */
 
+// Pasta escolhida na tela: 0 = todas, -1 = sem pasta, >0 = pasta
+function media_folder_filter(): array
+{
+    $f = (int) ($_GET['pasta'] ?? 0);
+    if ($f > 0) {
+        return [$f, 'WHERE folder_id = ?', [$f]];
+    }
+    if ($f === -1) {
+        return [-1, 'WHERE folder_id IS NULL', []];
+    }
+    return [0, '', []];
+}
+
 function admin_media(): void
 {
-    if (is_post() && !empty($_FILES['arquivos'])) {
-        $files = $_FILES['arquivos'];
-        $ok = 0;
-        foreach ((array) $files['name'] as $i => $name) {
-            try {
-                store_uploaded_image([
-                    'name' => $name, 'tmp_name' => $files['tmp_name'][$i], 'error' => $files['error'][$i], 'size' => $files['size'][$i],
-                ], (int) current_user()['id']);
-                $ok++;
-            } catch (RuntimeException $e) {
-                flash('error', $name . ': ' . $e->getMessage());
+    $back = '/admin/midia' . (isset($_GET['pasta']) ? '?pasta=' . (int) $_GET['pasta'] : '');
+    if (is_post()) {
+        $action = input('acao');
+        $folderId = (int) input('folder_id') ?: null;
+        if ($action === 'criar_pasta') {
+            $name = mb_substr(input('nome'), 0, 120);
+            if ($name !== '') {
+                $id = db_insert('media_folders', ['name' => $name, 'created_at' => now()]);
+                flash('success', 'Pasta “' . $name . '” criada.');
+                redirect('/admin/midia?pasta=' . $id);
+            }
+        } elseif ($action === 'renomear_pasta' && $folderId) {
+            $name = mb_substr(input('nome'), 0, 120);
+            if ($name !== '') {
+                db_exec('UPDATE media_folders SET name = ? WHERE id = ?', [$name, $folderId]);
+                flash('success', 'Pasta renomeada.');
+            }
+        } elseif ($action === 'excluir_pasta' && $folderId) {
+            db_exec('UPDATE media SET folder_id = NULL WHERE folder_id = ?', [$folderId]);
+            db_exec('DELETE FROM media_folders WHERE id = ?', [$folderId]);
+            flash('success', 'Pasta excluída. As imagens dela foram para “Sem pasta”.');
+            redirect('/admin/midia');
+        } elseif ($action === 'mover') {
+            $ids = array_filter(array_map('intval', (array) ($_POST['ids'] ?? [])));
+            $dest = (int) input('destino');
+            if ($ids) {
+                $in = implode(',', array_fill(0, count($ids), '?'));
+                db_exec("UPDATE media SET folder_id = ? WHERE id IN ({$in})", [$dest > 0 ? $dest : null, ...$ids]);
+                flash('success', count($ids) === 1 ? 'Imagem movida.' : count($ids) . ' imagens movidas.');
+            } else {
+                flash('error', 'Marque as imagens que quer mover.');
+            }
+        } elseif (!empty($_FILES['arquivos'])) {
+            $files = $_FILES['arquivos'];
+            $ok = 0;
+            foreach ((array) $files['name'] as $i => $name) {
+                try {
+                    $saved = store_uploaded_image([
+                        'name' => $name, 'tmp_name' => $files['tmp_name'][$i], 'error' => $files['error'][$i], 'size' => $files['size'][$i],
+                    ], (int) current_user()['id']);
+                    if ($folderId) {
+                        db_exec('UPDATE media SET folder_id = ? WHERE id = ?', [$folderId, $saved['id']]);
+                    }
+                    $ok++;
+                } catch (RuntimeException $e) {
+                    flash('error', $name . ': ' . $e->getMessage());
+                }
+            }
+            if ($ok) {
+                flash('success', $ok === 1 ? 'Imagem enviada.' : $ok . ' imagens enviadas.');
             }
         }
-        if ($ok) {
-            flash('success', $ok === 1 ? 'Imagem enviada.' : $ok . ' imagens enviadas.');
-        }
-        redirect('/admin/midia');
+        redirect($back);
     }
-    $pg = paginate((int) db_val('SELECT COUNT(*) FROM media'), 48, (int) ($_GET['pagina'] ?? 1));
+    [$current, $where, $params] = media_folder_filter();
+    $pg = paginate((int) db_val("SELECT COUNT(*) FROM media {$where}", $params), 48, (int) ($_GET['pagina'] ?? 1));
     admin_render('media', [
         'title'      => 'Imagens',
-        'items'      => db_all('SELECT * FROM media ORDER BY id DESC LIMIT ? OFFSET ?', [$pg['per_page'], $pg['offset']]),
+        'items'      => db_all("SELECT * FROM media {$where} ORDER BY id DESC LIMIT ? OFFSET ?", [...$params, $pg['per_page'], $pg['offset']]),
         'pagination' => $pg,
+        'folders'    => db_all('SELECT f.*, (SELECT COUNT(*) FROM media m WHERE m.folder_id = f.id) AS total FROM media_folders f ORDER BY f.name'),
+        'current'    => $current,
+        'counts'     => ['all' => (int) db_val('SELECT COUNT(*) FROM media'), 'none' => (int) db_val('SELECT COUNT(*) FROM media WHERE folder_id IS NULL')],
     ]);
 }
 
@@ -421,10 +478,12 @@ function admin_media(): void
 function admin_media_list(): void
 {
     $page = max(1, (int) ($_GET['pagina'] ?? 1));
-    $rows = db_all('SELECT id, path, width, height, alt, original_name FROM media ORDER BY id DESC LIMIT 61 OFFSET ?', [($page - 1) * 60]);
+    [, $where, $params] = media_folder_filter();
+    $rows = db_all("SELECT id, path, width, height, alt, original_name FROM media {$where} ORDER BY id DESC LIMIT 61 OFFSET ?", [...$params, ($page - 1) * 60]);
     admin_json([
-        'items' => array_map(fn ($r) => $r + ['url' => media_url($r['path'])], array_slice($rows, 0, 60)),
-        'more'  => count($rows) > 60,
+        'items'   => array_map(fn ($r) => $r + ['url' => media_url($r['path'])], array_slice($rows, 0, 60)),
+        'more'    => count($rows) > 60,
+        'folders' => db_all('SELECT id, name FROM media_folders ORDER BY name'),
     ]);
 }
 
@@ -435,6 +494,9 @@ function admin_media_upload(): void
     }
     try {
         $saved = store_uploaded_image($_FILES['arquivo'], (int) current_user()['id'], input('alt'));
+        if ((int) input('folder_id') > 0) {
+            db_exec('UPDATE media SET folder_id = ? WHERE id = ?', [(int) input('folder_id'), $saved['id']]);
+        }
         admin_json($saved + ['url' => media_url($saved['path'])]);
     } catch (RuntimeException $e) {
         admin_json(['error' => $e->getMessage()], 422);
@@ -780,7 +842,15 @@ function admin_appearance(): void
             'logo'   => max(40, min(220, (int) input('size_logo', 96))),
             'header' => max(60, min(320, (int) input('size_header', 120))),
         ];
-        save_setting('appearance', ['colors' => $colors, 'fonts' => $fonts, 'sizes' => $sizes]);
+        $type = [];
+        foreach (['menu', 'post_title', 'ticker'] as $key) {
+            $font = (string) ($_POST['type'][$key]['font'] ?? '');
+            $type[$key] = [
+                'font' => in_array($font, font_choices(), true) ? $font : type_settings()[$key]['font'],
+                'size' => (int) ($_POST['type'][$key]['size'] ?? type_settings()[$key]['size']),
+            ];
+        }
+        save_setting('appearance', ['colors' => $colors, 'fonts' => $fonts, 'sizes' => $sizes, 'type' => $type]);
         $blog = setting('blog');
         $blog['cards_per_row'] = max(2, min(5, (int) input('cards_per_row', 3)));
         $blog['cards_layout'] = input('cards_layout') === 'masonry' ? 'masonry' : 'grid';
@@ -837,6 +907,8 @@ function admin_content(): void
             }
             $home['blog_count'] = max(1, min(24, (int) input('blog_count', 6)));
             $home['arquivo_new_tab'] = (bool) post_bool('arquivo_new_tab');
+            $home['arquivo_img'] = image_opts_from_post('arquivo_img');
+            $home['acervo_img'] = image_opts_from_post('acervo_img');
             $home['acervo_new_tab'] = (bool) post_bool('acervo_new_tab');
             $playlists = [];
             foreach ((array) ($_POST['playlists'] ?? []) as $pl) {
@@ -875,6 +947,76 @@ function admin_content(): void
         'news'   => setting('newsletter'),
         'blog'   => setting('blog'),
     ]);
+}
+
+/* ---------------- Páginas ---------------- */
+
+const RESERVED_SLUGS = ['admin', 'blog', 'busca', 'contato', 'newsletter', 'sitemap', 'feed', 'robots', 'install', 'assets', 'uploads', 'app', 'templates', 'database', 'storage', 'tests', 'index'];
+
+function admin_pages(): void
+{
+    require_admin();
+    admin_render('pages', ['title' => 'Páginas', 'pages' => db_all('SELECT * FROM pages ORDER BY title')]);
+}
+
+function admin_page_edit(?string $id = null): void
+{
+    require_admin();
+    $page = $id ? db_one('SELECT * FROM pages WHERE id = ?', [(int) $id]) : null;
+    if ($id && !$page) {
+        redirect('/admin/paginas');
+    }
+    $page ??= ['id' => null, 'title' => '', 'slug' => '', 'subtitle' => '', 'content' => '', 'banner_image' => '', 'title_over_banner' => 1,
+        'width' => 'narrow', 'bg_color' => null, 'text_color' => null, 'title_color' => null, 'status' => 'draft', 'meta_title' => '', 'meta_description' => ''];
+    $errors = [];
+    if (is_post()) {
+        $data = [
+            'title'             => mb_substr(input('title'), 0, 255),
+            'subtitle'          => mb_substr(input('subtitle'), 0, 500) ?: null,
+            'content'           => sanitize_html((string) ($_POST['content'] ?? '')),
+            'banner_image'      => mb_substr(input('banner_image'), 0, 255) ?: null,
+            'title_over_banner' => post_bool('title_over_banner'),
+            'width'             => input('width') === 'wide' ? 'wide' : 'narrow',
+            'status'            => input('acao') === 'publicar' ? 'published' : 'draft',
+            'meta_title'        => mb_substr(input('meta_title'), 0, 255) ?: null,
+            'meta_description'  => mb_substr(input('meta_description'), 0, 300) ?: null,
+            'updated_at'        => now(),
+        ];
+        foreach (['bg_color', 'text_color', 'title_color'] as $c) {
+            $data[$c] = isset($_POST[$c . '_on']) ? (valid_color(input($c)) ?: null) : null;
+        }
+        if ($data['title'] === '') {
+            $errors[] = 'O título é obrigatório.';
+        }
+        $slug = slugify(input('slug') !== '' ? input('slug') : $data['title']);
+        if (in_array($slug, RESERVED_SLUGS, true)) {
+            $errors[] = 'O endereço “/' . $slug . '” é usado pelo próprio site. Escolha outro.';
+        }
+        if (!$errors) {
+            $data['slug'] = unique_slug('pages', $slug, $page['id'] ? (int) $page['id'] : null);
+            if ($page['id']) {
+                db_update('pages', (int) $page['id'], $data);
+                $newId = (int) $page['id'];
+            } else {
+                $data['created_at'] = now();
+                $newId = db_insert('pages', $data);
+            }
+            flash('success', $data['status'] === 'published' ? 'Página publicada.' : 'Rascunho da página salvo.');
+            redirect('/admin/paginas/' . $newId);
+        }
+        $page = array_merge($page, $data, ['slug' => $slug]);
+    }
+    admin_render('page-edit', ['title' => $page['id'] ? 'Editar página' : 'Nova página', 'page' => $page, 'errors' => $errors, 'editorAssets' => true]);
+}
+
+function admin_page_delete(string $id): void
+{
+    require_admin();
+    if (is_post()) {
+        db_exec('DELETE FROM pages WHERE id = ?', [(int) $id]);
+        flash('success', 'Página excluída.');
+    }
+    redirect('/admin/paginas');
 }
 
 /* ---------------- Seções da home ---------------- */
@@ -953,6 +1095,7 @@ function admin_section_edit(string $id): void
                 $d['button_new_tab'] = (bool) post_bool('button_new_tab');
                 $d['image'] = mb_substr(input('image'), 0, 255);
                 $d['image_side'] = input('image_side') === 'right' ? 'right' : 'left';
+                $d['img'] = image_opts_from_post('img');
             } elseif ($type === 'category_posts') {
                 $d['category_id'] = (int) input('category_id');
                 $d['count'] = max(1, min(24, (int) input('count', 3)));
@@ -1053,6 +1196,7 @@ function admin_menu(): void
         'title' => 'Menu',
         'items' => db_all('SELECT * FROM menu_items ORDER BY sort_order, id'),
         'categories' => db_all('SELECT name, slug FROM categories ORDER BY sort_order, name'),
+        'pages'      => db_all('SELECT title, slug FROM pages ORDER BY title'),
     ]);
 }
 

@@ -9,7 +9,6 @@ $editTexts = [
     'contact'   => ['/admin/conteudo?aba=home', 'Conteúdo do site → Textos da home'],
 ];
 ?>
-<p><a href="/admin/secoes">← Seções da home</a></p>
 <div class="a-head"><h1><?= e($s['label']) ?></h1></div>
 <form method="post">
   <?= csrf_field() ?>
@@ -43,6 +42,7 @@ $editTexts = [
           </div>
           <label class="a-check"><input type="checkbox" name="button_new_tab" value="1"<?= ($d['button_new_tab'] ?? preg_match('#^https?://#', (string) $d['button_link'])) ? ' checked' : '' ?>> Abrir o link em nova aba</label>
           <?= image_field('image', $d['image'], 'Imagem') ?>
+          <?= render_to_string('admin/image-options', ['key' => 'img', 'o' => image_opts($d['img'] ?? null)]) ?>
           <div class="a-label">Imagem do lado</div>
           <div class="a-seg">
             <label><input type="radio" name="image_side" value="left"<?= $d['image_side'] !== 'right' ? ' checked' : '' ?>><span>Esquerdo</span></label>

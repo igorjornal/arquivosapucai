@@ -1,4 +1,3 @@
-<p><a href="/admin/mensagens">← Todas as mensagens</a></p>
 <article class="a-card">
   <h1><?= e(trim($msg['first_name'] . ' ' . $msg['last_name'])) ?></h1>
   <p class="a-muted">

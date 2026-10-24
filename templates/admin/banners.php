@@ -12,8 +12,8 @@
       <button class="a-btn a-btn-sm">Salvar</button>
     </form>
     <div class="a-order">
-      <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="mover"><input type="hidden" name="id" value="<?= (int) $s['id'] ?>"><input type="hidden" name="direcao" value="cima"><button class="a-icon-btn" title="Subir"<?= $i === 0 ? ' disabled' : '' ?>>↑</button></form>
-      <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="mover"><input type="hidden" name="id" value="<?= (int) $s['id'] ?>"><input type="hidden" name="direcao" value="baixo"><button class="a-icon-btn" title="Descer"<?= $i === count($slides) - 1 ? ' disabled' : '' ?>>↓</button></form>
+      <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="mover"><input type="hidden" name="id" value="<?= (int) $s['id'] ?>"><input type="hidden" name="direcao" value="cima"><button class="a-icon-btn" title="Subir"<?= $i === 0 ? ' disabled data-keep-disabled' : '' ?>>↑</button></form>
+      <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="mover"><input type="hidden" name="id" value="<?= (int) $s['id'] ?>"><input type="hidden" name="direcao" value="baixo"><button class="a-icon-btn" title="Descer"<?= $i === count($slides) - 1 ? ' disabled data-keep-disabled' : '' ?>>↓</button></form>
       <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="excluir"><input type="hidden" name="id" value="<?= (int) $s['id'] ?>"><button class="a-icon-btn a-danger-text" title="Remover" data-confirm="Remover este banner?">×</button></form>
     </div>
   </div>

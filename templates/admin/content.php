@@ -61,6 +61,7 @@
       </div>
       <label class="a-check"><input type="checkbox" name="arquivo_new_tab" value="1"<?= ($home['arquivo_new_tab'] ?? preg_match('#^https?://#', (string) $home['arquivo_link'])) ? ' checked' : '' ?>> Abrir o link em nova aba</label>
       <?= image_field('arquivo_image', $home['arquivo_image'], 'Imagem') ?>
+      <?= render_to_string('admin/image-options', ['key' => 'arquivo_img', 'o' => image_opts($home['arquivo_img'] ?? null)]) ?>
     </section>
     <section class="a-card">
       <h2>Playlists</h2>
@@ -84,6 +85,7 @@
     <section class="a-card">
       <h2>Acervo e História</h2>
       <?= image_field('acervo_image', $home['acervo_image'], 'Imagem') ?>
+      <?= render_to_string('admin/image-options', ['key' => 'acervo_img', 'o' => image_opts($home['acervo_img'] ?? null, ['width' => 50, 'radius' => 6, 'ratio' => 'wide'])]) ?>
       <div class="a-row-2">
         <div>
           <label>Título 1<input name="acervo_title" value="<?= e($home['acervo_title']) ?>"></label>

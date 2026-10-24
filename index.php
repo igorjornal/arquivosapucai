@@ -39,6 +39,7 @@ $routes = [
     ['GET',  '#^/sitemap\.xml$#',                  'page_sitemap'],
     ['GET',  '#^/feed\.xml$#',                     'page_feed'],
     ['GET',  '#^/robots\.txt$#',                   'page_robots'],
+    ['GET',  '#^/([a-z0-9-]+)$#',                  'page_static'],
 ];
 
 $method = $_SERVER['REQUEST_METHOD'] ?? 'GET';

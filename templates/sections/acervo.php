@@ -1,7 +1,7 @@
 <section class="sec sec-acervo" id="<?= e($section['anchor'] ?: 'acervo') ?>">
   <div class="wrap">
     <?php if ($home['acervo_image']): ?>
-      <div class="acervo-media"><img src="<?= e(media_url($home['acervo_image'])) ?>" alt="" loading="lazy"></div>
+      <div class="acervo-media"><img style="<?= image_opts_style(image_opts($home['acervo_img'] ?? null, ['width' => 50, 'radius' => 6, 'ratio' => 'wide'])) ?>" src="<?= e(media_url($home['acervo_image'])) ?>" alt="" loading="lazy"></div>
     <?php endif; ?>
     <div class="acervo-cols">
       <div>

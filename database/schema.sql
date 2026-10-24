@@ -132,6 +132,7 @@ CREATE TABLE IF NOT EXISTS media (
   height INT UNSIGNED NULL,
   size INT UNSIGNED NOT NULL DEFAULT 0,
   alt VARCHAR(255) NULL,
+  folder_id INT UNSIGNED NULL,
   uploaded_by INT UNSIGNED NULL,
   created_at DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -160,4 +161,29 @@ CREATE TABLE IF NOT EXISTS home_sections (
   active TINYINT(1) NOT NULL DEFAULT 1,
   sort_order INT NOT NULL DEFAULT 0,
   data MEDIUMTEXT NULL              -- configurações da seção em JSON
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS media_folders (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  name VARCHAR(120) NOT NULL,
+  created_at DATETIME NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+CREATE TABLE IF NOT EXISTS pages (
+  id INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,
+  title VARCHAR(255) NOT NULL,
+  slug VARCHAR(255) NOT NULL UNIQUE,
+  subtitle VARCHAR(500) NULL,
+  content MEDIUMTEXT NULL,
+  banner_image VARCHAR(255) NULL,
+  title_over_banner TINYINT(1) NOT NULL DEFAULT 1,
+  width VARCHAR(10) NOT NULL DEFAULT 'narrow',  -- narrow | wide
+  bg_color VARCHAR(20) NULL,
+  text_color VARCHAR(20) NULL,
+  title_color VARCHAR(20) NULL,
+  status VARCHAR(20) NOT NULL DEFAULT 'draft',  -- draft | published
+  meta_title VARCHAR(255) NULL,
+  meta_description VARCHAR(300) NULL,
+  created_at DATETIME NOT NULL,
+  updated_at DATETIME NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;

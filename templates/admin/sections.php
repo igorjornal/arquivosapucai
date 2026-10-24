@@ -8,8 +8,8 @@
     $t = $types[$s['type']]; ?>
   <div class="a-card a-section-row<?= $s['active'] ? '' : ' a-off' ?>">
     <div class="a-order">
-      <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="mover"><input type="hidden" name="id" value="<?= (int) $s['id'] ?>"><input type="hidden" name="direcao" value="cima"><button class="a-icon-btn" title="Subir"<?= $i === 0 ? ' disabled' : '' ?>>↑</button></form>
-      <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="mover"><input type="hidden" name="id" value="<?= (int) $s['id'] ?>"><input type="hidden" name="direcao" value="baixo"><button class="a-icon-btn" title="Descer"<?= $i === count($sections) - 1 ? ' disabled' : '' ?>>↓</button></form>
+      <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="mover"><input type="hidden" name="id" value="<?= (int) $s['id'] ?>"><input type="hidden" name="direcao" value="cima"><button class="a-icon-btn" title="Subir"<?= $i === 0 ? ' disabled data-keep-disabled' : '' ?>>↑</button></form>
+      <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="mover"><input type="hidden" name="id" value="<?= (int) $s['id'] ?>"><input type="hidden" name="direcao" value="baixo"><button class="a-icon-btn" title="Descer"<?= $i === count($sections) - 1 ? ' disabled data-keep-disabled' : '' ?>>↓</button></form>
     </div>
     <div class="a-section-info">
       <a class="a-strong" href="/admin/secoes/<?= (int) $s['id'] ?>"><?= e($s['label']) ?></a>

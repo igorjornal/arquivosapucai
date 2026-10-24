@@ -14,6 +14,7 @@ $nav = [
     ['Tags', '/admin/tags', 'tag', true],
     ['—'],
     ['Conteúdo do site', '/admin/conteudo', 'edit', $isAdmin],
+    ['Páginas', '/admin/paginas', 'doc', $isAdmin],
     ['Seções da home', '/admin/secoes', 'layers', $isAdmin],
     ['Banners do topo', '/admin/banners', 'slides', $isAdmin],
     ['Menu', '/admin/menu', 'menu', $isAdmin],
@@ -73,9 +74,26 @@ $icons = [
   <a href="/admin" class="a-top-brand">Painel do Arquivo</a>
 </div>
 <main class="a-main">
+  <?php
+  // Botão Voltar: em telas internas, volta para a lista de onde veio
+  $parts = explode('/', trim((string) $here, '/'));
+  $backTo = count($parts) > 2 ? '/' . implode('/', array_slice($parts, 0, 2)) : null;
+  if (!$backTo && isset($_GET['editar'])) {
+      $backTo = $here;
+  }
+  ?>
+  <?php if ($backTo): ?>
+    <a class="a-back" href="<?= e($backTo) ?>">← Voltar</a>
+  <?php endif; ?>
+  <div class="a-toasts" aria-live="polite">
   <?php foreach (take_flashes() as $f): ?>
-    <div class="notice notice-<?= e($f['type']) ?>" role="status"><?= e($f['message']) ?></div>
+    <div class="a-toast a-toast-<?= e($f['type']) ?>" role="status">
+      <span class="a-toast-icon" aria-hidden="true"><?= $f['type'] === 'success' ? '✓' : '!' ?></span>
+      <span><?= e($f['message']) ?></span>
+      <button type="button" aria-label="Fechar">×</button>
+    </div>
   <?php endforeach; ?>
+  </div>
   <?= $content ?>
 </main>
 <div class="a-modal" id="media-modal" hidden>
@@ -85,6 +103,8 @@ $icons = [
       <button type="button" class="a-modal-close" data-close aria-label="Fechar">×</button>
     </div>
     <div class="a-modal-upload">
+      <label class="sr" for="media-folder">Pasta</label>
+      <select id="media-folder" data-media-folder style="width:auto"><option value="0">🗂 Todas as pastas</option><option value="-1">📄 Sem pasta</option></select>
       <label class="a-btn a-btn-ghost">Enviar do computador<input type="file" accept="image/*" data-media-upload hidden></label>
       <span class="a-muted" data-media-status>JPG, PNG, WebP ou GIF. O site reduz o tamanho sozinho.</span>
     </div>

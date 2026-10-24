@@ -44,6 +44,24 @@
   </div>
 
   <section class="a-card">
+    <h2>Fonte e tamanho de partes do site</h2>
+    <div class="a-type-grid">
+      <?php foreach (['menu' => ['Menu do topo', 11, 28], 'post_title' => ['Título dos posts e páginas', 20, 90], 'ticker' => ['Faixa corrida (avisos)', 10, 28]] as $key => [$label, $min, $max]):
+          $t = type_settings()[$key]; ?>
+        <fieldset class="a-type">
+          <legend><?= $label ?></legend>
+          <label>Fonte<select name="type[<?= $key ?>][font]" data-font-select><?= select_options(array_combine(font_choices(), font_choices()), $t['font']) ?></select></label>
+          <p class="a-font-sample" style="font-family:'<?= e($t['font']) ?>';font-size:<?= min($t['size'], 40) ?>px<?= $key === 'post_title' ? ';font-weight:800' : '' ?>" data-size-sample>Mangueira 1988</p>
+          <label>Tamanho: <output data-range-out><?= $t['size'] ?></output> px
+            <input type="range" name="type[<?= $key ?>][size]" min="<?= $min ?>" max="<?= $max ?>" value="<?= $t['size'] ?>" data-range>
+          </label>
+        </fieldset>
+      <?php endforeach; ?>
+    </div>
+    <small class="a-help">No celular o título dos posts diminui sozinho se não couber.</small>
+  </section>
+
+  <section class="a-card">
     <h2>Cabeçalho e logo</h2>
     <div class="a-row-2">
       <label>Tamanho do logo: <output data-range-out><?= (int) ($a['sizes']['logo'] ?? 96) ?></output> px

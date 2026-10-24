@@ -139,6 +139,39 @@ function ratio_css(?string $key): ?string
     return image_ratios()[$key ?? '']['css'] ?? null;
 }
 
+// Opções de uma imagem da home (tamanho, cantos, formato, alinhamento)
+function image_opts($opts, array $defaults = []): array
+{
+    $o = array_replace(['width' => 100, 'radius' => 16, 'ratio' => 'original', 'align' => 'left'], $defaults, is_array($opts) ? $opts : []);
+    return [
+        'width'  => max(20, min(100, (int) $o['width'])),
+        'radius' => max(0, min(999, (int) $o['radius'])),
+        'ratio'  => array_key_exists($o['ratio'], image_ratios()) ? $o['ratio'] : 'original',
+        'align'  => in_array($o['align'], ['left', 'center', 'right'], true) ? $o['align'] : 'left',
+    ];
+}
+
+function image_opts_style(array $o): string
+{
+    $css = ['width:' . $o['width'] . '%', 'border-radius:' . $o['radius'] . 'px'];
+    if ($ratio = ratio_css($o['ratio'])) {
+        $css[] = 'aspect-ratio:' . $ratio;
+        $css[] = 'object-fit:cover';
+    }
+    $css[] = $o['align'] === 'center' ? 'margin-left:auto;margin-right:auto' : ($o['align'] === 'right' ? 'margin-left:auto' : 'margin-right:auto');
+    return implode(';', $css);
+}
+
+function image_opts_from_post(string $key): array
+{
+    return image_opts([
+        'width'  => $_POST[$key]['width'] ?? 100,
+        'radius' => $_POST[$key]['radius'] ?? 0,
+        'ratio'  => $_POST[$key]['ratio'] ?? 'original',
+        'align'  => $_POST[$key]['align'] ?? 'left',
+    ]);
+}
+
 function cards_class(): string
 {
     $blog = setting('blog');

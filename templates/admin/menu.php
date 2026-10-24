@@ -11,8 +11,8 @@
       <button class="a-btn a-btn-sm a-btn-ghost">Salvar</button>
     </form>
     <div class="a-order">
-      <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="mover"><input type="hidden" name="id" value="<?= (int) $it['id'] ?>"><input type="hidden" name="direcao" value="cima"><button class="a-icon-btn" title="Subir"<?= $i === 0 ? ' disabled' : '' ?>>↑</button></form>
-      <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="mover"><input type="hidden" name="id" value="<?= (int) $it['id'] ?>"><input type="hidden" name="direcao" value="baixo"><button class="a-icon-btn" title="Descer"<?= $i === count($items) - 1 ? ' disabled' : '' ?>>↓</button></form>
+      <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="mover"><input type="hidden" name="id" value="<?= (int) $it['id'] ?>"><input type="hidden" name="direcao" value="cima"><button class="a-icon-btn" title="Subir"<?= $i === 0 ? ' disabled data-keep-disabled' : '' ?>>↑</button></form>
+      <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="mover"><input type="hidden" name="id" value="<?= (int) $it['id'] ?>"><input type="hidden" name="direcao" value="baixo"><button class="a-icon-btn" title="Descer"<?= $i === count($items) - 1 ? ' disabled data-keep-disabled' : '' ?>>↓</button></form>
       <form method="post"><?= csrf_field() ?><input type="hidden" name="acao" value="excluir"><input type="hidden" name="id" value="<?= (int) $it['id'] ?>"><button class="a-icon-btn a-danger-text" title="Remover" data-confirm="Remover “<?= e($it['label']) ?>” do menu?">×</button></form>
     </div>
   </div>
@@ -27,6 +27,7 @@
   </div>
   <datalist id="menu-sugestoes">
     <option value="/">Home</option><option value="/blog">Blog</option><option value="/busca">Busca</option>
+    <?php foreach ($pages as $pg): ?><option value="/<?= e($pg['slug']) ?>">Página: <?= e($pg['title']) ?></option><?php endforeach; ?>
     <?php foreach ($categories as $c): ?><option value="/blog/categoria/<?= e($c['slug']) ?>"><?= e($c['name']) ?></option><?php endforeach; ?>
   </datalist>
   <label class="a-check"><input type="checkbox" name="new_tab" value="1"> Abrir em nova aba</label>

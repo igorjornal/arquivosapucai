@@ -252,12 +252,31 @@ function action_newsletter(): void
     redirect($back);
 }
 
+function page_static(string $slug): void
+{
+    $page = db_one("SELECT * FROM pages WHERE slug = ? AND status = 'published'", [$slug]);
+    if (!$page && current_user() && isset($_GET['previa'])) {
+        $page = db_one('SELECT * FROM pages WHERE slug = ?', [$slug]);
+    }
+    $page ?? abort(404);
+    render('page', [
+        'title'       => $page['meta_title'] ?: $page['title'],
+        'description' => $page['meta_description'] ?: text_excerpt($page['subtitle'] ?: $page['content'], 155),
+        'shareImage'  => $page['banner_image'],
+        'page'        => $page,
+        'bodyClass'   => 'is-page',
+    ]);
+}
+
 function page_sitemap(): void
 {
     header('Content-Type: application/xml; charset=UTF-8');
     $urls = [['loc' => absolute_url('/'), 'lastmod' => null], ['loc' => absolute_url('/blog'), 'lastmod' => null]];
     foreach (db_all('SELECT slug, updated_at FROM posts p WHERE ' . published_clause() . ' ORDER BY published_at DESC', [now()]) as $p) {
         $urls[] = ['loc' => absolute_url('/blog/' . $p['slug']), 'lastmod' => date('c', strtotime($p['updated_at']))];
+    }
+    foreach (db_all("SELECT slug, updated_at FROM pages WHERE status = 'published'") as $pg) {
+        $urls[] = ['loc' => absolute_url('/' . $pg['slug']), 'lastmod' => date('c', strtotime($pg['updated_at']))];
     }
     foreach (db_all('SELECT slug FROM categories') as $c) {
         $urls[] = ['loc' => absolute_url('/blog/categoria/' . $c['slug']), 'lastmod' => null];

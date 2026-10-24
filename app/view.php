@@ -28,6 +28,19 @@ function partial(string $template, array $vars = []): void
     echo render_to_string('partials/' . $template, $vars);
 }
 
+// Fonte e tamanho de partes específicas (menu, título dos posts, faixa)
+function type_settings(): array
+{
+    $limits = ['menu' => [11, 28], 'post_title' => [20, 90], 'ticker' => [10, 28]];
+    $out = [];
+    foreach ($limits as $key => [$min, $max]) {
+        $t = setting('appearance')['type'][$key] ?? [];
+        $font = preg_replace('/[^A-Za-z0-9 ]/', '', (string) ($t['font'] ?? '')) ?: 'Instrument Sans';
+        $out[$key] = ['font' => $font, 'size' => max($min, min($max, (int) ($t['size'] ?? $min)))];
+    }
+    return $out;
+}
+
 // Variáveis CSS geradas a partir de Aparência
 function appearance_css(): string
 {
@@ -37,6 +50,11 @@ function appearance_css(): string
         if (preg_match('/^#[0-9a-fA-F]{3,8}$/', (string) $value)) {
             $lines[] = '--c-' . str_replace('_', '-', $name) . ':' . $value;
         }
+    }
+    foreach (type_settings() as $key => $t) {
+        $var = str_replace('_', '-', $key);
+        $lines[] = "--f-{$var}:'" . $t['font'] . "', system-ui, sans-serif";
+        $lines[] = "--fs-{$var}:" . $t['size'] . 'px';
     }
     $logo = max(40, min(220, (int) ($a['sizes']['logo'] ?? 96)));
     $header = max(60, min(320, (int) ($a['sizes']['header'] ?? 120)));
@@ -59,7 +77,8 @@ function appearance_css(): string
 function google_fonts_link(): string
 {
     $families = [];
-    foreach (setting('appearance')['fonts'] as $family) {
+    $all = array_merge(array_values(setting('appearance')['fonts']), array_column(type_settings(), 'font'));
+    foreach ($all as $family) {
         $family = preg_replace('/[^A-Za-z0-9 ]/', '', (string) $family);
         if ($family !== '' && !in_array($family, bundled_fonts(), true)) {
             $families[$family] = 'family=' . str_replace(' ', '+', $family) . ':ital,wght@0,400;0,600;0,700;0,800;1,400;1,700';

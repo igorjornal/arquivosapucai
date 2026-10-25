@@ -83,19 +83,35 @@
 
   // Amostra de fonte na Aparência
   var loadedFonts = {};
+  function loadFont(family) {
+    if (['Syne', 'Bitter', 'Instrument Sans'].indexOf(family) !== -1 || loadedFonts[family]) return;
+    var link = document.createElement('link');
+    link.rel = 'stylesheet';
+    link.href = 'https://fonts.googleapis.com/css2?family=' + family.replace(/ /g, '+') + ':wght@400;700;800&display=swap';
+    document.head.appendChild(link);
+    loadedFonts[family] = true;
+  }
   document.querySelectorAll('[data-font-select]').forEach(function (select) {
     var sample = select.closest('label').nextElementSibling;
     if (!sample || !sample.classList.contains('a-font-sample')) return;
+    loadFont(select.value); // a amostra já abre com a fonte escolhida
     select.addEventListener('change', function () {
-      var family = select.value;
-      if (['Syne', 'Bitter', 'Instrument Sans'].indexOf(family) === -1 && !loadedFonts[family]) {
-        var link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = 'https://fonts.googleapis.com/css2?family=' + family.replace(/ /g, '+') + ':wght@400;700;800&display=swap';
-        document.head.appendChild(link);
-        loadedFonts[family] = true;
-      }
-      sample.style.fontFamily = "'" + family + "'";
+      loadFont(select.value);
+      sample.style.fontFamily = "'" + select.value + "'";
+    });
+  });
+
+  // Fonte de uma parte do site: “usar o padrão” esconde as escolhas; negrito muda a amostra
+  document.querySelectorAll('[data-type-field]').forEach(function (box) {
+    var def = box.querySelector('[data-type-default]');
+    var bold = box.querySelector('[data-type-bold]');
+    var sample = box.querySelector('[data-size-sample]');
+    def.addEventListener('change', function () {
+      box.querySelector('[data-type-custom]').hidden = def.checked;
+      box.querySelector('[data-type-summary]').hidden = !def.checked;
+    });
+    bold.addEventListener('change', function () {
+      sample.style.fontWeight = bold.checked ? bold.dataset.weight : 400;
     });
   });
 

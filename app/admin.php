@@ -826,7 +826,9 @@ function admin_appearance(): void
     if (is_post()) {
         if (input('acao') === 'restaurar') {
             save_setting('appearance', $defaults);
-            save_setting('saved_type', []);
+            $type = setting('type') ?? [];
+            unset($type['post_title']);
+            save_setting('type', $type);
             flash('success', 'Cores e fontes voltaram ao padrão.');
             redirect('/admin/aparencia');
         }
@@ -843,16 +845,12 @@ function admin_appearance(): void
             'logo'   => max(40, min(220, (int) input('size_logo', 96))),
             'header' => max(60, min(320, (int) input('size_header', 120))),
         ];
-        $type = [];
-        foreach (['menu', 'post_title', 'ticker'] as $key) {
-            $font = (string) ($_POST['type'][$key]['font'] ?? '');
-            $type[$key] = [
-                'font' => in_array($font, font_choices(), true) ? $font : type_settings()[$key]['font'],
-                'size' => (int) ($_POST['type'][$key]['size'] ?? type_settings()[$key]['size']),
-            ];
+        $fontSizes = [];
+        foreach (['heading' => [24, 80], 'body' => [13, 24], 'ui' => [11, 22]] as $role => [$min, $max]) {
+            $fontSizes[$role] = max($min, min($max, (int) ($_POST['font_sizes'][$role] ?? base_font_sizes()[$role])));
         }
-        save_setting('appearance', ['colors' => $colors, 'fonts' => $fonts, 'sizes' => $sizes, 'type' => $type]);
-        save_setting('saved_type', ['menu' => true, 'post_title' => true, 'ticker' => true]);
+        save_setting('appearance', ['colors' => $colors, 'fonts' => $fonts, 'font_sizes' => $fontSizes, 'sizes' => $sizes]);
+        save_type_from_post(['post_title']);
         $blog = setting('blog');
         $blog['cards_per_row'] = max(2, min(5, (int) input('cards_per_row', 3)));
         $blog['cards_layout'] = input('cards_layout') === 'masonry' ? 'masonry' : 'grid';
@@ -903,15 +901,23 @@ function admin_content(): void
             }
             $home['ticker_items'] = $ticker;
             $home['ticker'] = '';
-            $text = ['blog_title', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'arquivo_link', 'playlists_title', 'playlists_intro', 'playlists_outro', 'acervo_title', 'acervo_text', 'historia_title', 'historia_text', 'acervo_button', 'acervo_link', 'contact_title', 'contact_text', 'arquivo_image', 'acervo_image'];
-            foreach ($text as $k) {
-                $home[$k] = mb_substr((string) ($_POST[$k] ?? ''), 0, 3000);
+            $text = ['blog_title', 'blog_button', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'arquivo_link', 'playlists_title', 'playlists_intro', 'playlists_outro', 'contact_title', 'contact_text', 'arquivo_image'];
+            foreach (['acervo', 'historia'] as $col) {
+                array_push($text, $col . '_title', $col . '_text', $col . '_button', $col . '_link', $col . '_image');
+                $home[$col . '_show'] = (bool) post_bool($col . '_show');
+                $home[$col . '_new_tab'] = (bool) post_bool($col . '_new_tab');
+                $home[$col . '_img'] = image_opts_from_post($col . '_img');
             }
+            foreach ($text as $k) {
+                $home[$k] = trim(mb_substr((string) ($_POST[$k] ?? ''), 0, 3000));
+            }
+            foreach (array_keys(settings_defaults()['home']['contact_labels']) as $f) {
+                $home['contact_labels'][$f] = mb_substr(trim((string) ($_POST['contact_labels'][$f] ?? '')), 0, 60) ?: settings_defaults()['home']['contact_labels'][$f];
+            }
+            $home['contact_button'] = mb_substr(input('contact_button'), 0, 40) ?: 'Enviar';
             $home['blog_count'] = max(1, min(24, (int) input('blog_count', 6)));
             $home['arquivo_new_tab'] = (bool) post_bool('arquivo_new_tab');
             $home['arquivo_img'] = image_opts_from_post('arquivo_img');
-            $home['acervo_img'] = image_opts_from_post('acervo_img');
-            $home['acervo_new_tab'] = (bool) post_bool('acervo_new_tab');
             $playlists = [];
             foreach ((array) ($_POST['playlists'] ?? []) as $pl) {
                 if (trim((string) ($pl['title'] ?? '')) === '' && trim((string) ($pl['image'] ?? '')) === '') {
@@ -926,9 +932,24 @@ function admin_content(): void
             }
             $home['playlists'] = $playlists;
             save_setting('home', $home);
+            save_type_from_post(['ticker', 'blog_title', 'blog_button', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'playlists_title', 'playlists_intro', 'playlists_names', 'playlists_outro',
+                'acervo_title', 'acervo_text', 'acervo_button', 'historia_title', 'historia_text', 'historia_button', 'contact_title', 'contact_text', 'contact_labels', 'contact_button']);
         } elseif ($tab === 'rodape') {
-            save_setting('footer', ['word' => mb_substr(input('word'), 0, 40), 'show_word' => (bool) post_bool('show_word')]);
-            save_setting('newsletter', ['title' => mb_substr(input('news_title'), 0, 120), 'text' => mb_substr(input('news_text'), 0, 400)]);
+            save_setting('footer', [
+                'word'         => mb_substr(input('word'), 0, 40),
+                'show_word'    => (bool) post_bool('show_word'),
+                'nav_title'    => mb_substr(input('nav_title'), 0, 60),
+                'rss_label'    => mb_substr(input('rss_label'), 0, 40),
+                'copyright'    => mb_substr(input('copyright'), 0, 200),
+                'author_label' => mb_substr(input('author_label'), 0, 40),
+            ]);
+            save_setting('newsletter', [
+                'title'       => mb_substr(input('news_title'), 0, 120),
+                'text'        => mb_substr(input('news_text'), 0, 400),
+                'placeholder' => mb_substr(input('news_placeholder'), 0, 60),
+                'button'      => mb_substr(input('news_button'), 0, 40) ?: 'Quero receber',
+            ]);
+            save_type_from_post(['footer_name', 'footer_description', 'footer_nav_title', 'footer_links', 'footer_news_title', 'footer_news_text', 'footer_news_button', 'footer_email', 'footer_word', 'footer_copyright', 'footer_author']);
         } elseif ($tab === 'blog') {
             $blog = setting('blog');
             $blog['per_page'] = max(3, min(48, (int) input('per_page', 9)));
@@ -1175,6 +1196,9 @@ function admin_menu(): void
             flash('success', 'Item removido do menu.');
         } elseif ($action === 'mover' && $id) {
             move_row('menu_items', $id, input('direcao'));
+        } elseif ($action === 'fonte') {
+            save_type_from_post(['menu']);
+            flash('success', 'Fonte do menu salva.');
         } elseif ($action === 'salvar') {
             $data = [
                 'label'   => mb_substr(input('label'), 0, 80),

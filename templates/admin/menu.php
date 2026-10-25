@@ -1,5 +1,5 @@
 <div class="a-head"><h1>Menu</h1></div>
-<p class="a-muted">Os itens aparecem no topo do site e no rodapé, nesta ordem. Para levar a uma seção da home, use <code>/#arquivo</code>, <code>/#playlists</code>, <code>/#acervo</code> ou <code>/#contato</code>.</p>
+<p class="a-muted">Os itens aparecem no topo do site e no rodapé, nesta ordem. Para levar a uma seção da home, use <code>/#arquivo</code>, <code>/#playlists</code>, <code>/#acervo</code>, <code>/#historia</code> ou <code>/#contato</code>. Para uma página, use o endereço dela, por exemplo <code>/acervo</code> (a página precisa estar publicada).</p>
 <div class="a-menu-list">
 <?php foreach ($items as $i => $it): ?>
   <div class="a-card a-menu-item">
@@ -32,4 +32,11 @@
   </datalist>
   <label class="a-check"><input type="checkbox" name="new_tab" value="1"> Abrir em nova aba</label>
   <button class="a-btn">Adicionar ao menu</button>
+</form>
+<form method="post" class="a-card">
+  <?= csrf_field() ?><input type="hidden" name="acao" value="fonte">
+  <h2>Fonte do menu do topo</h2>
+  <?= type_fields(['menu']) ?>
+  <p class="a-help" style="margin-top:12px">A fonte dos links do rodapé fica em <a href="/admin/conteudo?aba=rodape">Conteúdo do site → Rodapé</a>.</p>
+  <button class="a-btn">Salvar fonte do menu</button>
 </form>

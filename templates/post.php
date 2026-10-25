@@ -15,7 +15,7 @@ $totalComments = array_sum(array_map('count', $comments));
           <a href="/blog/autor/<?= e($post['author_slug']) ?>"><img class="avatar" src="<?= e(avatar_url($post['author_avatar'])) ?>" alt="" width="36" height="36"></a>
           <span><a href="/blog/autor/<?= e($post['author_slug']) ?>"><?= e($post['author_name']) ?></a> · <time datetime="<?= e(date('c', strtotime((string) $post['published_at']))) ?>" title="<?= e(date_long($post['published_at'])) ?>"><?= e(date_relative($post['published_at'])) ?></time> · <?= reading_minutes($post['content']) ?> min de leitura</span>
         </div>
-        <h1 class="post-title"><?= e($post['title']) ?></h1>
+        <h1 class="post-title"<?= type_style('post_title') ?>><?= e($post['title']) ?></h1>
         <?php if ($post['status'] !== 'published' || strtotime((string) $post['published_at']) > time()): ?>
           <p class="notice notice-info">Pré-visualização: este post ainda não está publicado.</p>
         <?php endif; ?>

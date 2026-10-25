@@ -12,10 +12,11 @@ $headerBg = media_url($site['header_bg']);
       <span></span><span></span><span></span><span class="sr">Abrir menu</span>
     </button>
     <nav class="main-nav" id="menu-principal" aria-label="Menu principal">
+      <?php $menuStyle = type_style('menu'); ?>
       <ul>
         <?php foreach (menu_items() as $item):
             $active = $item['url'] === $current || ($item['url'] !== '/' && !str_contains($item['url'], '#') && str_starts_with((string) $current, $item['url'])); ?>
-          <li><a href="<?= e($item['url']) ?>"<?= $active ? ' aria-current="page"' : '' ?><?= $item['new_tab'] ? ' target="_blank" rel="noopener"' : '' ?>><?= e($item['label']) ?></a></li>
+          <li><a href="<?= e($item['url']) ?>"<?= $menuStyle ?><?= $active ? ' aria-current="page"' : '' ?><?= $item['new_tab'] ? ' target="_blank" rel="noopener"' : '' ?>><?= e($item['label']) ?></a></li>
         <?php endforeach; ?>
       </ul>
       <form class="nav-search" action="/busca" method="get" role="search">
@@ -30,7 +31,7 @@ $headerBg = media_url($site['header_bg']);
     // Repete a sequência até encher a largura e emenda sem pulo
     $reps = max(2, (int) ceil(6 / count($ticker)) * 2); ?>
 <div class="ticker" aria-label="Avisos">
-  <div class="ticker-track" style="animation-duration: <?= max(25, 8 * count($ticker) * $reps / 2) ?>s">
+  <div class="ticker-track" style="animation-duration: <?= max(25, 8 * count($ticker) * $reps / 2) ?>s;<?= e(type_css('ticker')) ?>">
     <?php for ($r = 0; $r < $reps; $r++): foreach ($ticker as $item): ?>
       <?php if ($item['link'] ?? ''): ?>
         <a href="<?= e($item['link']) ?>"<?= $r ? ' tabindex="-1" aria-hidden="true"' : '' ?><?= link_target((string) $item['link'], $item['new_tab'] ?? null) ?>><?= e($item['text']) ?></a>

@@ -4,10 +4,10 @@
       <div class="split-media"><img style="<?= image_opts_style(image_opts($home['arquivo_img'] ?? null)) ?>" src="<?= e(media_url($home['arquivo_image'])) ?>" alt="Canal Arquivo Sapucaí no YouTube" loading="lazy"></div>
     <?php endif; ?>
     <div class="split-text">
-      <h2 class="sec-title"><?= e($home['arquivo_title']) ?></h2>
-      <?= $nl2p($home['arquivo_text']) ?>
+      <h2 class="sec-title"<?= type_style('arquivo_title') ?>><?= e($home['arquivo_title']) ?></h2>
+      <div<?= type_style('arquivo_text') ?>><?= $nl2p($home['arquivo_text']) ?></div>
       <?php if ($home['arquivo_button']): ?>
-        <a class="btn" href="<?= e($home['arquivo_link'] ?: '#') ?>"<?= link_target((string) $home['arquivo_link'], $home['arquivo_new_tab'] ?? null) ?>><?= e($home['arquivo_button']) ?></a>
+        <a class="btn"<?= type_style('arquivo_button') ?> href="<?= e($home['arquivo_link'] ?: '#') ?>"<?= link_target((string) $home['arquivo_link'], $home['arquivo_new_tab'] ?? null) ?>><?= e($home['arquivo_button']) ?></a>
       <?php endif; ?>
     </div>
   </div>

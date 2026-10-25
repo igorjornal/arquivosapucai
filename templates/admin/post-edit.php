@@ -85,7 +85,7 @@ $ratios = array_map(fn ($r) => $r['label'], image_ratios());
         <label>Texto alternativo <input name="cover_alt" value="<?= e($post['cover_alt']) ?>" placeholder="Descreva a foto (acessibilidade)"></label>
         <h3>Dentro do post</h3>
         <label>Formato <select name="cover_ratio" data-cover-ratio><?= select_options($ratios, $post['cover_ratio']) ?></select></label>
-        <label>Tamanho: <output data-cover-width-out><?= (int) $post['cover_width'] ?>%</output>
+        <label><span>Tamanho: <output data-cover-width-out><?= (int) $post['cover_width'] ?>%</output></span>
           <input type="range" name="cover_width" min="20" max="100" step="5" value="<?= (int) $post['cover_width'] ?>" data-cover-width>
         </label>
         <div class="a-label">Alinhamento</div>

@@ -2,7 +2,7 @@
 <fieldset class="a-img-opts">
   <legend>Como a imagem aparece</legend>
   <div class="a-row-2">
-    <label>Tamanho: <output data-range-out><?= $o['width'] ?></output>%
+    <label><span>Tamanho: <output data-range-out><?= $o['width'] ?></output>%</span>
       <input type="range" name="<?= e($key) ?>[width]" min="20" max="100" step="5" value="<?= $o['width'] ?>" data-range>
     </label>
     <label>Cantos

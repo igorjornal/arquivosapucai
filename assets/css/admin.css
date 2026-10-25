@@ -289,3 +289,14 @@ body.is-saving::before { content: ""; position: fixed; top: 0; left: 0; height: 
 .a-gallery-item { position: relative; }
 .a-gallery-check { position: absolute; top: 8px; left: 8px; z-index: 2; margin: 0; background: #fff; border-radius: 6px; padding: 4px 6px; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
 @media (max-width: 860px) { .a-media-layout { grid-template-columns: 1fr; } }
+
+/* Grupos de assuntos nas páginas grandes do painel */
+.a-toc { position: sticky; top: 0; z-index: 6; display: flex; flex-wrap: wrap; gap: 6px; padding: 10px 0; margin: -6px 0 14px; background: var(--paper); }
+.a-toc a { padding: 6px 14px; border-radius: 999px; background: #fff; border: 1px solid var(--line); text-decoration: none; font-weight: 600; font-size: 14px; }
+.a-toc a:hover { border-color: var(--purple); background: var(--purple); color: var(--lime); }
+.a-group { background: #EFE9D6; border: 1px solid #E0D7BC; border-radius: 16px; padding: 18px 20px 4px; margin-bottom: 26px; scroll-margin-top: 64px; }
+.a-group-title { font-family: 'Syne', 'Instrument Sans', sans-serif; font-weight: 800; font-size: 21px; text-transform: uppercase; letter-spacing: .03em; margin: 0 0 14px; padding-bottom: 10px; border-bottom: 3px solid var(--purple); }
+.a-group > .a-muted { margin: -4px 0 14px; }
+.a-group .a-card h3:first-child { margin-top: 0; }
+.a-type .a-help { margin: -6px 0 10px; }
+@media (max-width: 860px) { .a-toc { top: 52px; } .a-group { padding: 14px 12px 2px; } }

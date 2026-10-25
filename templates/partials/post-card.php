@@ -17,7 +17,7 @@ $mediaStyle = ' style="aspect-ratio:' . ($ratio ?? 'auto') . '"';
       </div>
       <?php if ($post['category_name']): ?><span class="chip"><?= e($post['category_name']) ?></span><?php endif; ?>
       <h3 class="card-title"><?= e($post['title']) ?></h3>
-      <p class="card-excerpt"><?= e(post_excerpt($post, 140)) ?></p>
+      <p class="card-excerpt"><?= e(post_excerpt($post, 700)) ?></p>
     </div>
   </a>
 </article>

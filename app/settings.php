@@ -40,15 +40,23 @@ function settings_defaults(): array
                 ['title' => 'Baterias', 'image' => 'assets/img/sample/desfile-2.webp', 'link' => 'https://www.youtube.com/@ArquivoSapucai/playlists'],
                 ['title' => 'Sapucaí', 'image' => 'assets/img/sample/desfile-3.webp', 'link' => 'https://www.youtube.com/@ArquivoSapucai/playlists'],
             ],
+            'acervo_show'     => true,
             'acervo_image'    => 'assets/img/sample/acervo.webp',
             'acervo_title'    => 'O Acervo',
             'acervo_text'     => 'Preservamos a memória vibrante do Carnaval da Sapucaí, unindo a tradição oral e os registros visuais para garantir que a história dos nossos desfiles seja eternamente celebrada.',
-            'historia_title'  => 'História',
-            'historia_text'   => 'Explore milhares de registros históricos, desde croquis de fantasias até vídeos inéditos que capturam a essência da Sapucaí ao longo das décadas.',
             'acervo_button'   => 'SAIBA MAIS',
             'acervo_link'     => '/blog',
+            'historia_show'   => true,
+            'historia_image'  => 'assets/img/sample/desfile-3.webp',
+            'historia_title'  => 'História',
+            'historia_text'   => 'Explore milhares de registros históricos, desde croquis de fantasias até vídeos inéditos que capturam a essência da Sapucaí ao longo das décadas.',
+            'historia_button' => 'SAIBA MAIS',
+            'historia_link'   => '/blog',
+            'blog_button'     => 'VER TODAS',
             'contact_title'   => 'Contato',
             'contact_text'    => 'Tem uma história, uma foto antiga ou uma correção pra mandar? Escreve pra gente.',
+            'contact_labels'  => ['nome' => 'Nome', 'sobrenome' => 'Sobrenome', 'email' => 'E-mail', 'telefone' => 'Telefone', 'mensagem' => 'Mensagem'],
+            'contact_button'  => 'Enviar',
         ],
         'blog' => [
             'per_page'          => 9,
@@ -62,18 +70,26 @@ function settings_defaults(): array
             'card_excerpt_lines' => 3,
         ],
         'footer' => [
-            'word'      => 'ARQUIVO SAPUCAÍ', // texto grande ao fundo do rodapé
-            'show_word' => true,
+            'word'         => 'ARQUIVO SAPUCAÍ', // texto grande ao fundo do rodapé
+            'show_word'    => true,
+            'nav_title'    => 'Navegue',
+            'rss_label'    => 'RSS',
+            'copyright'    => '© 2024–{ano} Arquivo Sapucaí. Todos os direitos reservados.',
+            'author_label' => 'Área do autor',
         ],
         'newsletter' => [
-            'title' => 'Receba as novidades',
-            'text'  => 'Novos posts, playlists e estudos de caso direto no seu e-mail.',
+            'title'       => 'Receba as novidades',
+            'text'        => 'Novos posts, playlists e estudos de caso direto no seu e-mail.',
+            'placeholder' => 'Seu melhor e-mail',
+            'button'      => 'Quero receber',
         ],
+        // Fonte, tamanho e negrito escolhidos para cada parte (o que não está aqui usa o padrão do site)
+        'type' => [],
         'appearance' => [
-            'type' => [
-                'menu'       => ['font' => 'Instrument Sans', 'size' => 15],
-                'post_title' => ['font' => 'Syne', 'size' => 50],
-                'ticker'     => ['font' => 'Instrument Sans', 'size' => 14],
+            'font_sizes' => [
+                'heading' => 44, // títulos das seções
+                'body'    => 16, // texto corrido
+                'ui'      => 15, // botões e detalhes
             ],
             'sizes' => [
                 'logo'   => 96,  // tamanho do logo no cabeçalho (px)
@@ -135,7 +151,7 @@ function setting(string $name)
             foreach (db_all('SELECT name, value FROM settings') as $row) {
                 $saved = json_decode($row['value'], true);
                 if (is_array($saved) && isset($cache[$row['name']]) && is_array($cache[$row['name']])) {
-                    $cache[$row['name']] = array_replace_recursive($cache[$row['name']], $saved);
+                    $cache[$row['name']] = settings_merge($cache[$row['name']], $saved);
                 } elseif ($saved !== null) {
                     $cache[$row['name']] = $saved;
                 }
@@ -145,6 +161,20 @@ function setting(string $name)
         }
     }
     return $cache[$name] ?? null;
+}
+
+// O que foi salvo substitui o padrão chave a chave; listas (playlists, avisos) são trocadas inteiras,
+// senão uma playlist apagada voltaria do padrão
+function settings_merge(array $defaults, array $saved): array
+{
+    foreach ($saved as $key => $value) {
+        if (is_array($value) && !array_is_list($value) && is_array($defaults[$key] ?? null) && !array_is_list($defaults[$key])) {
+            $defaults[$key] = settings_merge($defaults[$key], $value);
+        } else {
+            $defaults[$key] = $value;
+        }
+    }
+    return $defaults;
 }
 
 function save_setting(string $name, array $value): void

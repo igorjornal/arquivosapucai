@@ -28,23 +28,110 @@ function partial(string $template, array $vars = []): void
     echo render_to_string('partials/' . $template, $vars);
 }
 
-// Fonte e tamanho de partes específicas (menu, título dos posts, faixa)
-function type_settings(): array
+// Partes do site com fonte, tamanho e negrito próprios.
+// base: fonte de Aparência usada no padrão (heading = Títulos, body = Texto corrido, ui = Menus/botões).
+// size: tamanho no padrão (null = o tamanho dessa fonte em Aparência; false = ajusta sozinho, sem escolha).
+function type_targets(): array
 {
-    $limits = ['menu' => [11, 28], 'post_title' => [20, 90], 'ticker' => [10, 28]];
+    $t = fn (string $label, string $base, $size, bool $bold) => ['label' => $label, 'base' => $base, 'size' => $size, 'bold' => $bold];
+    return [
+        'post_title'         => $t('Título dos posts e páginas', 'heading', 50, true),
+        'menu'               => $t('Menu do topo', 'ui', 15, true),
+        'ticker'             => $t('Texto dos avisos', 'ui', 14, false),
+        'blog_title'         => $t('Título', 'heading', 34, true),
+        'blog_button'        => $t('Botão', 'ui', 13, true),
+        'arquivo_title'      => $t('Título', 'heading', null, true),
+        'arquivo_text'       => $t('Texto', 'body', null, false),
+        'arquivo_button'     => $t('Botão', 'ui', null, true),
+        'playlists_title'    => $t('Título', 'heading', null, true),
+        'playlists_intro'    => $t('Texto antes das imagens', 'body', null, false),
+        'playlists_names'    => $t('Nomes em cima das imagens', 'ui', 17, true),
+        'playlists_outro'    => $t('Texto depois das imagens', 'body', null, false),
+        'acervo_title'       => $t('Título', 'heading', null, true),
+        'acervo_text'        => $t('Texto', 'body', null, false),
+        'acervo_button'      => $t('Botão', 'ui', null, true),
+        'historia_title'     => $t('Título', 'heading', null, true),
+        'historia_text'      => $t('Texto', 'body', null, false),
+        'historia_button'    => $t('Botão', 'ui', null, true),
+        'contact_title'      => $t('Título', 'heading', null, true),
+        'contact_text'       => $t('Texto', 'body', null, false),
+        'contact_labels'     => $t('Nomes dos campos', 'ui', 14, true),
+        'contact_button'     => $t('Botão', 'ui', null, true),
+        'footer_name'        => $t('Nome do site (ao lado do logo)', 'heading', 22, true),
+        'footer_description' => $t('Descrição', 'body', 15, false),
+        'footer_nav_title'   => $t('Título dos links', 'heading', 18, true),
+        'footer_links'       => $t('Links', 'ui', 16, false),
+        'footer_news_title'  => $t('Título da newsletter', 'heading', 18, true),
+        'footer_news_text'   => $t('Texto da newsletter', 'body', null, false),
+        'footer_news_button' => $t('Botão da newsletter', 'ui', null, true),
+        'footer_email'       => $t('E-mail', 'ui', 14, false),
+        'footer_word'        => $t('Texto grande ao fundo', 'heading', false, true),
+        'footer_copyright'   => $t('Linha do ©', 'ui', 13, false),
+        'footer_author'      => $t('“Área do autor”', 'ui', 13, false),
+    ];
+}
+
+// Menor e maior tamanho oferecidos na régua de cada fonte base
+function type_limits(string $base): array
+{
+    return ['heading' => [16, 90], 'body' => [11, 30], 'ui' => [10, 30]][$base] ?? [10, 90];
+}
+
+function base_font_sizes(): array
+{
+    $s = setting('appearance')['font_sizes'] ?? [];
     $out = [];
-    foreach ($limits as $key => [$min, $max]) {
-        $saved = setting('saved_type') ?? [];
-        $t = setting('appearance')['type'][$key] ?? [];
-        // Enquanto não foi escolhida no painel, usa a fonte que já valia antes (Títulos ou Menus/botões)
-        if (empty($saved[$key])) {
-            $fonts = setting('appearance')['fonts'];
-            $t['font'] = $key === 'post_title' ? $fonts['heading'] : $fonts['ui'];
-        }
-        $font = preg_replace('/[^A-Za-z0-9 ]/', '', (string) ($t['font'] ?? '')) ?: 'Instrument Sans';
-        $out[$key] = ['font' => $font, 'size' => max($min, min($max, (int) ($t['size'] ?? $min)))];
+    foreach (['heading' => 44, 'body' => 16, 'ui' => 15] as $role => $default) {
+        [$min, $max] = ['heading' => [24, 80], 'body' => [13, 24], 'ui' => [11, 22]][$role];
+        $out[$role] = max($min, min($max, (int) ($s[$role] ?? $default)));
     }
     return $out;
+}
+
+// Como a parte fica quando segue o padrão do site
+function type_default(string $key): array
+{
+    $t = type_targets()[$key];
+    return [
+        'font' => setting('appearance')['fonts'][$t['base']],
+        'size' => $t['size'] === false ? 0 : ($t['size'] ?? base_font_sizes()[$t['base']]),
+        'bold' => $t['bold'],
+    ];
+}
+
+// A escolha feita no painel para a parte, ou null se ela segue o padrão
+function type_choice(string $key): ?array
+{
+    $c = (setting('type') ?? [])[$key] ?? null;
+    if (!is_array($c) || !isset(type_targets()[$key])) {
+        return null;
+    }
+    $t = type_targets()[$key];
+    [$min, $max] = type_limits($t['base']);
+    $font = preg_replace('/[^A-Za-z0-9 ]/', '', (string) ($c['font'] ?? '')) ?: type_default($key)['font'];
+    return ['font' => $font, 'size' => $t['size'] === false ? 0 : max($min, min($max, (int) ($c['size'] ?? 0))), 'bold' => !empty($c['bold'])];
+}
+
+// CSS da escolha (vazio quando segue o padrão). Tamanhos grandes encolhem no celular.
+function type_css(string $key): string
+{
+    $c = type_choice($key);
+    if (!$c) {
+        return '';
+    }
+    $base = type_targets()[$key]['base'];
+    $fallback = $base === 'body' ? 'Georgia, serif' : 'system-ui, sans-serif';
+    $css = "font-family:'{$c['font']}', {$fallback}";
+    if ($c['size']) {
+        $css .= ';font-size:' . ($c['size'] >= 26 ? 'clamp(' . round($c['size'] * .6) . 'px, 7vw, ' . $c['size'] . 'px)' : $c['size'] . 'px');
+    }
+    return $css . ';font-weight:' . ($c['bold'] ? ($base === 'heading' ? 800 : 700) : 400);
+}
+
+function type_style(string $key): string
+{
+    $css = type_css($key);
+    return $css === '' ? '' : ' style="' . e($css) . '"';
 }
 
 // Variáveis CSS geradas a partir de Aparência
@@ -57,10 +144,8 @@ function appearance_css(): string
             $lines[] = '--c-' . str_replace('_', '-', $name) . ':' . $value;
         }
     }
-    foreach (type_settings() as $key => $t) {
-        $var = str_replace('_', '-', $key);
-        $lines[] = "--f-{$var}:'" . $t['font'] . "', system-ui, sans-serif";
-        $lines[] = "--fs-{$var}:" . $t['size'] . 'px';
+    foreach (base_font_sizes() as $role => $size) {
+        $lines[] = "--fs-{$role}:{$size}px";
     }
     $logo = max(40, min(220, (int) ($a['sizes']['logo'] ?? 96)));
     $header = max(60, min(320, (int) ($a['sizes']['header'] ?? 120)));
@@ -83,7 +168,7 @@ function appearance_css(): string
 function google_fonts_link(): string
 {
     $families = [];
-    $all = array_merge(array_values(setting('appearance')['fonts']), array_column(type_settings(), 'font'));
+    $all = array_merge(array_values(setting('appearance')['fonts']), array_column(array_filter(array_map('type_choice', array_keys(type_targets()))), 'font'));
     foreach ($all as $family) {
         $family = preg_replace('/[^A-Za-z0-9 ]/', '', (string) $family);
         if ($family !== '' && !in_array($family, bundled_fonts(), true)) {
@@ -109,4 +194,37 @@ function social_icon(string $network): string
         'link'      => '<path d="M10.6 13.4a1 1 0 0 1 0-1.4l3.5-3.5a1 1 0 1 1 1.4 1.4L12 13.4a1 1 0 0 1-1.4 0z"/><path d="M8.5 20.5a5 5 0 0 1-3.5-8.5l2.1-2.1a1 1 0 1 1 1.4 1.4l-2.1 2.1a3 3 0 0 0 4.2 4.2l2.1-2.1a1 1 0 1 1 1.4 1.4L12 19a5 5 0 0 1-3.5 1.5zm8.4-6.6a1 1 0 0 1-.7-1.7l2.1-2.1a3 3 0 0 0-4.2-4.2L12 8a1 1 0 1 1-1.4-1.4L12.7 4.5a5 5 0 0 1 7 7l-2.1 2.1a1 1 0 0 1-.7.3z"/>',
     ];
     return '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor" aria-hidden="true">' . ($icons[$network] ?? '') . '</svg>';
+}
+
+// Guarda as escolhas de fonte enviadas por uma tela do painel (só as partes daquela tela)
+function save_type_from_post(array $keys): void
+{
+    $all = setting('type') ?? [];
+    foreach ($keys as $key) {
+        $p = $_POST['type'][$key] ?? null;
+        if (!is_array($p) || !isset(type_targets()[$key])) {
+            continue;
+        }
+        if (!empty($p['padrao'])) {
+            unset($all[$key]);
+            continue;
+        }
+        [$min, $max] = type_limits(type_targets()[$key]['base']);
+        $font = (string) ($p['font'] ?? '');
+        $all[$key] = [
+            'font' => in_array($font, font_choices(), true) ? $font : type_default($key)['font'],
+            'size' => max($min, min($max, (int) ($p['size'] ?? type_default($key)['size']))),
+            'bold' => !empty($p['bold']),
+        ];
+    }
+    save_setting('type', $all);
+}
+
+function type_fields(array $keys): string
+{
+    $out = '';
+    foreach ($keys as $key => $label) {
+        $out .= is_int($key) ? render_to_string('admin/type-field', ['key' => $label]) : render_to_string('admin/type-field', ['key' => $key, 'label' => $label]);
+    }
+    return '<div class="a-type-grid">' . $out . '</div>';
 }

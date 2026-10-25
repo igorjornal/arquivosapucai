@@ -129,6 +129,37 @@ function run_migrations(): void
         }
         save_setting_raw('schema_version', 4);
     }
+    if ($version < 5) {
+        $read = fn (string $name) => json_decode((string) db_val('SELECT value FROM settings WHERE name = ?', [$name]), true) ?: [];
+        // Fonte do menu, do título dos posts e da faixa saem de Aparência e viram escolhas de cada parte
+        $saved = $read('saved_type');
+        $old = $read('appearance')['type'] ?? [];
+        $type = $read('type');
+        foreach (['menu', 'post_title', 'ticker'] as $key) {
+            $t = $old[$key] ?? null;
+            $d = type_default($key);
+            if (!empty($saved[$key]) && is_array($t) && (($t['font'] ?? '') !== $d['font'] || (int) ($t['size'] ?? 0) !== $d['size'])) {
+                $type[$key] = ['font' => (string) $t['font'], 'size' => (int) $t['size'], 'bold' => $d['bold']];
+            }
+        }
+        save_setting('type', $type);
+        // Acervo e História viram duas colunas, cada uma com foto e âncora próprias (#acervo e #historia)
+        db_exec("UPDATE home_sections SET anchor = NULL WHERE type = 'acervo' AND anchor IN ('acervo', 'historia')");
+        $home = $read('home');
+        if ($home) {
+            if (isset($home['acervo_img']['width'])) {
+                // A foto antes ocupava a largura das duas colunas; agora ocupa uma
+                $home['acervo_img']['width'] = min(100, (int) $home['acervo_img']['width'] * 2);
+            }
+            if (isset($home['acervo_button']) || isset($home['acervo_link'])) {
+                $home['historia_button'] = $home['acervo_button'] ?? 'SAIBA MAIS';
+                $home['historia_link'] = $home['acervo_link'] ?? '/blog';
+                $home['historia_new_tab'] = $home['acervo_new_tab'] ?? false;
+            }
+            save_setting('home', $home);
+        }
+        save_setting_raw('schema_version', 5);
+    }
 }
 
 function save_setting_raw(string $name, $value): void

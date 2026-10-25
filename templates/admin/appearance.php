@@ -3,21 +3,37 @@
   <h1>Aparência</h1>
   <a class="a-btn a-btn-ghost" href="/" target="_blank" rel="noopener">Ver o site ↗</a>
 </div>
+<nav class="a-toc" aria-label="Nesta página">
+  <a href="#g-fontes">Fontes</a><a href="#g-cards">Cards do blog</a><a href="#g-cabecalho">Cabeçalho e logo</a><a href="#g-cores">Cores</a>
+</nav>
 <form method="post">
   <?= csrf_field() ?>
-  <div class="a-cols">
-    <section class="a-card">
-      <h2>Fontes</h2>
-      <?php foreach (['heading' => 'Títulos', 'body' => 'Texto corrido', 'ui' => 'Menus, botões e detalhes'] as $role => $label): ?>
-        <label><?= $label ?>
-          <select name="fonts[<?= $role ?>]" data-font-select><?= select_options(array_combine(font_choices(), font_choices()), $a['fonts'][$role]) ?></select>
-        </label>
-        <p class="a-font-sample" data-font-sample style="font-family:'<?= e($a['fonts'][$role]) ?>'<?= $role === 'heading' ? ';font-weight:800' : '' ?>">Arquivo Sapucaí — Mangueira 1988</p>
+  <section class="a-group" id="g-fontes">
+    <h2 class="a-group-title">Fontes do site</h2>
+    <p class="a-muted">É o padrão do site inteiro. Todo texto que estiver em “Usar o padrão do site” segue o que for escolhido aqui. A fonte de cada texto da home, do rodapé, do menu e dos avisos pode ser trocada junto do próprio texto.</p>
+    <div class="a-type-grid">
+      <?php $sizes = base_font_sizes(); foreach (['heading' => ['Títulos', 'Títulos das seções da home', 24, 80], 'body' => ['Texto corrido', 'Textos da home e dos posts', 13, 24], 'ui' => ['Menus, botões e detalhes', 'Botões, campos e textos pequenos', 11, 22]] as $role => [$label, $where, $min, $max]): ?>
+        <fieldset class="a-type">
+          <legend><?= $label ?></legend>
+          <label>Fonte<select name="fonts[<?= $role ?>]" data-font-select><?= select_options(array_combine(font_choices(), font_choices()), $a['fonts'][$role]) ?></select></label>
+          <p class="a-font-sample" data-size-sample style="font-family:'<?= e($a['fonts'][$role]) ?>';font-size:<?= min($sizes[$role], 40) ?>px<?= $role === 'heading' ? ';font-weight:800' : '' ?>">Mangueira 1988</p>
+          <label><span>Tamanho: <output data-range-out><?= $sizes[$role] ?></output> px</span>
+            <input type="range" name="font_sizes[<?= $role ?>]" min="<?= $min ?>" max="<?= $max ?>" value="<?= $sizes[$role] ?>" data-range>
+          </label>
+          <small class="a-help">Vale para: <?= $where ?>.</small>
+        </fieldset>
       <?php endforeach; ?>
-      <small class="a-help">Syne, Bitter e Instrument Sans já vêm no site. As outras são carregadas do Google Fonts (gratuitas).</small>
-    </section>
+    </div>
+    <small class="a-help" style="margin-top:12px">Syne, Bitter e Instrument Sans já vêm no site. As outras são carregadas do Google Fonts (gratuitas). No celular, os títulos grandes diminuem sozinhos.</small>
     <section class="a-card">
-      <h2>Cards do blog</h2>
+      <h3>Título dos posts e das páginas</h3>
+      <?= type_fields(['post_title']) ?>
+    </section>
+  </section>
+
+  <section class="a-group" id="g-cards">
+    <h2 class="a-group-title">Cards do blog</h2>
+    <section class="a-card">
       <p class="a-muted">Vale para a seção Blog da home e para a página do blog.</p>
       <label>Posts por linha
         <select name="cards_per_row"><?= select_options([2 => '2 por linha', 3 => '3 por linha', 4 => '4 por linha', 5 => '5 por linha'], (string) $blog['cards_per_row']) ?></select>
@@ -40,41 +56,27 @@
           <select name="card_excerpt_lines"><?= select_options([0 => 'Sem limite', 1 => '1', 2 => '2', 3 => '3', 4 => '4', 5 => '5', 6 => '6', 7 => '7', 8 => '8'], (string) $blog['card_excerpt_lines']) ?></select>
         </label>
       </div>
+      <small class="a-help">A descrição é o “Resumo” do post. Se ele estiver vazio, usa o começo do texto.</small>
     </section>
-  </div>
-
-  <section class="a-card">
-    <h2>Fonte e tamanho de partes do site</h2>
-    <div class="a-type-grid">
-      <?php foreach (['menu' => ['Menu do topo', 11, 28], 'post_title' => ['Título dos posts e páginas', 20, 90], 'ticker' => ['Faixa corrida (avisos)', 10, 28]] as $key => [$label, $min, $max]):
-          $t = type_settings()[$key]; ?>
-        <fieldset class="a-type">
-          <legend><?= $label ?></legend>
-          <label>Fonte<select name="type[<?= $key ?>][font]" data-font-select><?= select_options(array_combine(font_choices(), font_choices()), $t['font']) ?></select></label>
-          <p class="a-font-sample" style="font-family:'<?= e($t['font']) ?>';font-size:<?= min($t['size'], 40) ?>px<?= $key === 'post_title' ? ';font-weight:800' : '' ?>" data-size-sample>Mangueira 1988</p>
-          <label>Tamanho: <output data-range-out><?= $t['size'] ?></output> px
-            <input type="range" name="type[<?= $key ?>][size]" min="<?= $min ?>" max="<?= $max ?>" value="<?= $t['size'] ?>" data-range>
-          </label>
-        </fieldset>
-      <?php endforeach; ?>
-    </div>
-    <small class="a-help">No celular o título dos posts diminui sozinho se não couber.</small>
   </section>
 
-  <section class="a-card">
-    <h2>Cabeçalho e logo</h2>
-    <div class="a-row-2">
-      <label>Tamanho do logo: <output data-range-out><?= (int) ($a['sizes']['logo'] ?? 96) ?></output> px
-        <input type="range" name="size_logo" min="40" max="220" step="4" value="<?= (int) ($a['sizes']['logo'] ?? 96) ?>" data-range>
-      </label>
-      <label>Altura do cabeçalho: <output data-range-out><?= (int) ($a['sizes']['header'] ?? 120) ?></output> px
-        <input type="range" name="size_header" min="60" max="320" step="10" value="<?= (int) ($a['sizes']['header'] ?? 120) ?>" data-range>
-      </label>
-    </div>
-    <small class="a-help">No celular os dois ficam um pouco menores, automaticamente.</small>
+  <section class="a-group" id="g-cabecalho">
+    <h2 class="a-group-title">Cabeçalho e logo</h2>
+    <section class="a-card">
+      <div class="a-row-2">
+        <label><span>Tamanho do logo: <output data-range-out><?= (int) ($a['sizes']['logo'] ?? 96) ?></output> px</span>
+          <input type="range" name="size_logo" min="40" max="220" step="4" value="<?= (int) ($a['sizes']['logo'] ?? 96) ?>" data-range>
+        </label>
+        <label><span>Altura do cabeçalho: <output data-range-out><?= (int) ($a['sizes']['header'] ?? 120) ?></output> px</span>
+          <input type="range" name="size_header" min="60" max="320" step="10" value="<?= (int) ($a['sizes']['header'] ?? 120) ?>" data-range>
+        </label>
+      </div>
+      <small class="a-help">No celular os dois ficam um pouco menores, automaticamente.</small>
+    </section>
   </section>
 
-  <h2 class="a-section-title">Cores</h2>
+  <section class="a-group" id="g-cores">
+  <h2 class="a-group-title">Cores</h2>
   <div class="a-color-groups">
     <?php foreach ($groups as $group => $fields): ?>
       <section class="a-card">
@@ -89,8 +91,9 @@
       </section>
     <?php endforeach; ?>
   </div>
+  </section>
   <div class="a-sticky-save">
     <button class="a-btn" type="submit">Salvar aparência</button>
-    <button class="a-btn a-btn-ghost" type="submit" name="acao" value="restaurar" data-confirm="Voltar todas as cores e fontes para o padrão original?">Restaurar padrão</button>
+    <button class="a-btn a-btn-ghost" type="submit" name="acao" value="restaurar" data-confirm="Voltar as cores, as fontes do site, os tamanhos e o título dos posts para o padrão original? As fontes escolhidas em cada texto da home e do rodapé continuam.">Restaurar padrão</button>
   </div>
 </form>

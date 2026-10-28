@@ -23,6 +23,7 @@ Feito: ponto da foto na faixa das páginas; espessura da faixa de avisos; prévi
    - "Grade de playlists": o formato de hoje.
    - "Imagem + texto": imagem à esquerda, clicável; à direita, título, texto e um botão. A imagem e o botão levam para a página interna com a lista de playlists. Alinhamento do título e do texto: esquerda, centro, direita ou justificado. O "texto depois das imagens" não aparece nesse formato. No celular, a imagem fica em cima.
 2. Seções com imagem ao lado do texto (O Arquivo, "Texto + imagem" e o formato novo de Playlists): quando a imagem é diminuída, o texto vem junto para perto dela, em vez de ficar parado longe. O espaço entre a imagem e o texto cai pela metade. A imagem continua alinhada com a margem do blog.
+3. Aparência → Botões com os 3 tipos, cada um com o nome de onde aparece e 4 cores (fundo, texto, fundo e texto ao passar o mouse): botão principal (O Arquivo, newsletter, Texto + imagem, busca, cookies); botão "Ver todas" (blog e Posts de uma categoria; hoje usa a cor da faixa e letra branca fixa); botão escuro (Acervo/História, Enviar do contato, Publicar comentário; hoje fixo). As cores de hoje continuam até o Igor mudar.
 
 ## A resolver
 - [ ] **SSL (cadeado) do subdomínio de teste.** Pedir ao suporte da Hostinger que ative o SSL de `novo.arquivosapucai.com.br`. Depois de ativo:

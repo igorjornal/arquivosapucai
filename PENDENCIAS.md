@@ -18,6 +18,11 @@ Feito: ponto da foto na faixa das páginas; espessura da faixa de avisos; prévi
 
 - [ ] Na mudança para o endereço oficial: cadeado (SSL), Search Console com o mapa do site, colar os números do Pixel e do Analytics.
 
+## Rodada 7 (coletando; o Igor vai mandando os itens)
+1. Seção Playlists da home com dois formatos, escolhidos no painel (o que não está em uso fica guardado):
+   - "Grade de playlists": o formato de hoje.
+   - "Imagem + texto": imagem à esquerda, clicável; à direita, título, texto e um botão. A imagem e o botão levam para a página interna com a lista de playlists. Alinhamento do título e do texto: esquerda, centro, direita ou justificado. O "texto depois das imagens" não aparece nesse formato. No celular, a imagem fica em cima.
+
 ## A resolver
 - [ ] **SSL (cadeado) do subdomínio de teste.** Pedir ao suporte da Hostinger que ative o SSL de `novo.arquivosapucai.com.br`. Depois de ativo:
   - tirar o `#` das duas linhas de HTTPS no `.htaccess`;

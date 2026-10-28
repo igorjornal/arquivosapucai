@@ -47,6 +47,7 @@ function type_targets(): array
         'playlists_intro'    => $t('Texto antes das imagens', 'body', null, false),
         'playlists_names'    => $t('Nomes em cima das imagens', 'ui', 17, true),
         'playlists_outro'    => $t('Texto depois das imagens', 'body', null, false),
+        'playlists_button'   => $t('Botão', 'ui', null, true),
         'acervo_title'       => $t('Título', 'heading', null, true),
         'acervo_text'        => $t('Texto', 'body', null, false),
         'acervo_button'      => $t('Botão', 'ui', null, true),
@@ -149,7 +150,8 @@ function type_css(string $key): string
     }
     $base = type_targets()[$key]['base'];
     $fallback = $base === 'body' ? 'Georgia, serif' : 'system-ui, sans-serif';
-    $css = "font-family:'{$c['font']}', {$fallback}";
+    $fp = font_parts($c['font']);
+    $css = "font-family:'{$fp['family']}', {$fallback};font-stretch:{$fp['stretch']}";
     if ($c['size']) {
         $css .= ';font-size:' . ($c['size'] >= 26 ? 'clamp(' . round($c['size'] * .6) . 'px, 7vw, ' . $c['size'] . 'px)' : $c['size'] . 'px');
     }
@@ -183,6 +185,7 @@ function appearance_css(): string
     $overlay = max(0, min(100, (int) ($a['header']['overlay'] ?? 100)));
     $lines[] = '--header-overlay-a:' . $overlay . '%';
     $lines[] = '--header-overlay-b:' . (!empty($a['header']['gradient']) ? (int) round($overlay * .55) : $overlay) . '%';
+    $lines[] = '--menu-gap:' . max(8, min(80, (int) ($a['menu']['gap'] ?? 30))) . 'px';
     $lines[] = '--ticker-pad:' . max(0, min(40, (int) (setting('home')['ticker_pad'] ?? 9))) . 'px';
     $lines[] = '--logo-size:' . $logo . 'px';
     $lines[] = '--header-height:' . $header . 'px';
@@ -192,9 +195,10 @@ function appearance_css(): string
         $lines[] = $var . ':' . ($n > 0 ? $n : 'none');
     }
     foreach ($a['fonts'] as $role => $family) {
-        $family = preg_replace('/[^A-Za-z0-9 ]/', '', (string) $family);
+        $fp = font_parts((string) preg_replace('/[^A-Za-z0-9 ]/', '', (string) $family));
         $fallback = $role === 'body' ? 'Georgia, serif' : 'system-ui, sans-serif';
-        $lines[] = "--f-{$role}:'{$family}', {$fallback}";
+        $lines[] = "--f-{$role}:'{$fp['family']}', {$fallback}";
+        $lines[] = "--fst-{$role}:{$fp['stretch']}";
     }
     return ':root{' . implode(';', $lines) . '}';
 }
@@ -205,8 +209,11 @@ function google_fonts_link(): string
     $families = [];
     $all = array_merge(array_values(setting('appearance')['fonts']), array_column(array_filter(array_map('type_choice', array_keys(type_targets()))), 'font'));
     foreach ($all as $family) {
-        $family = preg_replace('/[^A-Za-z0-9 ]/', '', (string) $family);
-        if ($family !== '' && !in_array($family, bundled_fonts(), true)) {
+        $family = font_parts((string) preg_replace('/[^A-Za-z0-9 ]/', '', (string) $family))['family'];
+        if ($family === 'Archivo') {
+            // A Archivo vem com todas as larguras (Condensed, Expanded…) num arquivo só
+            $families[$family] = 'family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900';
+        } elseif ($family !== '' && !in_array($family, bundled_fonts(), true)) {
             $families[$family] = 'family=' . str_replace(' ', '+', $family) . ':ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700';
         }
     }

@@ -71,6 +71,23 @@
         <button type="button" class="a-btn a-btn-sm a-btn-ghost" data-add-ticker>+ Mais um aviso</button>
         <small class="a-help" style="margin-top:8px">Para apagar um aviso, deixe o texto vazio e salve.</small>
       </section>
+      <section class="a-card" data-sep-box>
+        <h3>Movimento e separador</h3>
+        <div class="a-row-2">
+          <label><span>Velocidade: <output data-range-out><?= (int) $home['ticker_speed'] ?></output> <small>(1 = bem devagar, 10 = rápida)</small></span>
+            <input type="range" name="ticker_speed" min="1" max="10" value="<?= (int) $home['ticker_speed'] ?>" data-range>
+          </label>
+          <label><span>Espaço entre aviso e separador: <output data-range-out><?= (int) $home['ticker_gap'] ?></output> px</span>
+            <input type="range" name="ticker_gap" min="0" max="80" step="2" value="<?= (int) $home['ticker_gap'] ?>" data-range>
+          </label>
+        </div>
+        <label>Separador entre os avisos
+          <select name="ticker_sep" data-sep-select><?= select_options(['flag' => 'Bandeirinha', 'star' => 'Estrela ★', 'dot' => 'Ponto •', 'diamond' => 'Losango ◆', 'dash' => 'Traço —', 'bar' => 'Barra |', 'none' => 'Nenhum (só espaço)', 'text' => 'Texto ou emoji meu', 'image' => 'Imagem da biblioteca'], (string) $home['ticker_sep']) ?></select>
+        </label>
+        <div data-sep-only="text"><label>Texto ou emoji do separador<input name="ticker_sep_text" value="<?= e($home['ticker_sep_text']) ?>" maxlength="30" placeholder="🥁"></label></div>
+        <div data-sep-only="image"><?= image_field('ticker_sep_image', $home['ticker_sep_image'], 'Imagem do separador', 'Fica do tamanho da letra da faixa. Imagem quadrada ou PNG sem fundo fica melhor.') ?></div>
+        <small class="a-help">Estrela, ponto, losango, traço e barra usam a cor do texto da faixa. A faixa continua parando quando o leitor passa o mouse em cima.</small>
+      </section>
       <section class="a-card">
         <h3>Espessura da faixa</h3>
         <label><span>Espaço em cima e embaixo do texto: <output data-range-out><?= (int) $home['ticker_pad'] ?></output> px</span>
@@ -112,9 +129,32 @@
 
     <section class="a-group" id="g-playlists">
       <h2 class="a-group-title">Playlists</h2>
-      <section class="a-card">
+      <section class="a-card" data-layout-switch>
+        <div class="a-label">Formato da seção</div>
+        <div class="a-seg">
+          <label><input type="radio" name="playlists_layout" value="grid"<?= $home['playlists_layout'] !== 'feature' ? ' checked' : '' ?>><span>Grade de playlists</span></label>
+          <label><input type="radio" name="playlists_layout" value="feature"<?= $home['playlists_layout'] === 'feature' ? ' checked' : '' ?>><span>Imagem + texto</span></label>
+        </div>
+        <small class="a-help">O formato que não está em uso fica guardado: é só voltar e salvar.</small>
         <label>Título<input name="playlists_title" value="<?= e($home['playlists_title']) ?>"></label>
-        <label>Texto antes das imagens<textarea name="playlists_intro" rows="4"><?= e($home['playlists_intro']) ?></textarea></label>
+        <label><span data-layout-only="grid">Texto antes das imagens</span><span data-layout-only="feature">Texto</span><textarea name="playlists_intro" rows="4"><?= e($home['playlists_intro']) ?></textarea></label>
+        <div data-layout-only="feature">
+          <?= image_field('playlists_image', $home['playlists_image'], 'Imagem à esquerda (clicável)') ?>
+          <?= render_to_string('admin/image-options', ['key' => 'playlists_img', 'o' => image_opts($home['playlists_img'] ?? null, ['radius' => 16])]) ?>
+          <div class="a-row-2">
+            <label>Texto do botão<input name="playlists_button" value="<?= e($home['playlists_button']) ?>" maxlength="60"></label>
+            <label>Link da imagem e do botão<input name="playlists_link" value="<?= e($home['playlists_link']) ?>" placeholder="/playlists"></label>
+          </div>
+          <small class="a-help">Coloque o endereço da página com a lista de playlists. Botão vazio: some.</small>
+          <label class="a-check"><input type="checkbox" name="playlists_new_tab" value="1"<?= !empty($home['playlists_new_tab']) ? ' checked' : '' ?>> Abrir o link em nova aba</label>
+          <div class="a-label">Alinhamento do título e do texto</div>
+          <div class="a-seg">
+            <?php foreach (['left' => 'Esquerda', 'center' => 'Centro', 'right' => 'Direita', 'justify' => 'Justificado'] as $al => $alLabel): ?>
+              <label><input type="radio" name="playlists_align" value="<?= $al ?>"<?= ($home['playlists_align'] ?? 'left') === $al ? ' checked' : '' ?>><span><?= $alLabel ?></span></label>
+            <?php endforeach; ?>
+          </div>
+        </div>
+        <div data-layout-only="grid">
         <div class="a-playlists" data-repeater>
           <?php $lists = $home['playlists']; $lists[] = ['title' => '', 'image' => '', 'link' => '']; ?>
           <?php foreach ($lists as $i => $pl): ?>
@@ -129,8 +169,10 @@
           <?php endforeach; ?>
         </div>
         <label>Texto depois das imagens<textarea name="playlists_outro" rows="3"><?= e($home['playlists_outro']) ?></textarea></label>
+        </div>
       </section>
-      <section class="a-card"><h3>Fontes</h3><?= type_fields(['playlists_title', 'playlists_intro', 'playlists_names', 'playlists_outro']) ?></section>
+      <section class="a-card"><h3>Fontes</h3><?= type_fields(['playlists_title', 'playlists_intro', 'playlists_names', 'playlists_outro', 'playlists_button']) ?>
+        <small class="a-help" style="margin-top:10px">“Nomes em cima das imagens” e “Texto depois das imagens” só aparecem na grade; “Botão”, só em Imagem + texto.</small></section>
     </section>
 
     <section class="a-group" id="g-acervo">

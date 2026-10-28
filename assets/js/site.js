@@ -91,6 +91,30 @@
     if (document.fonts) document.fonts.ready.then(fit);
   }
 
+  // Faixa de avisos: a velocidade escolhida no painel vale para qualquer quantidade de avisos
+  var tickerTrack = document.querySelector('.ticker-track[data-speed]');
+  if (tickerTrack) {
+    var setSpeed = function () {
+      var pxPerSecond = 20 * parseInt(tickerTrack.dataset.speed, 10);
+      tickerTrack.style.animationDuration = Math.max(5, (tickerTrack.scrollWidth / 2) / pxPerSecond) + 's';
+    };
+    setSpeed();
+    if (document.fonts) document.fonts.ready.then(setSpeed);
+    window.addEventListener('resize', setSpeed);
+  }
+
+  // Lupinha do cabeçalho: abre e fecha o campo de busca
+  var sToggle = document.querySelector('[data-search-toggle]');
+  if (sToggle) {
+    var sForm = document.getElementById('busca-topo-form');
+    sToggle.addEventListener('click', function () {
+      var open = sForm.hidden;
+      sForm.hidden = !open;
+      sToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
+      if (open) sForm.querySelector('input').focus();
+    });
+  }
+
   // Voltar: retorna para a página anterior do site; quem chegou de fora vai para a home
   document.querySelectorAll('[data-back]').forEach(function (a) {
     a.addEventListener('click', function (e) {

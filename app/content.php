@@ -230,3 +230,30 @@ function post_json_ld(array $post): array
     }
     return $data;
 }
+
+// Imagem ao lado do texto: quando a imagem é diminuída, a coluna dela encolhe junto e o texto se aproxima
+function split_image(array $o): array
+{
+    return ['vars' => '--img-w:' . round($o['width'] / 100, 2), 'style' => image_opts_style(['width' => 100] + $o)];
+}
+
+// Separador entre os avisos da faixa
+function ticker_separator(): string
+{
+    $home = setting('home');
+    $symbols = ['star' => '★', 'dot' => '•', 'diamond' => '◆', 'dash' => '—', 'bar' => '|'];
+    $sep = (string) ($home['ticker_sep'] ?? 'flag');
+    if (isset($symbols[$sep])) {
+        return '<span class="tk-sep" aria-hidden="true">' . $symbols[$sep] . '</span>';
+    }
+    if ($sep === 'text' && trim((string) $home['ticker_sep_text']) !== '') {
+        return '<span class="tk-sep" aria-hidden="true">' . e($home['ticker_sep_text']) . '</span>';
+    }
+    if ($sep === 'image' && $home['ticker_sep_image'] !== '') {
+        return '<img class="tk-sep-img" src="' . e(media_url($home['ticker_sep_image'])) . '" alt="">';
+    }
+    if ($sep === 'none' || $sep === 'text' || $sep === 'image') {
+        return '';
+    }
+    return '<img class="tk-sep-img" src="' . e(asset('img/ticker-icone.svg')) . '" alt="" width="18" height="18">';
+}

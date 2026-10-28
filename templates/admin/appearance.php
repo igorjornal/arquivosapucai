@@ -16,7 +16,7 @@
         <fieldset class="a-type">
           <legend><?= $label ?></legend>
           <label>Fonte<select name="fonts[<?= $role ?>]" data-font-select><?= select_options(array_combine(font_choices(), font_choices()), $a['fonts'][$role]) ?></select></label>
-          <p class="a-font-sample" data-size-sample style="font-family:'<?= e($a['fonts'][$role]) ?>';font-size:<?= min($sizes[$role], 40) ?>px<?= isset($weights[$role]) ? ';font-weight:' . $weights[$role] : '' ?>">Mangueira 1988</p>
+          <p class="a-font-sample" data-size-sample style="font-family:'<?= e(font_parts($a['fonts'][$role])['family']) ?>';font-stretch:<?= font_parts($a['fonts'][$role])['stretch'] ?>;font-size:<?= min($sizes[$role], 40) ?>px<?= isset($weights[$role]) ? ';font-weight:' . $weights[$role] : '' ?>">Mangueira 1988</p>
           <label><span>Tamanho: <output data-range-out><?= $sizes[$role] ?></output> px</span>
             <input type="range" name="font_sizes[<?= $role ?>]" min="<?= $min ?>" max="<?= $max ?>" value="<?= $sizes[$role] ?>" data-range>
           </label>
@@ -80,6 +80,23 @@
         </label>
       </div>
       <small class="a-help">No celular os dois ficam um pouco menores, automaticamente.</small>
+      <h3>Menu</h3>
+      <?php $mn = $a['menu'] ?? ['align' => 'right', 'gap' => 30, 'effect' => 'line']; ?>
+      <div class="a-label">Alinhamento do menu</div>
+      <div class="a-seg">
+        <?php foreach (['logo' => 'Colado no logo', 'center' => 'Centro', 'right' => 'Direita'] as $k => $l): ?>
+          <label><input type="radio" name="menu_align" value="<?= $k ?>"<?= $mn['align'] === $k ? ' checked' : '' ?>><span><?= $l ?></span></label>
+        <?php endforeach; ?>
+      </div>
+      <div class="a-row-2">
+        <label><span>Espaço entre os itens: <output data-range-out><?= (int) $mn['gap'] ?></output> px</span>
+          <input type="range" name="menu_gap" min="8" max="80" step="2" value="<?= (int) $mn['gap'] ?>" data-range>
+        </label>
+        <label>Ao passar o mouse
+          <select name="menu_effect"><?= select_options(['line' => 'Risco embaixo', 'grow' => 'Risco que cresce do meio', 'pill' => 'Fundo arredondado', 'color' => 'Só troca de cor'], $mn['effect']) ?></select>
+        </label>
+      </div>
+      <small class="a-help">As cores do menu (normal, ao passar o mouse, risco ou fundo, página atual) ficam em Cores → Cabeçalho e faixa. A fonte do menu fica na tela <a href="/admin/menu">Menu</a>.</small>
       <h3>Imagem de fundo</h3>
       <?= image_field('header_image', $site['header_bg'], 'Imagem atrás do logo e do menu', 'Clique em “Remover” para deixar só a cor.') ?>
       <?php $hd = $a['header'] ?? ['overlay' => 100, 'gradient' => true]; ?>

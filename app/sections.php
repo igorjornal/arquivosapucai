@@ -182,6 +182,22 @@ function run_migrations(): void
         }
         save_setting_raw('schema_version', 7);
     }
+    if ($version < 8) {
+        // Botões "Ver todas" e escuro, e cores do menu: começam iguais ao que o site já mostrava
+        $app = json_decode((string) db_val("SELECT value FROM settings WHERE name = 'appearance'"), true);
+        if (is_array($app) && isset($app['colors'])) {
+            $c = $app['colors'] + settings_defaults()['appearance']['colors'];
+            $app['colors'] += [
+                'button_all_bg' => $c['ticker_bg'], 'button_all_text' => '#FFFFFF',
+                'button_all_hover_bg' => $c['button_bg'], 'button_all_hover_text' => $c['button_text'],
+                'button_dark_bg' => '#1E0D06', 'button_dark_text' => '#E9E6D3',
+                'button_dark_hover_bg' => $c['button_bg'], 'button_dark_hover_text' => $c['button_text'],
+                'menu_hover' => $c['header_accent'], 'menu_line' => $c['header_accent'], 'menu_current' => $c['header_accent'],
+            ];
+            save_setting('appearance', $app);
+        }
+        save_setting_raw('schema_version', 8);
+    }
 }
 
 function save_setting_raw(string $name, $value): void

@@ -18,18 +18,8 @@ Feito: ponto da foto na faixa das páginas; espessura da faixa de avisos; prévi
 
 - [ ] Na mudança para o endereço oficial: cadeado (SSL), Search Console com o mapa do site, colar os números do Pixel e do Analytics.
 
-## Rodada 7 (coletando; o Igor vai mandando os itens)
-1. Seção Playlists da home com dois formatos, escolhidos no painel (o que não está em uso fica guardado):
-   - "Grade de playlists": o formato de hoje.
-   - "Imagem + texto": imagem à esquerda, clicável; à direita, título, texto e um botão. A imagem e o botão levam para a página interna com a lista de playlists. Alinhamento do título e do texto: esquerda, centro, direita ou justificado. O "texto depois das imagens" não aparece nesse formato. No celular, a imagem fica em cima.
-2. Seções com imagem ao lado do texto (O Arquivo, "Texto + imagem" e o formato novo de Playlists): quando a imagem é diminuída, o texto vem junto para perto dela, em vez de ficar parado longe. O espaço entre a imagem e o texto cai pela metade. A imagem continua alinhada com a margem do blog.
-3. Aparência → Botões com os 3 tipos, cada um com o nome de onde aparece e 4 cores (fundo, texto, fundo e texto ao passar o mouse): botão principal (O Arquivo, newsletter, Texto + imagem, busca, cookies); botão "Ver todas" (blog e Posts de uma categoria; hoje usa a cor da faixa e letra branca fixa); botão escuro (Acervo/História, Enviar do contato, Publicar comentário; hoje fixo). As cores de hoje continuam até o Igor mudar.
-4. Faixa de avisos (Conteúdo do site → Faixa de avisos): régua de velocidade (de "Bem devagar" a "Rápida", igual com 1 ou 10 avisos; continua parando com o mouse em cima) e separador à escolha: bandeirinha (a de hoje), estrela, ponto, losango, traço, barra, nenhum, texto/emoji próprio ou imagem da biblioteca; os desenhos seguem a cor do texto da faixa; régua do espaço entre aviso e separador.
-5. Menu do topo: cores em Aparência → Cores → Cabeçalho para o link ao passar o mouse, o risco embaixo e a página atual; efeito à escolha: risco embaixo (o de hoje), risco que cresce do meio, fundo arredondado (pílula) ou só troca de cor.
-6. Fontes novas na lista: a família Archivo inteira em larguras (Extra Condensed, Condensed, Semi Condensed, Semi Expanded, Expanded) e a Archivo Narrow. No Google Fonts é a mesma Archivo com largura ajustável: um arquivo só, não pesa. Conferir Condensed e Expanded lado a lado com o print do Igor.
-7. Cabeçalho: trocar a caixa de busca pelos ícones das redes (os mesmos do rodapé, YouTube e Instagram) e uma lupinha que abre o campo de busca (a lupinha fica sempre; sem opção de tirar).
-8. Aparência → Cabeçalho e logo: alinhamento do menu (colado no logo, centro ou direita) e régua de espaço entre os itens, com prévia ao vivo.
-9. Tirar a caixa "Buscar" da barra de categorias (posts e blog); a busca fica só na lupinha do cabeçalho.
+## Rodada 7: feita e revisada (335 itens passando), falta aplicar na Hostinger
+Feito: Playlists em dois formatos (grade ou imagem + texto + botão, com alinhamento); texto acompanha a imagem diminuída (espaço de 24px); cores próprias dos 3 tipos de botão; faixa de avisos com velocidade, separador à escolha e espaço; menu com cores ao passar o mouse, efeito (risco, risco que cresce, fundo arredondado, só cor), alinhamento e espaço entre itens; família Archivo inteira na lista de fontes; redes sociais e lupinha no cabeçalho no lugar da caixa de busca; uma busca só (saiu a da barra de categorias).
 
 ## A resolver
 - [ ] **SSL (cadeado) do subdomínio de teste.** Pedir ao suporte da Hostinger que ative o SSL de `novo.arquivosapucai.com.br`. Depois de ativo:

@@ -806,14 +806,17 @@ function save_user_form(array $user, bool $adminMode): array
 function appearance_groups(): array
 {
     return [
-        'Cabeçalho e faixa' => ['header_bg' => 'Fundo do cabeçalho', 'header_text' => 'Texto do cabeçalho', 'header_accent' => 'Menu e destaques', 'ticker_bg' => 'Fundo da faixa corrida', 'ticker_text' => 'Texto da faixa corrida'],
+        'Cabeçalho e faixa' => ['header_bg' => 'Fundo do cabeçalho', 'header_text' => 'Texto do cabeçalho', 'header_accent' => 'Menu e destaques',
+            'menu_hover' => 'Menu ao passar o mouse', 'menu_line' => 'Risco ou fundo do menu', 'menu_current' => 'Menu na página atual', 'ticker_bg' => 'Fundo da faixa corrida', 'ticker_text' => 'Texto da faixa corrida'],
         'Seção Blog e cards' => ['blog_bg' => 'Fundo da seção Blog', 'blog_title' => 'Título da seção Blog', 'card_bg' => 'Fundo dos cards', 'card_title' => 'Título dos cards', 'card_text' => 'Texto dos cards'],
         'Seção O Arquivo' => ['arquivo_bg' => 'Fundo', 'arquivo_title' => 'Título', 'arquivo_text' => 'Texto'],
         'Seção Playlists' => ['playlists_bg' => 'Fundo', 'playlists_title' => 'Título', 'playlists_text' => 'Texto'],
         'Seção Acervo e História' => ['acervo_bg' => 'Fundo', 'acervo_title' => 'Títulos', 'acervo_text' => 'Texto'],
         'Seção Contato' => ['contact_bg' => 'Fundo', 'contact_title' => 'Título', 'contact_text' => 'Texto'],
         'Rodapé' => ['footer_bg' => 'Fundo', 'footer_text' => 'Texto', 'footer_accent' => 'Títulos e destaques'],
-        'Botões' => ['button_bg' => 'Fundo', 'button_text' => 'Texto', 'button_hover_bg' => 'Fundo ao passar o mouse', 'button_hover_text' => 'Texto ao passar o mouse'],
+        'Botão principal (O Arquivo, Playlists, newsletter, Texto + imagem, busca)' => ['button_bg' => 'Fundo', 'button_text' => 'Texto', 'button_hover_bg' => 'Fundo ao passar o mouse', 'button_hover_text' => 'Texto ao passar o mouse'],
+        'Botão “Ver todas” (blog e Posts de uma categoria)' => ['button_all_bg' => 'Fundo', 'button_all_text' => 'Texto', 'button_all_hover_bg' => 'Fundo ao passar o mouse', 'button_all_hover_text' => 'Texto ao passar o mouse'],
+        'Botão escuro (Acervo, História, Enviar do contato, comentário)' => ['button_dark_bg' => 'Fundo', 'button_dark_text' => 'Texto', 'button_dark_hover_bg' => 'Fundo ao passar o mouse', 'button_dark_hover_text' => 'Texto ao passar o mouse'],
         'Página do post' => ['post_page_bg' => 'Fundo da página', 'post_box_bg' => 'Fundo do box do post', 'post_title' => 'Títulos', 'post_text' => 'Texto', 'post_link' => 'Links', 'post_nav_bg' => 'Fundo da barra de categorias', 'post_nav_text' => 'Texto da barra de categorias'],
     ];
 }
@@ -854,7 +857,12 @@ function admin_appearance(): void
             'body'    => valid_weight($_POST['font_weights']['body'] ?? 0, 400),
         ];
         $header = ['overlay' => max(0, min(100, (int) input('header_overlay', 100))), 'gradient' => (bool) post_bool('header_gradient')];
-        save_setting('appearance', ['colors' => $colors, 'fonts' => $fonts, 'font_sizes' => $fontSizes, 'font_weights' => $fontWeights, 'header' => $header, 'sizes' => $sizes]);
+        $menu = [
+            'align'  => in_array(input('menu_align'), ['logo', 'center', 'right'], true) ? input('menu_align') : 'right',
+            'gap'    => max(8, min(80, (int) input('menu_gap', 30))),
+            'effect' => in_array(input('menu_effect'), ['line', 'grow', 'pill', 'color'], true) ? input('menu_effect') : 'line',
+        ];
+        save_setting('appearance', ['colors' => $colors, 'fonts' => $fonts, 'font_sizes' => $fontSizes, 'font_weights' => $fontWeights, 'header' => $header, 'menu' => $menu, 'sizes' => $sizes]);
         $site = setting('site');
         $site['header_bg'] = mb_substr(input('header_image'), 0, 255);
         save_setting('site', $site);
@@ -945,7 +953,12 @@ function admin_content(): void
             }
             $home['ticker_items'] = $ticker;
             $home['ticker'] = '';
-            $text = ['blog_title', 'blog_button', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'arquivo_link', 'playlists_title', 'playlists_intro', 'playlists_outro', 'contact_title', 'contact_text', 'arquivo_image'];
+            $text = ['blog_title', 'blog_button', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'arquivo_link', 'playlists_title', 'playlists_intro', 'playlists_outro', 'contact_title', 'contact_text', 'arquivo_image',
+                'playlists_image', 'playlists_button', 'playlists_link'];
+            $home['playlists_layout'] = input('playlists_layout') === 'feature' ? 'feature' : 'grid';
+            $home['playlists_align'] = in_array(input('playlists_align'), ['left', 'center', 'right', 'justify'], true) ? input('playlists_align') : 'left';
+            $home['playlists_new_tab'] = (bool) post_bool('playlists_new_tab');
+            $home['playlists_img'] = image_opts_from_post('playlists_img');
             foreach (['acervo', 'historia'] as $col) {
                 array_push($text, $col . '_title', $col . '_text', $col . '_button', $col . '_link', $col . '_image');
                 $home[$col . '_show'] = (bool) post_bool($col . '_show');
@@ -961,6 +974,11 @@ function admin_content(): void
             $home['contact_button'] = mb_substr(input('contact_button'), 0, 40) ?: 'Enviar';
             $home['blog_count'] = max(1, min(24, (int) input('blog_count', 6)));
             $home['ticker_pad'] = max(0, min(40, (int) input('ticker_pad', 9)));
+            $home['ticker_speed'] = max(1, min(10, (int) input('ticker_speed', 4)));
+            $home['ticker_gap'] = max(0, min(80, (int) input('ticker_gap', 22)));
+            $home['ticker_sep'] = in_array(input('ticker_sep'), ['flag', 'star', 'dot', 'diamond', 'dash', 'bar', 'none', 'text', 'image'], true) ? input('ticker_sep') : 'flag';
+            $home['ticker_sep_text'] = mb_substr(input('ticker_sep_text'), 0, 30);
+            $home['ticker_sep_image'] = mb_substr(input('ticker_sep_image'), 0, 255);
             $home['arquivo_new_tab'] = (bool) post_bool('arquivo_new_tab');
             $home['arquivo_img'] = image_opts_from_post('arquivo_img');
             $playlists = [];
@@ -977,7 +995,7 @@ function admin_content(): void
             }
             $home['playlists'] = $playlists;
             save_setting('home', $home);
-            save_type_from_post(['ticker', 'blog_title', 'blog_button', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'playlists_title', 'playlists_intro', 'playlists_names', 'playlists_outro',
+            save_type_from_post(['ticker', 'blog_title', 'blog_button', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'playlists_title', 'playlists_intro', 'playlists_names', 'playlists_outro', 'playlists_button',
                 'acervo_title', 'acervo_text', 'acervo_button', 'historia_title', 'historia_text', 'historia_button', 'contact_title', 'contact_text', 'contact_labels', 'contact_button']);
         } elseif ($tab === 'rodape') {
             save_setting('footer', [

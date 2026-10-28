@@ -682,7 +682,7 @@ let pageRef = null;
     await p.selectOption('select[name="acervo_img[align]"]', 'center');
     await submit(p.locator('.a-sticky-save button'));
     const home = await pub('/');
-    ok('O Arquivo: tamanho, cantos e formato', /split-media"><img style="width:60%;border-radius:999px;aspect-ratio:1 \/ 1/.test(home));
+    ok('O Arquivo: tamanho, cantos e formato', home.includes('class="wrap split" style="--img-w:0.6"') && /split-media"><img style="width:100%;border-radius:999px;aspect-ratio:1 \/ 1/.test(home));
     ok('Acervo: alinhado ao centro', /acervo-media"><img style="[^"]*margin-left:auto;margin-right:auto/.test(home));
     await p.goto(base + '/admin/conteudo?aba=home');
     ok('opções continuam salvas', (await p.inputValue('select[name="arquivo_img[ratio]"]')) === 'square');
@@ -739,7 +739,7 @@ let pageRef = null;
   await safe('fonte, tamanho e negrito em cada texto', async () => {
     await p.goto(base + '/admin/conteudo?aba=home');
     const boxes = await p.locator('[data-type-field]').count();
-    ok('cada texto da home tem controle de fonte (20)', boxes === 20, String(boxes));
+    ok('cada texto da home tem controle de fonte (21)', boxes === 21, String(boxes));
     await custom('arquivo_text', 'Lora', 20, true);
     await custom('playlists_intro', null, 22, false);
     await custom('playlists_names', 'Oswald', 14, false);
@@ -1118,6 +1118,141 @@ let pageRef = null;
     await submit(p.locator('button[value=publicar]'));
     ok('mudar o tamanho depois', /yt-card video-solo" style="width: ?50%;?"/.test(await pub('/playlists-qa')));
     await p.unroute(/youtube/);
+  });
+
+  /* ---------------- Rodada 7 ---------------- */
+  area = 'Playlists: dois formatos';
+  await safe('grade ou imagem + texto', async () => {
+    await p.goto(base + '/admin/conteudo?aba=home');
+    ok('na grade, campos do outro formato ficam escondidos', !(await p.locator('input[name=playlists_button]').isVisible()) && await p.locator('textarea[name=playlists_outro]').isVisible());
+    await p.click('label:has(input[name=playlists_layout][value=feature]) span');
+    ok('trocando o formato, aparecem os campos dele', await p.locator('input[name=playlists_button]').isVisible() && !(await p.locator('textarea[name=playlists_outro]').isVisible()));
+    await pickFromLibrary(p.locator('[data-image-field]:has(input[name=playlists_image])'), 0);
+    await p.fill('input[name=playlists_button]', 'VER AS PLAYLISTS QA');
+    await p.fill('input[name=playlists_link]', '/playlists-qa');
+    await p.click('label:has(input[name=playlists_align][value=justify]) span');
+    await p.locator('input[name="playlists_img[width]"]').fill('70');
+    await submit(p.locator('.a-sticky-save button'));
+    const home = await pub('/');
+    const sec = (home.match(/<section class="sec sec-playlists"[\s\S]*?<\/section>/) || [''])[0];
+    ok('imagem clicável leva à página de playlists', /<a href="\/playlists-qa"[^>]*>\s*<img/.test(sec));
+    ok('botão embaixo do texto', /class="btn"[^>]*href="\/playlists-qa"[^>]*>VER AS PLAYLISTS QA/.test(sec));
+    ok('alinhamento justificado', sec.includes('text-align:justify'));
+    ok('texto depois das imagens não aparece', !sec.includes('playlists_outro') && !sec.includes('class="playlists"'));
+    await p.goto(base + '/');
+    const g = await p.evaluate(() => { const i = document.querySelector('.sec-playlists .split-media img').getBoundingClientRect(); const t = document.querySelector('.sec-playlists .split-text').getBoundingClientRect(); return Math.round(t.left - i.right); });
+    ok('texto perto da imagem (24px)', g === 24, String(g));
+    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.click('label:has(input[name=playlists_layout][value=grid]) span');
+    await submit(p.locator('.a-sticky-save button'));
+    const h2 = await pub('/');
+    ok('volta para a grade', h2.includes('class="playlists"'));
+    await p.goto(base + '/admin/conteudo?aba=home');
+    ok('o outro formato fica guardado', (await p.inputValue('input[name=playlists_button]')) === 'VER AS PLAYLISTS QA');
+  });
+
+  area = 'Imagem ao lado do texto';
+  await safe('texto acompanha a imagem', async () => {
+    await p.goto(base + '/');
+    const r = await p.evaluate(() => { const s = document.querySelector('.sec-arquivo .split'); const i = s.querySelector('.split-media img').getBoundingClientRect(); const t = s.querySelector('.split-text').getBoundingClientRect(); return { gap: Math.round(t.left - i.right), w: Math.round(i.width), full: Math.round((s.getBoundingClientRect().width - 24) * 5 / 12) }; });
+    ok('espaço entre imagem e texto: 24px', r.gap === 24, JSON.stringify(r));
+    ok('imagem a 60% e o texto vem junto', Math.abs(r.w - r.full * 0.6) <= 2, JSON.stringify(r));
+  });
+
+  area = 'Cores dos 3 botões';
+  await safe('botões com cores próprias', async () => {
+    await p.goto(base + '/admin/aparencia');
+    ok('3 grupos de botões em Cores', await p.locator('h3:has-text("Botão principal")').count() === 1 && await p.locator('h3:has-text("Ver todas")').count() === 1 && await p.locator('h3:has-text("Botão escuro")').count() === 1);
+    await p.locator('input[name="colors[button_all_text]"]').evaluate(el => { el.value = '#000000'; });
+    await p.locator('input[name="colors[button_dark_bg]"]').evaluate(el => { el.value = '#003366'; });
+    await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
+    await p.goto(base + '/');
+    ok('“Ver todas” com letra preta', (await cs('.sec-blog .btn-red', 'color')) === 'rgb(0, 0, 0)', await cs('.sec-blog .btn-red', 'color'));
+    ok('botão escuro com fundo novo', (await cs('.sec-contact .btn-dark', 'backgroundColor')) === 'rgb(0, 51, 102)', await cs('.sec-contact .btn-dark', 'backgroundColor'));
+  });
+
+  area = 'Faixa: velocidade e separador';
+  await safe('velocidade e separador', async () => {
+    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.fill('input[name="ticker_items[0][text]"]', 'Aviso separador QA');
+    await p.selectOption('select[name=ticker_sep]', 'star');
+    ok('campos de texto e imagem só aparecem quando escolhidos', !(await p.locator('input[name=ticker_sep_text]').isVisible()));
+    await p.locator('input[name=ticker_speed]').fill('10'); await p.locator('input[name=ticker_gap]').fill('40');
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/');
+    ok('separador estrela', (await p.locator('.ticker .tk-sep').first().textContent()) === '★');
+    ok('espaço do separador 40px', (await cs('.ticker-track', 'columnGap')) === '40px', await cs('.ticker-track', 'columnGap'));
+    const fast = parseFloat(await cs('.ticker-track', 'animationDuration'));
+    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.locator('input[name=ticker_speed]').fill('1');
+    await p.selectOption('select[name=ticker_sep]', 'text');
+    ok('escolhendo texto, aparece o campo', await p.locator('input[name=ticker_sep_text]').isVisible());
+    await p.fill('input[name=ticker_sep_text]', '🥁');
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/');
+    const slow = parseFloat(await cs('.ticker-track', 'animationDuration'));
+    ok('velocidade 1 é bem mais lenta que 10', slow > fast * 5, fast + 's / ' + slow + 's');
+    ok('separador de texto/emoji', (await p.locator('.ticker .tk-sep').first().textContent()) === '🥁');
+    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.selectOption('select[name=ticker_sep]', 'none');
+    await submit(p.locator('.a-sticky-save button'));
+    ok('sem separador', !(await pub('/')).includes('tk-sep'));
+  });
+
+  area = 'Menu: cores, efeito, alinhamento';
+  await safe('menu do topo', async () => {
+    await p.goto(base + '/admin/aparencia');
+    await p.locator('input[name="colors[menu_hover]"]').evaluate(el => { el.value = '#ffffff'; });
+    await p.selectOption('select[name=menu_effect]', 'pill');
+    await p.click('label:has(input[name=menu_align][value=center]) span');
+    await p.locator('input[name=menu_gap]').fill('50');
+    ok('prévia acompanha o espaço do menu', (await p.locator('[data-hp-menu]').evaluate(el => el.style.columnGap)) === '50px');
+    ok('prévia acompanha o alinhamento', (await p.locator('[data-hp-menu]').evaluate(el => el.style.margin)) === '0px auto');
+    await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
+    const home = await pub('/');
+    ok('efeito e alinhamento no site', home.includes('main-nav menu-align-center fx-pill') && home.includes('--menu-gap:50px'));
+    await p.goto(base + '/');
+    await p.hover('.main-nav a:not([aria-current])');
+    await p.waitForTimeout(300);
+    ok('ao passar o mouse, o link muda de cor', (await p.evaluate(() => getComputedStyle(document.querySelector('.main-nav a:not([aria-current]):hover')).color)) === 'rgb(255, 255, 255)');
+    ok('ao passar o mouse, aparece o fundo arredondado', (await p.evaluate(() => getComputedStyle(document.querySelector('.main-nav a:not([aria-current]):hover')).backgroundColor)) !== 'rgba(0, 0, 0, 0)');
+    const gap = await p.evaluate(() => { const a = document.querySelectorAll('.main-nav li'); return Math.round(a[1].getBoundingClientRect().left - a[0].getBoundingClientRect().right); });
+    ok('espaço entre os itens 50px', gap === 50, String(gap));
+  });
+
+  area = 'Cabeçalho: redes e lupa';
+  await safe('redes no lugar da busca, com lupinha', async () => {
+    await p.goto(base + '/');
+    ok('ícones das redes no cabeçalho', await p.locator('.header-tools .header-social').count() >= 1);
+    ok('campo de busca começa escondido', !(await p.locator('#busca-topo').isVisible()));
+    await p.click('[data-search-toggle]');
+    ok('lupinha abre a busca', await p.locator('#busca-topo').isVisible() && await p.evaluate(() => document.activeElement.id === 'busca-topo'));
+    await p.fill('#busca-topo', 'Mangueira');
+    await submit(p.locator('#busca-topo-form button'));
+    ok('busca funciona', p.url().includes('/busca?q=Mangueira') && (await p.content()).includes('Mangueira 1988'));
+    ok('na página de busca, o campo já vem aberto', await p.locator('#busca-topo').isVisible());
+    await p.goto(base + '/blog/mangueira-1988-o-samba-que-contou-a-historia');
+    ok('barra de categorias sem a segunda busca', await p.locator('.cat-bar input').count() === 0);
+  });
+
+  area = 'Família Archivo';
+  await safe('Archivo Condensed e Expanded', async () => {
+    await p.goto(base + '/admin/aparencia');
+    ok('larguras da Archivo na lista', await p.locator('select[name="fonts[heading]"] option[value="Archivo Condensed"]').count() === 1 && await p.locator('select[name="fonts[heading]"] option[value="Archivo Expanded"]').count() === 1 && await p.locator('select[name="fonts[heading]"] option[value="Archivo Narrow"]').count() === 1);
+    await p.selectOption('select[name="fonts[heading]"]', 'Archivo Condensed');
+    ok('amostra fica apertada', (await p.locator('[data-font-select][name="fonts[heading]"]').evaluate(s => s.closest('label').nextElementSibling.style.fontStretch)) === '75%');
+    await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
+    const home = await pub('/');
+    ok('site pede a Archivo com as larguras', home.includes('family=Archivo:ital,wdth,wght@0,62..125'));
+    await p.goto(base + '/');
+    ok('títulos apertados (Condensed)', (await cs('.sec-arquivo .sec-title', 'fontStretch')) === '75%' && (await cs('.sec-arquivo .sec-title', 'fontFamily')).includes('Archivo'));
+    await p.goto(base + '/admin/conteudo?aba=home');
+    await custom('arquivo_text', 'Archivo Expanded', 18, '400');
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/');
+    ok('texto esticado (Expanded) num texto só', (await cs('.split-text > div p', 'fontStretch')) === '125%');
+    await p.goto(base + '/admin/aparencia');
+    await submit(p.locator('button:has-text("Restaurar padrão")'));
   });
 
   area = 'Geral';

@@ -6,8 +6,4 @@
       <li><a href="/blog/categoria/<?= e($c['slug']) ?>"<?= ($active ?? null) === $c['slug'] ? ' aria-current="page"' : '' ?>><?= e($c['name']) ?></a></li>
     <?php endforeach; ?>
   </ul>
-  <form class="cat-search" action="/busca" method="get" role="search">
-    <label class="sr" for="busca-blog">Buscar no blog</label>
-    <input id="busca-blog" type="search" name="q" placeholder="Buscar" value="<?= e($search ?? '') ?>">
-  </form>
 </nav>

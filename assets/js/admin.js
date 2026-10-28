@@ -83,11 +83,17 @@
 
   // Amostra de fonte na Aparência
   var loadedFonts = {};
-  function loadFont(family) {
+  // Larguras da Archivo (Condensed, Expanded…) são a própria Archivo com outra largura
+  var widths = { 'Archivo Extra Condensed': '62.5%', 'Archivo Condensed': '75%', 'Archivo Semi Condensed': '87.5%', 'Archivo Semi Expanded': '112.5%', 'Archivo Expanded': '125%' };
+  function realFamily(name) { return widths[name] ? 'Archivo' : name; }
+  function loadFont(name) {
+    var family = realFamily(name);
     if (['Syne', 'Bitter', 'Instrument Sans'].indexOf(family) !== -1 || loadedFonts[family]) return;
     var link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=' + family.replace(/ /g, '+') + ':wght@300;400;600;700;800&display=swap';
+    link.href = family === 'Archivo'
+      ? 'https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,100..900&display=swap'
+      : 'https://fonts.googleapis.com/css2?family=' + family.replace(/ /g, '+') + ':wght@300;400;600;700;800&display=swap';
     document.head.appendChild(link);
     loadedFonts[family] = true;
   }
@@ -97,7 +103,8 @@
     loadFont(select.value); // a amostra já abre com a fonte escolhida
     select.addEventListener('change', function () {
       loadFont(select.value);
-      sample.style.fontFamily = "'" + select.value + "'";
+      sample.style.fontFamily = "'" + realFamily(select.value) + "'";
+      sample.style.fontStretch = widths[select.value] || '100%';
     });
   });
 
@@ -342,6 +349,26 @@
     if (cover) setupCover(cover);
   }
 
+  // Seção com dois formatos: mostra só os campos do formato escolhido
+  document.querySelectorAll('[data-layout-switch]').forEach(function (box) {
+    var show = function () {
+      var v = (box.querySelector('input[name$="_layout"]:checked') || {}).value;
+      box.querySelectorAll('[data-layout-only]').forEach(function (el) { el.hidden = el.dataset.layoutOnly !== v; });
+    };
+    box.querySelectorAll('input[name$="_layout"]').forEach(function (r) { r.addEventListener('change', show); });
+    show();
+  });
+
+  // Faixa de avisos: mostra o campo do separador escolhido (texto ou imagem)
+  var sepSel = document.querySelector('[data-sep-select]');
+  if (sepSel) {
+    var showSep = function () {
+      document.querySelectorAll('[data-sep-only]').forEach(function (el) { el.hidden = el.dataset.sepOnly !== sepSel.value; });
+    };
+    sepSel.addEventListener('change', showSep);
+    showSep();
+  }
+
   // Aparência: prévia do cabeçalho
   var hp = document.querySelector('[data-header-preview]');
   if (hp) {
@@ -363,12 +390,17 @@
       hp.style.minHeight = q('input[name="size_header"]').value + 'px';
       var logo = hp.querySelector('[data-hp-logo]');
       logo.style.width = logo.style.height = q('input[name="size_logo"]').value + 'px';
-      hp.querySelector('[data-hp-menu]').style.color = q('input[name="colors[header_accent]"]').value;
+      var menu = hp.querySelector('[data-hp-menu]');
+      menu.style.color = q('input[name="colors[header_accent]"]').value;
+      menu.style.columnGap = q('input[name="menu_gap"]').value + 'px';
+      var al = (q('input[name="menu_align"]:checked') || {}).value;
+      menu.style.margin = al === 'center' ? '0 auto' : (al === 'logo' ? '0 auto 0 0' : '0 0 0 auto');
     };
-    ['colors[header_bg]', 'colors[header_accent]', 'header_image', 'header_overlay', 'header_gradient', 'size_header', 'size_logo'].forEach(function (n) {
+    ['colors[header_bg]', 'colors[header_accent]', 'header_image', 'header_overlay', 'header_gradient', 'size_header', 'size_logo', 'menu_gap'].forEach(function (n) {
       var el = q('input[name="' + n + '"]');
       el.addEventListener('input', drawHeader); el.addEventListener('change', drawHeader);
     });
+    document.querySelectorAll('input[name="menu_align"]').forEach(function (r) { r.addEventListener('change', drawHeader); });
     drawHeader();
   }
 

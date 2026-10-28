@@ -20,6 +20,7 @@ Feito: rodapé sem logo, com os 3 títulos alinhados e no mesmo estilo, links ma
 4. Esconder do Google automaticamente quando o site estiver em novo.arquivosapucai.com.br (libera sozinho no endereço oficial) + aviso amarelo no Início do painel.
 5. Dados estruturados para o Google (artigo, autor, data, vídeo).
 6. Campos no painel para o número do Pixel da Meta e do Google Analytics (vazios = desligados) + aviso de cookies (LGPD).
+7. Avisos por e-mail escolhidos no painel (Conteúdo do site): um e-mail para mensagens do contato, um para novos cadastros da newsletter do rodapé (hoje não avisa) e um para comentários aguardando aprovação; vazio = sem aviso; botão "mandar e-mail de teste".
 - Na mudança para o endereço oficial: cadeado (SSL), Search Console com o mapa do site, colar os números do Pixel e do Analytics.
 
 ## A resolver

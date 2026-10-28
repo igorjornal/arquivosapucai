@@ -27,6 +27,26 @@
         <?php endforeach; ?>
       </section>
     </div>
+    <div class="a-cols">
+      <section class="a-card" id="g-avisos">
+        <h2>Avisos por e-mail</h2>
+        <p class="a-muted">Para onde o site manda um aviso quando acontece algo. Deixe vazio para não receber aquele aviso. Tudo também fica guardado no painel.</p>
+        <?php foreach (['contact' => ['Mensagem pelo formulário de contato', 'Mensagens'], 'newsletter' => ['Novo cadastro na newsletter do rodapé', 'Newsletter'], 'comments' => ['Comentário esperando aprovação', 'Comentários']] as $k => [$label, $where]): ?>
+          <label><?= $label ?><input type="email" name="notify[<?= $k ?>]" value="<?= e(notify_to($k)) ?>" placeholder="seu@email.com"></label>
+          <small class="a-help">Fica guardado também em Painel → <?= $where ?>.</small>
+        <?php endforeach; ?>
+        <button class="a-btn a-btn-ghost a-btn-sm" type="submit" name="acao" value="teste_email">Salvar e mandar e-mail de teste</button>
+      </section>
+      <section class="a-card" id="g-medicao">
+        <h2>Medição de visitas e anúncios</h2>
+        <p class="a-muted">Cole só o número. Vazio = desligado. Com algum preenchido, aparece para o leitor o aviso de cookies, e a medição só começa se ele aceitar (LGPD).</p>
+        <label>Número do Pixel da Meta (Facebook/Instagram)<input name="meta_pixel" value="<?= e(setting('tracking')['meta_pixel'] ?? '') ?>" inputmode="numeric" placeholder="ex.: 123456789012345"></label>
+        <small class="a-help">Fica no Gerenciador de Eventos da Meta. Só números.</small>
+        <label>Código do Google Analytics<input name="ga4" value="<?= e(setting('tracking')['ga4'] ?? '') ?>" placeholder="ex.: G-AB12CD34EF"></label>
+        <small class="a-help">Fica no Google Analytics, em Administrador → Fluxos de dados. Começa com “G-”.</small>
+        <label>Texto do aviso de cookies<textarea name="cookie_text" rows="2" maxlength="300"><?= e(setting('tracking')['cookie_text'] ?? '') ?></textarea></label>
+      </section>
+    </div>
 
   <?php elseif ($tab === 'home'): ?>
     <nav class="a-toc" aria-label="Nesta página">
@@ -50,6 +70,13 @@
         </div>
         <button type="button" class="a-btn a-btn-sm a-btn-ghost" data-add-ticker>+ Mais um aviso</button>
         <small class="a-help" style="margin-top:8px">Para apagar um aviso, deixe o texto vazio e salve.</small>
+      </section>
+      <section class="a-card">
+        <h3>Espessura da faixa</h3>
+        <label><span>Espaço em cima e embaixo do texto: <output data-range-out><?= (int) $home['ticker_pad'] ?></output> px</span>
+          <input type="range" name="ticker_pad" min="0" max="40" value="<?= (int) $home['ticker_pad'] ?>" data-range>
+        </label>
+        <small class="a-help">A faixa fica com a altura da letra mais esse espaço. Letra maior pede espaço menor, e vice-versa.</small>
       </section>
       <section class="a-card"><h3>Fonte dos avisos</h3><?= type_fields(['ticker']) ?></section>
     </section>

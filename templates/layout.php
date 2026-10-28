@@ -11,8 +11,10 @@ $canonical = absolute_url(strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/');
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title><?= e($pageTitle) ?></title>
 <meta name="description" content="<?= e($metaDescription) ?>">
+<?php if (is_test_host()) { $robots = 'noindex, nofollow'; } ?>
 <?php if (!empty($robots)): ?><meta name="robots" content="<?= e($robots) ?>"><?php endif; ?>
 <link rel="canonical" href="<?= e($canonical) ?>">
+<?php if (!empty($jsonLd)): ?><script type="application/ld+json"><?= json_encode($jsonLd, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES | JSON_HEX_TAG | JSON_HEX_AMP) ?></script><?php endif; ?>
 <meta property="og:site_name" content="<?= e($site['title']) ?>">
 <meta property="og:title" content="<?= e($title ?? $site['title']) ?>">
 <meta property="og:description" content="<?= e($metaDescription) ?>">
@@ -35,6 +37,13 @@ $canonical = absolute_url(strtok($_SERVER['REQUEST_URI'] ?? '/', '?') ?: '/');
 <?= $content ?>
 </main>
 <?php partial('footer'); ?>
+<?php if ($track = tracking_ids()): ?>
+<script>window.ARQ_TRACK = <?= json_encode($track, JSON_HEX_TAG) ?>;</script>
+<div class="cookie-bar" role="dialog" aria-label="Aviso de cookies" hidden data-cookie-bar>
+  <p><?= e(setting('tracking')['cookie_text']) ?></p>
+  <div><button class="btn" type="button" data-cookie="sim">Aceito</button><button class="link-btn" type="button" data-cookie="nao">Não, obrigado</button></div>
+</div>
+<?php endif; ?>
 <script src="<?= e(asset('js/site.js')) ?>" defer></script>
 </body>
 </html>

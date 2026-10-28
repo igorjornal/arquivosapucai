@@ -101,6 +101,48 @@
     });
   });
 
+  // Aviso de cookies: Pixel da Meta e Google Analytics só carregam depois do “Aceito” (LGPD)
+  var track = window.ARQ_TRACK;
+  var bar = document.querySelector('[data-cookie-bar]');
+  if (track && bar) {
+    var getChoice = function () { try { return localStorage.getItem('arq_cookies'); } catch (e) { return null; } };
+    var setChoice = function (v) { try { localStorage.setItem('arq_cookies', v); } catch (e) {} };
+    var loaded = false;
+    var startTracking = function () {
+      if (loaded) return;
+      loaded = true;
+      if (track.ga) {
+        var g = document.createElement('script');
+        g.async = true;
+        g.src = 'https://www.googletagmanager.com/gtag/js?id=' + encodeURIComponent(track.ga);
+        document.head.appendChild(g);
+        window.dataLayer = window.dataLayer || [];
+        window.gtag = function () { window.dataLayer.push(arguments); };
+        window.gtag('js', new Date());
+        window.gtag('config', track.ga);
+      }
+      if (track.pixel) {
+        /* Código oficial do Pixel da Meta */
+        !function (f, b, e, v, n, t, s) { if (f.fbq) return; n = f.fbq = function () { n.callMethod ? n.callMethod.apply(n, arguments) : n.queue.push(arguments); };
+          if (!f._fbq) f._fbq = n; n.push = n; n.loaded = !0; n.version = '2.0'; n.queue = []; t = b.createElement(e); t.async = !0;
+          t.src = v; s = b.getElementsByTagName(e)[0]; s.parentNode.insertBefore(t, s); }(window, document, 'script', 'https://connect.facebook.net/en_US/fbevents.js');
+        window.fbq('init', track.pixel);
+        window.fbq('track', 'PageView');
+      }
+    };
+    if (getChoice() === 'sim') startTracking();
+    else if (getChoice() !== 'nao') bar.hidden = false;
+    bar.addEventListener('click', function (e) {
+      var b = e.target.closest('[data-cookie]');
+      if (!b) return;
+      setChoice(b.dataset.cookie);
+      bar.hidden = true;
+      if (b.dataset.cookie === 'sim') startTracking();
+    });
+    var reset = document.querySelector('[data-cookie-reset]');
+    if (reset) reset.addEventListener('click', function () { bar.hidden = false; });
+  }
+
   // Tabelas largas rolam de lado no celular
   document.querySelectorAll('.post-content table').forEach(function (t) {
     if (t.parentElement.classList.contains('table-scroll')) return;

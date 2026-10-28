@@ -300,3 +300,10 @@ body.is-saving::before { content: ""; position: fixed; top: 0; left: 0; height: 
 .a-group .a-card h3:first-child { margin-top: 0; }
 .a-type .a-help { margin: -6px 0 10px; }
 @media (max-width: 860px) { .a-toc { top: 52px; } .a-group { padding: 14px 12px 2px; } }
+.a-banner-preview { border-radius: 8px; overflow: hidden; background: #000; margin-bottom: 14px; aspect-ratio: 5 / 1; }
+.a-banner-preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
+.a-header-preview { position: sticky; top: 52px; z-index: 4; display: flex; align-items: center; gap: 24px; padding: 10px 24px; margin-bottom: 14px; border-radius: 12px; background-size: cover; background-position: center; box-shadow: 0 6px 18px rgba(0,0,0,.18); overflow: hidden; }
+.a-header-preview img { object-fit: contain; flex: none; filter: drop-shadow(0 4px 10px rgba(0,0,0,.45)); }
+.a-hp-menu { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px 22px; font-weight: 700; font-size: 15px; }
+.a-type-grid.is-single { grid-template-columns: minmax(0, 420px); }
+.a-type.a-type-bare { border: 0; padding: 0; }

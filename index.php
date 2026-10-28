@@ -15,6 +15,9 @@ require ROOT . '/app/public.php';
 // Páginas sempre atualizadas: navegador e cache da hospedagem não guardam versão antiga
 header('Cache-Control: no-cache, must-revalidate');
 header('X-LiteSpeed-Cache-Control: no-cache');
+if (is_test_host()) {
+    header('X-Robots-Tag: noindex, nofollow');
+}
 
 $path = rawurldecode((string) parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH));
 $path = '/' . trim($path, '/');

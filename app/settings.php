@@ -24,6 +24,7 @@ function settings_defaults(): array
             ],
         ],
         'home' => [
+            'ticker_pad'      => 9, // espaço em cima e embaixo do texto da faixa de avisos (px)
             'ticker'          => 'O seu acervo no YouTube para reviver os grandes momentos do carnaval na Marquês de Sapucaí.',
             'blog_title'      => 'Blog - Crônicas e Estudos de Caso',
             'blog_count'      => 6,
@@ -83,6 +84,18 @@ function settings_defaults(): array
             'text'        => 'Novos posts, playlists e estudos de caso direto no seu e-mail.',
             'placeholder' => 'Seu melhor e-mail',
             'button'      => 'Quero receber',
+        ],
+        // Para onde vão os avisos por e-mail (null = e-mail informado na instalação; vazio = sem aviso)
+        'notify' => [
+            'contact'    => null,
+            'newsletter' => null,
+            'comments'   => null,
+        ],
+        // Medição de visitas e anúncios: só carrega depois que o leitor aceita os cookies
+        'tracking' => [
+            'meta_pixel'  => '',
+            'ga4'         => '',
+            'cookie_text' => 'Usamos cookies para contar as visitas e melhorar o site. Você aceita?',
         ],
         // Fonte, tamanho e negrito escolhidos para cada parte (o que não está aqui usa o padrão do site)
         'type' => [],

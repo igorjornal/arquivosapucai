@@ -951,6 +951,128 @@ let pageRef = null;
     await m.close();
   });
 
+  /* ---------------- Rodada 6 ---------------- */
+  area = 'Páginas: parte da foto na faixa';
+  await safe('clicar na foto escolhe o ponto da faixa', async () => {
+    await p.goto(base + '/admin/paginas'); await p.locator('a.a-strong:has-text("Acervo")').first().click(); await p.waitForLoadState(); await editorReady();
+    ok('seletor aparece quando há imagem', await p.locator('[data-banner-focus]').isVisible());
+    const area2 = p.locator('[data-banner-focus] [data-focus-area]');
+    const box = await area2.boundingBox();
+    await area2.click({ position: { x: box.width * 0.2, y: box.height * 0.8 } });
+    const val = await p.inputValue('input[name=banner_position]');
+    ok('ponto escolhido (20% 80%)', val === '20% 80%', val);
+    ok('prévia da faixa acompanha', (await p.locator('[data-banner-preview]').getAttribute('style')).includes('20% 80%'));
+    await submit(p.locator('button[value=publicar]'));
+    ok('faixa do site usa o ponto', (await pub('/acervo')).includes('object-position:20% 80%'));
+    await p.locator('[data-image-field]:has(input[name=banner_image]) [data-clear]').click();
+    ok('sem imagem, o seletor some', !(await p.locator('[data-banner-focus]').isVisible()));
+  });
+
+  area = 'Faixa de avisos: espessura';
+  await safe('espessura da faixa', async () => {
+    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.fill('input[name="ticker_items[0][text]"]', 'Aviso espessura QA');
+    await p.locator('input[name=ticker_pad]').fill('20');
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/');
+    ok('espessura 20px no site', (await cs('.ticker-track', 'paddingTop')) === '20px', await cs('.ticker-track', 'paddingTop'));
+    await p.goto(base + '/admin/conteudo?aba=home');
+    ok('espessura continua salva', (await p.inputValue('input[name=ticker_pad]')) === '20');
+    ok('quadro com um controle só não repete o título', await p.locator('#g-avisos .a-type-bare').count() === 1);
+  });
+
+  area = 'Cabeçalho: prévia ao vivo';
+  await safe('prévia muda na hora', async () => {
+    await p.goto(base + '/admin/aparencia');
+    await pickFromLibrary(p.locator('[data-image-field]:has(input[name=header_image])'), 0);
+    const bgi = () => p.locator('[data-header-preview]').evaluate(el => el.style.backgroundImage);
+    ok('prévia mostra a imagem escolhida', (await bgi()).includes('url('));
+    await p.locator('input[name=header_overlay]').fill('30');
+    await p.uncheck('input[name=header_gradient]');
+    const g1 = await bgi();
+    ok('força 30% sem degradê na prévia', (g1.match(/, 0\.3\)/g) || []).length === 2, g1.slice(0, 120));
+    await p.check('input[name=header_gradient]');
+    ok('degradê na prévia', (await bgi()).includes('0.17)'), (await bgi()).slice(0, 120));
+    await p.locator('input[name=size_header]').fill('200');
+    ok('altura na prévia', (await p.locator('[data-header-preview]').evaluate(el => el.style.minHeight)) === '200px');
+    ok('título dos posts sem quadro repetido', await p.locator('#g-fontes .a-type-bare').count() === 1);
+  });
+
+  area = 'Avisos por e-mail';
+  await safe('e-mails de aviso no painel', async () => {
+    await p.goto(base + '/admin/conteudo?aba=site');
+    ok('começa com o e-mail da instalação', (await p.inputValue('input[name="notify[contact]"]')) === 'admin@teste.com');
+    await p.fill('input[name="notify[contact]"]', 'contato-qa@teste.com');
+    await p.fill('input[name="notify[newsletter]"]', '');
+    await p.fill('input[name="notify[comments]"]', 'nao-e-email');
+    await submit(p.locator('.a-sticky-save button'));
+    ok('e-mail inválido é recusado com aviso', (await p.content()).includes('não parece válido'));
+    await p.goto(base + '/admin/conteudo?aba=site');
+    ok('e-mail do contato salvo', (await p.inputValue('input[name="notify[contact]"]')) === 'contato-qa@teste.com');
+    ok('newsletter vazio = sem aviso', (await p.inputValue('input[name="notify[newsletter]"]')) === '');
+    ok('comentários mantém o anterior', (await p.inputValue('input[name="notify[comments]"]')) === 'admin@teste.com');
+    await submit(p.locator('button[value=teste_email]'));
+    const n = await notice();
+    ok('botão de teste responde', n.includes('teste'), n);
+  });
+
+  area = 'Medição e cookies';
+  await safe('Pixel, Analytics e aviso de cookies', async () => {
+    ok('sem números, sem aviso de cookies', !(await pub('/')).includes('data-cookie-bar'));
+    await p.goto(base + '/admin/conteudo?aba=site');
+    await p.fill('input[name=ga4]', 'X-123');
+    await submit(p.locator('.a-sticky-save button'));
+    ok('código do Analytics errado é recusado', (await p.content()).includes('começa com “G-”'));
+    await p.goto(base + '/admin/conteudo?aba=site');
+    await p.fill('input[name=meta_pixel]', '1234 5678 9012 345'); await p.fill('input[name=ga4]', 'g-test1234');
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/admin/conteudo?aba=site');
+    ok('Pixel salvo só com números', (await p.inputValue('input[name=meta_pixel]')) === '123456789012345');
+    ok('Analytics salvo em maiúsculas', (await p.inputValue('input[name=ga4]')) === 'G-TEST1234');
+    const ctx2 = await b.newContext(); const r = await ctx2.newPage();
+    await r.route(/googletagmanager|facebook\.net/, route => route.fulfill({ status: 200, body: '' }));
+    await r.goto(base + '/');
+    ok('aviso de cookies aparece', await r.locator('[data-cookie-bar]').isVisible());
+    ok('nada carrega antes de aceitar', await r.locator('script[src*="googletagmanager"], script[src*="fbevents"]').count() === 0);
+    await r.click('[data-cookie="sim"]');
+    ok('ao aceitar, Analytics e Pixel carregam', await r.locator('script[src*="googletagmanager"]').count() === 1 && await r.locator('script[src*="fbevents"]').count() === 1);
+    await r.reload();
+    ok('escolha é lembrada', !(await r.locator('[data-cookie-bar]').isVisible()));
+    await r.click('[data-cookie-reset]');
+    ok('link “Cookies” no rodapé reabre o aviso', await r.locator('[data-cookie-bar]').isVisible());
+    await ctx2.close();
+    const ctx3 = await b.newContext(); const r3 = await ctx3.newPage();
+    await r3.goto(base + '/'); await r3.click('[data-cookie="nao"]'); await r3.reload();
+    ok('quem recusa não é medido', await r3.locator('script[src*="googletagmanager"], script[src*="fbevents"]').count() === 0 && !(await r3.locator('[data-cookie-bar]').isVisible()));
+    await ctx3.close();
+  });
+
+  area = 'Google';
+  await safe('dados estruturados', async () => {
+    const home = await pub('/');
+    ok('home: site e organização para o Google', home.includes('"@type":"WebSite"') && home.includes('"@type":"Organization"'));
+    const post = await pub('/blog/mangueira-1988-o-samba-que-contou-a-historia');
+    const m3 = post.match(/<script type="application\/ld\+json">(.*?)<\/script>/);
+    let d = null; try { d = JSON.parse(m3[1]); } catch (e) {}
+    ok('post: artigo com título, autor e data', d && d['@type'] === 'BlogPosting' && d.headline.includes('Mangueira') && d.author.name && d.datePublished);
+    ok('endereço de 127.0.0.1 não é escondido', !home.includes('noindex'));
+  });
+  await safe('endereço de teste escondido do Google', async () => {
+    const tb = await chromium.launch({ executablePath: '/opt/pw-browsers/chromium', args: ['--host-resolver-rules=MAP novo.arquivosapucai.com.br 127.0.0.1'] });
+    const tp = await tb.newPage();
+    const resp = await tp.goto('http://novo.arquivosapucai.com.br:8080/');
+    ok('novo.: aviso ao Google na página', (await tp.content()).includes('<meta name="robots" content="noindex, nofollow">'));
+    ok('novo.: aviso ao Google no cabeçalho', (resp.headers()['x-robots-tag'] || '') === 'noindex, nofollow');
+    await tp.goto('http://novo.arquivosapucai.com.br:8080/admin/login');
+    await tp.fill('input[name=email]', 'admin@teste.com'); await tp.fill('input[name=senha]', 'senha-admin-123');
+    await Promise.all([tp.waitForNavigation(), tp.click('button[type=submit]')]);
+    await tp.goto('http://novo.arquivosapucai.com.br:8080/admin');
+    ok('novo.: aviso amarelo no Início do painel', (await tp.content()).includes('Site de teste escondido do Google'));
+    await tb.close();
+    await p.goto(base + '/admin');
+    ok('endereço oficial: sem o aviso amarelo', !(await p.content()).includes('Site de teste escondido do Google'));
+  });
+
   area = 'Geral';
   ok('nenhum erro de JavaScript nas páginas', jsErrors.length === 0, jsErrors.slice(0, 3).join(' | '));
   fs.writeFileSync(shots + '/qa-resultado.json', JSON.stringify(results, null, 1));

@@ -33,7 +33,18 @@
       </section>
       <section class="a-card">
         <h2>Topo da página</h2>
-        <?= image_field('banner_image', $page['banner_image'], 'Imagem grande do topo (opcional)') ?>
+        <?= image_field('banner_image', $page['banner_image'], 'Imagem da faixa do topo (opcional)') ?>
+        <?php $bpos = $page['banner_position'] ?: '50% 50%'; [$bx, $by] = array_map('intval', explode(' ', str_replace('%', '', $bpos)) + [50, 50]); ?>
+        <div class="a-focus" data-banner-focus<?= $page['banner_image'] ? '' : ' hidden' ?>>
+          <div class="a-label">Parte da foto que aparece na faixa <small>(clique na foto)</small></div>
+          <div class="a-focus-img" data-focus-area>
+            <img src="<?= e(media_url($page['banner_image'])) ?>" alt="" data-focus-img>
+            <span class="a-focus-dot" data-focus-dot style="left:<?= $bx ?>%;top:<?= $by ?>%"></span>
+          </div>
+          <div class="a-label">Prévia da faixa</div>
+          <div class="a-banner-preview"><img src="<?= e(media_url($page['banner_image'])) ?>" alt="" style="object-position:<?= e($bpos) ?>" data-banner-preview></div>
+          <input type="hidden" name="banner_position" value="<?= e($bpos) ?>" data-focus-value>
+        </div>
         <label class="a-check"><input type="checkbox" name="title_over_banner" value="1"<?= $page['title_over_banner'] ? ' checked' : '' ?>> Título por cima da imagem</label>
       </section>
       <section class="a-card">

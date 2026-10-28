@@ -9,6 +9,7 @@ function page_home(): void
         'sections' => home_sections(),
         'home'     => $home,
         'bodyClass' => 'is-home',
+        'jsonLd'    => site_json_ld(),
     ]);
 }
 
@@ -101,6 +102,7 @@ function page_post(string $slug): void
         'comments'    => approved_comments((int) $post['id']),
         'recent'      => latest_posts(3, 0, ['exclude' => $post['id']]),
         'bodyClass'   => 'is-post',
+        'jsonLd'      => post_json_ld($post),
     ]);
 }
 
@@ -155,7 +157,7 @@ function action_comment(string $slug): void
     forget_old();
     if ($status === 'pending') {
         send_mail(
-            (string) config('notify_email'),
+            notify_to('comments'),
             'Novo comentário aguardando aprovação',
             "Post: {$post['title']}\nDe: {$name} <{$email}>\n\n{$text}\n\nAprovar: " . absolute_url('/admin/comentarios'),
             $email
@@ -220,7 +222,7 @@ function action_contact(): void
     db_insert('messages', $data + ['ip' => client_ip(), 'created_at' => now()]);
     forget_old();
     send_mail(
-        (string) config('notify_email'),
+        notify_to('contact'),
         'Nova mensagem pelo site: ' . $data['first_name'],
         "De: {$data['first_name']} {$data['last_name']} <{$data['email']}>\nTelefone: {$data['phone']}\n\n{$data['message']}",
         $data['email']
@@ -253,6 +255,7 @@ function action_newsletter(): void
             'ip'         => client_ip(),
             'created_at' => now(),
         ]);
+        send_mail(notify_to('newsletter'), 'Novo cadastro na newsletter', "E-mail: {$email}\n\nLista completa: " . absolute_url('/admin/newsletter'));
     }
     flash('newsletter_success', 'Pronto! Você vai receber as novidades do Arquivo.');
     redirect($back);

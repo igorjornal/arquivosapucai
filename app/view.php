@@ -183,6 +183,7 @@ function appearance_css(): string
     $overlay = max(0, min(100, (int) ($a['header']['overlay'] ?? 100)));
     $lines[] = '--header-overlay-a:' . $overlay . '%';
     $lines[] = '--header-overlay-b:' . (!empty($a['header']['gradient']) ? (int) round($overlay * .55) : $overlay) . '%';
+    $lines[] = '--ticker-pad:' . max(0, min(40, (int) (setting('home')['ticker_pad'] ?? 9))) . 'px';
     $lines[] = '--logo-size:' . $logo . 'px';
     $lines[] = '--header-height:' . $header . 'px';
     $blog = setting('blog');
@@ -254,11 +255,13 @@ function save_type_from_post(array $keys): void
     save_setting('type', $all);
 }
 
+// Quando o quadro tem um controle só, ele sai sem borda nem título próprio (o quadro de fora já tem título)
 function type_fields(array $keys): string
 {
+    $bare = count($keys) === 1;
     $out = '';
     foreach ($keys as $key => $label) {
-        $out .= is_int($key) ? render_to_string('admin/type-field', ['key' => $label]) : render_to_string('admin/type-field', ['key' => $key, 'label' => $label]);
+        $out .= is_int($key) ? render_to_string('admin/type-field', ['key' => $label, 'bare' => $bare]) : render_to_string('admin/type-field', ['key' => $key, 'label' => $label, 'bare' => $bare]);
     }
-    return '<div class="a-type-grid">' . $out . '</div>';
+    return '<div class="a-type-grid' . ($bare ? ' is-single' : '') . '">' . $out . '</div>';
 }

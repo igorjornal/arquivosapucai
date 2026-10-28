@@ -6,8 +6,8 @@ $cur = $c ?? $d;
 [$min, $max] = type_limits($t['base']);
 $baseName = ['heading' => 'Títulos', 'body' => 'Texto corrido', 'ui' => 'Menus, botões e detalhes'][$t['base']];
 ?>
-<fieldset class="a-type" data-type-field>
-  <legend><?= e($label ?? $t['label']) ?></legend>
+<fieldset class="a-type<?= !empty($bare) ? ' a-type-bare' : '' ?>" data-type-field>
+  <legend<?= !empty($bare) ? ' class="sr"' : '' ?>><?= e($label ?? $t['label']) ?></legend>
   <label class="a-check"><input type="checkbox" name="type[<?= e($key) ?>][padrao]" value="1"<?= $c ? '' : ' checked' ?> data-type-default> Usar o padrão do site</label>
   <small class="a-help" data-type-summary<?= $c ? ' hidden' : '' ?>>Padrão: <?= e($d['font']) ?><?= $d['size'] ? ', ' . $d['size'] . ' px' : '' ?><?= ', ' . mb_strtolower(weight_choices()[$d['weight']]) ?> (vem de “<?= $baseName ?>” em <a href="/admin/aparencia">Aparência</a>)</small>
   <div data-type-custom<?= $c ? '' : ' hidden' ?>>

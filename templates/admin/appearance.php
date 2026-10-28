@@ -65,6 +65,11 @@
 
   <section class="a-group" id="g-cabecalho">
     <h2 class="a-group-title">Cabeçalho e logo</h2>
+    <div class="a-header-preview" data-header-preview data-logo="<?= e(media_url($site['logo'])) ?>">
+      <img src="<?= e(media_url($site['logo'])) ?>" alt="" data-hp-logo>
+      <span class="a-hp-menu" data-hp-menu><?php foreach (array_slice(menu_items(), 0, 5) as $mi): ?><span><?= e($mi['label']) ?></span><?php endforeach; ?></span>
+    </div>
+    <small class="a-help" style="margin:-6px 0 14px">Prévia: muda na hora enquanto você mexe na imagem, na força da cor, no degradê, nos tamanhos e nas cores do cabeçalho. Só vale no site depois de salvar.</small>
     <section class="a-card">
       <div class="a-row-2">
         <label><span>Tamanho do logo: <output data-range-out><?= (int) ($a['sizes']['logo'] ?? 96) ?></output> px</span>

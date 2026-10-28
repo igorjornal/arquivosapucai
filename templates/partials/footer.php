@@ -52,6 +52,7 @@ $textStyle = type_style('footer_texts');
   <?php endif; ?>
   <div class="wrap footer-bottom">
     <span<?= type_style('footer_copyright') ?>><?= e(str_replace('{ano}', date('Y'), $footer['copyright'])) ?></span>
+    <?php if (tracking_ids()): ?><button class="link-btn footer-cookies" type="button" data-cookie-reset>Cookies</button><?php endif; ?>
     <?php if ($footer['author_label'] !== ''): ?><a href="/admin" target="_blank" rel="noopener"<?= type_style('footer_author') ?>><?= e($footer['author_label']) ?></a><?php endif; ?>
   </div>
 </footer>

@@ -899,6 +899,41 @@ function admin_content(): void
                 $site['socials'][$net] = $link === '' || preg_match('#^https?://#', $link) ? $link : 'https://' . $link;
             }
             save_setting('site', $site);
+            $notify = [];
+            foreach (['contact', 'newsletter', 'comments'] as $k) {
+                $addr = mb_strtolower(trim((string) ($_POST['notify'][$k] ?? '')));
+                if ($addr !== '' && !filter_var($addr, FILTER_VALIDATE_EMAIL)) {
+                    flash('error', 'O e-mail “' . $addr . '” não parece válido. Confira e salve de novo.');
+                    $addr = notify_to($k);
+                }
+                $notify[$k] = mb_substr($addr, 0, 190);
+            }
+            save_setting('notify', $notify);
+            $pixel = preg_replace('/\D/', '', input('meta_pixel'));
+            $ga = strtoupper(trim(input('ga4')));
+            if ($ga !== '' && !preg_match('/^G-[A-Z0-9]{4,20}$/', $ga)) {
+                flash('error', 'O código do Google Analytics começa com “G-”, por exemplo G-AB12CD34EF.');
+                $ga = (string) (setting('tracking')['ga4'] ?? '');
+            }
+            save_setting('tracking', [
+                'meta_pixel'  => mb_substr($pixel, 0, 20),
+                'ga4'         => $ga,
+                'cookie_text' => mb_substr(input('cookie_text'), 0, 300) ?: settings_defaults()['tracking']['cookie_text'],
+            ]);
+            if (input('acao') === 'teste_email') {
+                $sent = [];
+                foreach (array_unique(array_filter([notify_to('contact'), notify_to('newsletter'), notify_to('comments')])) as $addr) {
+                    if (send_mail($addr, 'Teste de aviso do site', "Se você recebeu este e-mail, os avisos do site estão chegando.\n\n" . absolute_url('/admin'))) {
+                        $sent[] = $addr;
+                    }
+                }
+                if ($sent) {
+                    flash('success', 'E-mail de teste enviado para ' . implode(', ', $sent) . '. Confira a caixa de entrada e o spam nos próximos minutos.');
+                } else {
+                    flash('error', 'O servidor não conseguiu enviar o e-mail de teste (ou nenhum e-mail está preenchido).');
+                }
+                redirect('/admin/conteudo?aba=site#g-avisos');
+            }
         } elseif ($tab === 'home') {
             $home = setting('home');
             $ticker = [];
@@ -925,6 +960,7 @@ function admin_content(): void
             }
             $home['contact_button'] = mb_substr(input('contact_button'), 0, 40) ?: 'Enviar';
             $home['blog_count'] = max(1, min(24, (int) input('blog_count', 6)));
+            $home['ticker_pad'] = max(0, min(40, (int) input('ticker_pad', 9)));
             $home['arquivo_new_tab'] = (bool) post_bool('arquivo_new_tab');
             $home['arquivo_img'] = image_opts_from_post('arquivo_img');
             $playlists = [];
@@ -999,7 +1035,7 @@ function admin_page_edit(?string $id = null): void
     if ($id && !$page) {
         redirect('/admin/paginas');
     }
-    $page ??= ['id' => null, 'title' => '', 'slug' => '', 'subtitle' => '', 'content' => '', 'banner_image' => '', 'title_over_banner' => 1,
+    $page ??= ['id' => null, 'title' => '', 'slug' => '', 'subtitle' => '', 'content' => '', 'banner_image' => '', 'banner_position' => '50% 50%', 'title_over_banner' => 1,
         'width' => 'narrow', 'bg_color' => null, 'text_color' => null, 'title_color' => null, 'status' => 'draft', 'meta_title' => '', 'meta_description' => ''];
     $errors = [];
     if (is_post()) {
@@ -1008,6 +1044,7 @@ function admin_page_edit(?string $id = null): void
             'subtitle'          => mb_substr(input('subtitle'), 0, 500) ?: null,
             'content'           => sanitize_html((string) ($_POST['content'] ?? '')),
             'banner_image'      => mb_substr(input('banner_image'), 0, 255) ?: null,
+            'banner_position'   => preg_match('/^\d{1,3}% \d{1,3}%$/', input('banner_position')) ? input('banner_position') : '50% 50%',
             'title_over_banner' => post_bool('title_over_banner'),
             'width'             => input('width') === 'wide' ? 'wide' : 'narrow',
             'status'            => input('acao') === 'publicar' ? 'published' : 'draft',

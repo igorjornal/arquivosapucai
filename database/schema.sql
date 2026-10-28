@@ -176,6 +176,7 @@ CREATE TABLE IF NOT EXISTS pages (
   subtitle VARCHAR(500) NULL,
   content MEDIUMTEXT NULL,
   banner_image VARCHAR(255) NULL,
+  banner_position VARCHAR(20) NOT NULL DEFAULT '50% 50%',
   title_over_banner TINYINT(1) NOT NULL DEFAULT 1,
   width VARCHAR(10) NOT NULL DEFAULT 'narrow',  -- narrow | wide
   bg_color VARCHAR(20) NULL,

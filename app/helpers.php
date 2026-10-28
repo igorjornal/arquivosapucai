@@ -313,3 +313,28 @@ function send_mail(string $to, string $subject, string $body, ?string $replyTo =
     }
     return @mail($to, '=?UTF-8?B?' . base64_encode($subject) . '?=', $body, implode("\r\n", $headers));
 }
+
+// Endereço de teste (novo.arquivosapucai.com.br): o site pede ao Google para não guardar nada.
+// No endereço oficial isso some sozinho.
+function is_test_host(): bool
+{
+    $host = strtolower((string) ($_SERVER['HTTP_HOST'] ?? ''));
+    return str_starts_with($host, 'novo.');
+}
+
+// E-mail que recebe cada tipo de aviso (contact, newsletter, comments)
+function notify_to(string $type): string
+{
+    $v = (setting('notify') ?? [])[$type] ?? null;
+    return $v === null ? (string) config('notify_email') : (string) $v;
+}
+
+// Números de medição preenchidos no painel (vazio = desligado)
+function tracking_ids(): array
+{
+    $t = setting('tracking') ?? [];
+    return array_filter([
+        'pixel' => preg_match('/^\d{6,20}$/', (string) ($t['meta_pixel'] ?? '')) ? $t['meta_pixel'] : '',
+        'ga'    => preg_match('/^G-[A-Z0-9]{4,20}$/', (string) ($t['ga4'] ?? '')) ? $t['ga4'] : '',
+    ]);
+}

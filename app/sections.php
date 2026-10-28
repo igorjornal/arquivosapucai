@@ -174,6 +174,14 @@ function run_migrations(): void
         save_setting('type', $type);
         save_setting_raw('schema_version', 6);
     }
+    if ($version < 7) {
+        // Páginas: ponto da foto que aparece na faixa do topo
+        $has = db_val("SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'pages' AND COLUMN_NAME = 'banner_position'");
+        if (!(int) $has) {
+            db()->exec("ALTER TABLE pages ADD COLUMN banner_position VARCHAR(20) NOT NULL DEFAULT '50% 50%' AFTER banner_image");
+        }
+        save_setting_raw('schema_version', 7);
+    }
 }
 
 function save_setting_raw(string $name, $value): void

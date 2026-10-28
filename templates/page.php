@@ -10,7 +10,7 @@ $isDraft = $page['status'] !== 'published';
 <article class="static-page"<?= $style ? ' style="' . e(implode(';', $style)) . '"' : '' ?>>
   <?php if ($page['banner_image']): ?>
     <header class="page-banner<?= $page['title_over_banner'] ? ' has-title' : '' ?>">
-      <img src="<?= e(media_url($page['banner_image'])) ?>" alt="">
+      <img src="<?= e(media_url($page['banner_image'])) ?>" alt="" style="object-position:<?= e($page['banner_position'] ?? '50% 50%') ?>">
       <?php if ($page['title_over_banner']): ?>
         <div class="wrap page-banner-text">
           <h1 class="post-title"<?= type_style('post_title') ?>><?= e($page['title']) ?></h1>

@@ -19,8 +19,11 @@
     return m ? m[1] : null;
   }
 
-  function videoHtml(id) {
-    return '<div class="video" contenteditable="false"><iframe src="https://www.youtube-nocookie.com/embed/' + id +
+  function videoHtml(id, width, align) {
+    width = width || '100';
+    align = align || 'center';
+    return '<div class="video align-' + align + '"' + (width !== '100' ? ' style="width:' + width + '%"' : '') +
+      ' contenteditable="false"><iframe src="https://www.youtube-nocookie.com/embed/' + id +
       '" title="Vídeo do YouTube" allowfullscreen="allowfullscreen"></iframe></div><p></p>';
   }
 
@@ -165,18 +168,39 @@
   }, true);
 
   /* ---------- Vídeo ---------- */
+  // Vídeo novo ou, com um vídeo selecionado, edita tamanho e alinhamento dele
   function videoDialog(editor) {
+    var current = editor.dom.getParent(editor.selection.getNode(), 'div.video');
+    var frame = current ? current.querySelector('iframe') : null;
+    var data = {
+      url: frame ? 'https://www.youtube.com/watch?v=' + (frame.getAttribute('src').split('/embed/')[1] || '').split('?')[0] : '',
+      width: current && current.style.width ? String(parseInt(current.style.width, 10)) : '100',
+      align: current ? (['left', 'right', 'center'].filter(function (a) { return current.classList.contains('align-' + a); })[0] || 'center') : 'center'
+    };
     editor.windowManager.open({
-      title: 'Vídeo do YouTube',
+      title: current ? 'Editar vídeo' : 'Vídeo do YouTube',
       body: { type: 'panel', items: [
         { type: 'input', name: 'url', label: 'Cole o link do vídeo', placeholder: 'https://www.youtube.com/watch?v=...' },
-        { type: 'htmlpanel', html: '<p style="font-size:13px;color:#555">Vale link normal, de Shorts, de transmissão ao vivo ou youtu.be.</p>' }
+        { type: 'htmlpanel', html: '<p style="font-size:13px;color:#555">Vale link normal, de Shorts, de transmissão ao vivo ou youtu.be.</p>' },
+        { type: 'grid', columns: 2, items: [
+          { type: 'selectbox', name: 'width', label: 'Tamanho', items: ['100', '90', '80', '75', '70', '60', '50', '40', '30'].map(function (w) { return { value: w, text: w + '%' }; }) },
+          { type: 'selectbox', name: 'align', label: 'Alinhamento', items: [
+            { value: 'center', text: 'Centro' }, { value: 'left', text: 'Esquerda (texto contorna)' }, { value: 'right', text: 'Direita (texto contorna)' }
+          ] }
+        ] }
       ] },
-      buttons: [{ type: 'cancel', text: 'Cancelar' }, { type: 'submit', text: 'Inserir', primary: true }],
+      initialData: data,
+      buttons: [{ type: 'cancel', text: 'Cancelar' }, { type: 'submit', text: current ? 'Salvar' : 'Inserir', primary: true }],
       onSubmit: function (api) {
-        var id = youtubeId(api.getData().url);
+        var d = api.getData();
+        var id = youtubeId(d.url);
         if (!id) { editor.notificationManager.open({ text: 'Não reconheci esse link do YouTube.', type: 'warning', timeout: 3000 }); return; }
-        insertBlock(editor, videoHtml(id).replace('<p></p>', ''));
+        var html = videoHtml(id, d.width, d.align).replace('<p></p>', '');
+        if (current) {
+          editor.undoManager.transact(function () { editor.dom.setOuterHTML(current, html); });
+        } else {
+          insertBlock(editor, html);
+        }
         api.close();
       }
     });

@@ -190,3 +190,43 @@ function gravatar_initials(string $name): string
     $initials = mb_substr($parts[0] ?? '', 0, 1) . (count($parts) > 1 ? mb_substr(end($parts), 0, 1) : '');
     return mb_strtoupper($initials ?: '?');
 }
+
+// Dados estruturados: dizem ao Google, por baixo dos panos, o que é cada página
+function site_json_ld(): array
+{
+    $site = setting('site');
+    return [
+        '@context' => 'https://schema.org',
+        '@graph'   => [
+            ['@type' => 'WebSite', 'name' => $site['title'], 'url' => absolute_url('/'), 'inLanguage' => 'pt-BR',
+                'potentialAction' => ['@type' => 'SearchAction', 'target' => absolute_url('/busca') . '?q={busca}', 'query-input' => 'required name=busca']],
+            ['@type' => 'Organization', 'name' => $site['title'], 'url' => absolute_url('/'),
+                'logo' => absolute_url(media_url($site['logo'])), 'sameAs' => array_values(array_filter($site['socials']))],
+        ],
+    ];
+}
+
+function post_json_ld(array $post): array
+{
+    $site = setting('site');
+    $data = [
+        '@context'      => 'https://schema.org',
+        '@type'         => 'BlogPosting',
+        'headline'      => mb_substr($post['title'], 0, 110),
+        'description'   => $post['meta_description'] ?: post_excerpt($post, 155),
+        'url'           => absolute_url(post_url($post)),
+        'datePublished' => date('c', strtotime((string) ($post['published_at'] ?: $post['created_at']))),
+        'dateModified'  => date('c', strtotime((string) $post['updated_at'])),
+        'inLanguage'    => 'pt-BR',
+        'author'        => ['@type' => 'Person', 'name' => $post['author_name'], 'url' => absolute_url('/blog/autor/' . $post['author_slug'])],
+        'publisher'     => ['@type' => 'Organization', 'name' => $site['title'], 'logo' => ['@type' => 'ImageObject', 'url' => absolute_url(media_url($site['logo']))]],
+        'mainEntityOfPage' => absolute_url(post_url($post)),
+    ];
+    if ($post['cover_image']) {
+        $data['image'] = absolute_url(media_url($post['cover_image']));
+    }
+    if (!empty($post['category_name'])) {
+        $data['articleSection'] = $post['category_name'];
+    }
+    return $data;
+}

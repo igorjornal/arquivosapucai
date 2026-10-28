@@ -342,6 +342,61 @@
     if (cover) setupCover(cover);
   }
 
+  // Aparência: prévia do cabeçalho
+  var hp = document.querySelector('[data-header-preview]');
+  if (hp) {
+    var q = function (sel) { return document.querySelector(sel); };
+    var rgba = function (hex, pct) {
+      var h = hex.replace('#', '');
+      if (h.length === 3) h = h.replace(/./g, '$&$&');
+      var n = parseInt(h, 16);
+      return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + (pct / 100) + ')';
+    };
+    var drawHeader = function () {
+      var bg = q('input[name="colors[header_bg]"]').value;
+      var img = q('input[name="header_image"]').value;
+      var a = +q('input[name="header_overlay"]').value;
+      var b = q('input[name="header_gradient"]').checked ? Math.round(a * 0.55) : a;
+      var url = img ? (/^https?:/.test(img) ? img : '/' + img.replace(/^\//, '')) : '';
+      hp.style.backgroundColor = bg;
+      hp.style.backgroundImage = 'linear-gradient(90deg,' + rgba(bg, a) + ' 0%,' + rgba(bg, b) + ' 100%)' + (url ? ', url("' + url + '")' : '');
+      hp.style.minHeight = q('input[name="size_header"]').value + 'px';
+      var logo = hp.querySelector('[data-hp-logo]');
+      logo.style.width = logo.style.height = q('input[name="size_logo"]').value + 'px';
+      hp.querySelector('[data-hp-menu]').style.color = q('input[name="colors[header_accent]"]').value;
+    };
+    ['colors[header_bg]', 'colors[header_accent]', 'header_image', 'header_overlay', 'header_gradient', 'size_header', 'size_logo'].forEach(function (n) {
+      var el = q('input[name="' + n + '"]');
+      el.addEventListener('input', drawHeader); el.addEventListener('change', drawHeader);
+    });
+    drawHeader();
+  }
+
+  // Página: ponto da foto que aparece na faixa do topo
+  var bannerFocus = document.querySelector('[data-banner-focus]');
+  if (bannerFocus) {
+    var bannerValue = document.querySelector('input[name="banner_image"]');
+    var bArea = bannerFocus.querySelector('[data-focus-area]');
+    var bImg = bannerFocus.querySelector('[data-focus-img]');
+    var bPrev = bannerFocus.querySelector('[data-banner-preview]');
+    var bDot = bannerFocus.querySelector('[data-focus-dot]');
+    var bPos = bannerFocus.querySelector('[data-focus-value]');
+    bannerValue.addEventListener('change', function () {
+      var v = bannerValue.value;
+      bannerFocus.hidden = v === '';
+      if (v) { var url = /^https?:/.test(v) ? v : '/' + v.replace(/^\//, ''); bImg.src = url; bPrev.src = url; }
+    });
+    bArea.addEventListener('click', function (e) {
+      var r = bArea.getBoundingClientRect();
+      var x = Math.round(((e.clientX - r.left) / r.width) * 100);
+      var y = Math.round(((e.clientY - r.top) / r.height) * 100);
+      bDot.style.left = x + '%'; bDot.style.top = y + '%';
+      bPos.value = x + '% ' + y + '%';
+      bPrev.style.objectPosition = bPos.value;
+      bPos.dispatchEvent(new Event('change', { bubbles: true }));
+    });
+  }
+
   function setupCover(cover) {
     var coverValue = cover.querySelector('input[name="cover_image"]');
     var ratio = cover.querySelector('[data-cover-ratio]');

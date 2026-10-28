@@ -143,6 +143,19 @@
     if (reset) reset.addEventListener('click', function () { bar.hidden = false; });
   }
 
+  // Vídeo com capa: clicou na capa, ela sai e o vídeo começa
+  document.querySelectorAll('.video.has-cover').forEach(function (box) {
+    var cover = box.querySelector('.yt-cover');
+    var frame = box.querySelector('iframe');
+    if (!cover || !frame) return;
+    cover.addEventListener('click', function () {
+      var src = frame.getAttribute('src');
+      frame.setAttribute('src', src + (src.indexOf('?') === -1 ? '?' : '&') + 'autoplay=1');
+      cover.remove();
+      box.classList.remove('has-cover');
+    });
+  });
+
   // Tabelas largas rolam de lado no celular
   document.querySelectorAll('.post-content table').forEach(function (t) {
     if (t.parentElement.classList.contains('table-scroll')) return;

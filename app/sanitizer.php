@@ -169,8 +169,16 @@ function safe_url(string $url, bool $allowMailto): bool
     return in_array($scheme, $schemes, true);
 }
 
+// Só aceita player do YouTube: vídeo (com ou sem playlist junto) ou playlist inteira
 function youtube_embed_src(string $src): ?string
 {
+    $list = preg_match('/[?&]list=([A-Za-z0-9_-]{10,64})/', $src, $m) ? $m[1] : null;
     $id = youtube_id($src);
-    return $id ? 'https://www.youtube-nocookie.com/embed/' . $id : null;
+    if ($id === 'videoseries') {
+        $id = null;
+    }
+    if ($id) {
+        return 'https://www.youtube-nocookie.com/embed/' . $id . ($list ? '?list=' . $list : '');
+    }
+    return $list ? 'https://www.youtube-nocookie.com/embed/videoseries?list=' . $list : null;
 }

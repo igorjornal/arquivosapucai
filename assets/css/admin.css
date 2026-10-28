@@ -307,3 +307,4 @@ body.is-saving::before { content: ""; position: fixed; top: 0; left: 0; height: 
 .a-hp-menu { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px 22px; font-weight: 700; font-size: 15px; }
 .a-type-grid.is-single { grid-template-columns: minmax(0, 420px); }
 .a-type.a-type-bare { border: 0; padding: 0; }
+.a-image-field .a-help { margin-top: 6px; }

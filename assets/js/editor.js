@@ -19,23 +19,34 @@
     return m ? m[1] : null;
   }
 
-  // size: '100' | '75' | '50' (sozinho, no centro) ou 'r2' | 'r3' | 'r4' (vários por linha)
-  function videoHtml(src, size) {
-    size = size || '100';
-    if (src.indexOf('/') === -1) src = 'https://www.youtube-nocookie.com/embed/' + src;
-    var row = size.charAt(0) === 'r';
-    return '<div class="video ' + (row ? 'video-row-' + size.charAt(1) : 'video-solo') + '"' +
-      (!row && size !== '100' ? ' style="width:' + size + '%"' : '') +
-      ' contenteditable="false"><iframe src="' + src + '" title="Vídeo do YouTube" allowfullscreen="allowfullscreen"></iframe></div>';
+  // Link de vídeo ou de playlist do YouTube → endereço do player e endereço para abrir no YouTube
+  function youtubeLinks(url) {
+    var list = (String(url).match(/[?&]list=([A-Za-z0-9_-]{10,64})/) || [])[1];
+    var id = youtubeId(url);
+    if (id === 'videoseries') id = null;
+    if (id) {
+      return { embed: 'https://www.youtube-nocookie.com/embed/' + id + (list ? '?list=' + list : ''),
+        watch: 'https://www.youtube.com/watch?v=' + id + (list ? '&list=' + list : '') };
+    }
+    if (list) {
+      return { embed: 'https://www.youtube-nocookie.com/embed/videoseries?list=' + list,
+        watch: 'https://www.youtube.com/playlist?list=' + list };
+    }
+    return null;
   }
 
-  // Link de vídeo ou de playlist do YouTube vira o endereço do player
-  function youtubeEmbed(url) {
-    var list = (String(url).match(/[?&]list=([A-Za-z0-9_-]{10,})/) || [])[1];
-    var id = youtubeId(url);
-    if (id) return 'https://www.youtube-nocookie.com/embed/' + id + (list ? '?list=' + list : '');
-    if (list) return 'https://www.youtube-nocookie.com/embed/videoseries?list=' + list;
-    return null;
+  // Quadrinho de vídeo: toca ali mesmo, capa opcional (clicou, toca), título opcional e botão para o YouTube.
+  // size: '100' | '75' | '50' (sozinho, no centro) ou 'r2' | 'r3' | 'r4' (vários por linha, lado a lado)
+  function videoCardHtml(o) {
+    var size = o.size || '100';
+    var row = size.charAt(0) === 'r';
+    return '<div class="yt-card ' + (row ? 'video-row-' + size.charAt(1) : 'video-solo') + '"' +
+      (!row && size !== '100' ? ' style="width:' + size + '%"' : '') + ' contenteditable="false">' +
+      '<div class="video' + (o.cover ? ' has-cover' : '') + '"><iframe src="' + esc(o.embed) + '" title="' + esc(o.title || 'Vídeo do YouTube') +
+      '" allowfullscreen="allowfullscreen"></iframe>' + (o.cover ? '<img class="yt-cover" src="' + esc(o.cover) + '" alt="' + esc(o.title || '') + '">' : '') + '</div>' +
+      (o.title ? '<p class="yt-title">' + esc(o.title) + '</p>' : '') +
+      (o.button ? '<a class="yt-link" href="' + esc(o.watch) + '" target="_blank">' + esc(o.button) + '</a>' : '') +
+      '</div>';
   }
 
   function esc(s) {
@@ -165,6 +176,23 @@
     return src ? '<img src="' + esc(src) + '" style="max-height:120px;border-radius:8px">' : '';
   }
 
+  // Capa do vídeo: escolher na biblioteca ou tirar
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('.tox-dialog [data-arq="pickcover"], .tox-dialog [data-arq="clearcover"]');
+    if (!btn || !openVideoDialog) return;
+    var dialog = openVideoDialog;
+    var thumb = btn.closest('.tox-dialog').querySelector('[data-arq="covertumb"]');
+    if (btn.dataset.arq === 'clearcover') {
+      dialog.setData({ cover: '' });
+      if (thumb) thumb.innerHTML = '';
+      return;
+    }
+    window.ArquivoMedia.open(function (item) {
+      dialog.setData({ cover: item.url });
+      if (thumb) thumb.innerHTML = thumbHtml(item.url);
+    });
+  }, true);
+
   // Funciona mesmo se a janela demorar a aparecer: não depende de achar o botão logo depois de abrir
   var openImageDialog = null;
   document.addEventListener('click', function (e) {
@@ -181,47 +209,79 @@
   /* ---------- Vídeo ---------- */
   // Tamanhos: os de "por linha" deixam vários vídeos lado a lado
   var VIDEO_SIZES = [
-    { value: '100', text: 'Largura toda' }, { value: '75', text: '75%' }, { value: '50', text: '50% (sozinho)' },
+    { value: '100', text: 'Largura toda' }, { value: '75', text: '75% (sozinho)' }, { value: '50', text: '50% (sozinho)' },
     { value: 'r2', text: '2 por linha (lado a lado)' }, { value: 'r3', text: '3 por linha (lado a lado)' }, { value: 'r4', text: '4 por linha (lado a lado)' }
   ];
 
-  // Vídeo novo (um ou vários links) ou, com um vídeo selecionado, muda o tamanho dele
-  function videoDialog(editor) {
-    var current = editor.dom.getParent(editor.selection.getNode(), 'div.video');
+  // Vídeo novo (um ou vários links) ou, com um quadrinho selecionado, muda link, capa, título, botão e tamanho
+  var openVideoDialog = null;
+  function videoDialog(editor, target) {
+    var node = target || editor.selection.getNode();
+    var current = editor.dom.getParent(node, 'div.yt-card') || editor.dom.getParent(node, 'div.video');
     var frame = current ? current.querySelector('iframe') : null;
+    var link = current ? current.querySelector('a.yt-link') : null;
+    var cover = current ? current.querySelector('img.yt-cover') : null;
+    var titleEl = current ? current.querySelector('.yt-title') : null;
     var size = '100';
     if (current) {
       var row = (current.className.match(/video-row-(\d)/) || [])[1];
       size = row ? 'r' + row : (current.style.width ? String(parseInt(current.style.width, 10)) : '100');
     }
-    editor.windowManager.open({
-      title: current ? 'Tamanho do vídeo' : 'Vídeo do YouTube',
-      body: { type: 'panel', items: (current ? [] : [
-        { type: 'textarea', name: 'urls', label: 'Cole o link do vídeo ou da playlist (para vários, um por linha)', placeholder: 'https://www.youtube.com/watch?v=...\nhttps://www.youtube.com/playlist?list=...' },
-        { type: 'htmlpanel', html: '<p style="font-size:13px;color:#555">Vale vídeo, playlist, Shorts, transmissão ao vivo ou youtu.be.</p>' }
-      ]).concat([
-        { type: 'selectbox', name: 'size', label: 'Tamanho', items: VIDEO_SIZES }
-      ]) },
-      initialData: { urls: '', size: size },
+    var data = {
+      urls: link ? link.getAttribute('href') : (frame ? frame.getAttribute('src') : ''),
+      title: titleEl ? titleEl.textContent : '',
+      button: current ? (link ? link.textContent : '') : 'Ver no YouTube ↗',
+      cover: cover ? cover.getAttribute('src') : '',
+      size: size
+    };
+    var dialog = editor.windowManager.open({
+      title: current ? 'Editar vídeo' : 'Vídeo ou playlist do YouTube',
+      size: 'medium',
+      body: { type: 'panel', items: [
+        { type: 'textarea', name: 'urls', label: current ? 'Link do vídeo ou da playlist' : 'Link do vídeo ou da playlist (para vários de uma vez, um por linha)' },
+        { type: 'htmlpanel', html: '<p style="font-size:13px;color:#555;margin:0">Vale vídeo, playlist, Shorts, transmissão ao vivo ou youtu.be.</p>' },
+        { type: 'grid', columns: 2, items: [
+          { type: 'selectbox', name: 'size', label: 'Tamanho', items: VIDEO_SIZES },
+          { type: 'input', name: 'button', label: 'Botão para o YouTube (vazio = sem botão)' }
+        ] },
+        { type: 'input', name: 'title', label: 'Título embaixo (opcional)' },
+        { type: 'htmlpanel', html: '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
+          '<button type="button" class="tox-button tox-button--secondary" data-arq="pickcover">Escolher capa (opcional)</button>' +
+          '<button type="button" class="tox-button tox-button--naked" data-arq="clearcover">Sem capa</button></div>' +
+          '<div data-arq="covertumb" style="margin-top:8px">' + thumbHtml(data.cover) + '</div>' +
+          '<p style="font-size:13px;color:#555;margin:6px 0 0">Com capa: aparece a sua imagem com o botão de play; clicou, o vídeo toca. Sem capa: aparece a imagem do YouTube. Com vários links de uma vez, título e capa ficam para depois (clique em cada um).</p>' },
+        { type: 'input', name: 'cover', label: 'Endereço da capa' }
+      ] },
+      initialData: data,
       buttons: [{ type: 'cancel', text: 'Cancelar' }, { type: 'submit', text: current ? 'Salvar' : 'Inserir', primary: true }],
       onSubmit: function (api) {
         var d = api.getData();
+        var links = d.urls.split(/\s+/).map(youtubeLinks).filter(Boolean);
+        if (!links.length) { editor.notificationManager.open({ text: 'Não reconheci nenhum link do YouTube.', type: 'warning', timeout: 3000 }); return; }
+        var single = links.length === 1;
+        var html = links.map(function (l) {
+          return videoCardHtml({ embed: l.embed, watch: l.watch, size: d.size, button: d.button.trim(),
+            title: single ? d.title.trim() : '', cover: single ? d.cover.trim() : '' });
+        }).join('');
+        // Linha vazia logo depois de outro quadrinho "por linha": o novo entra colado nele, na mesma fileira
+        var here = editor.dom.getParent(editor.selection.getNode(), 'p');
+        var prev = here && here.previousElementSibling;
+        var emptyLine = here && here.textContent.replace(/\u00a0/g, '').trim() === '' && !here.querySelector('img, iframe');
         if (current) {
-          editor.undoManager.transact(function () {
-            current.className = current.className.replace(/\s*video-row-\d|\s*video-solo/g, '') + (d.size.charAt(0) === 'r' ? ' video-row-' + d.size.charAt(1) : ' video-solo');
-            current.style.width = d.size.charAt(0) === 'r' || d.size === '100' ? '' : d.size + '%';
-            if (!current.getAttribute('style')) current.removeAttribute('style');
-          });
+          editor.undoManager.transact(function () { editor.dom.setOuterHTML(current, html); });
+        } else if (emptyLine && prev && /video-row-/.test(prev.className) && d.size.charAt(0) === 'r') {
+          editor.undoManager.transact(function () { prev.insertAdjacentHTML('afterend', html); });
+          editor.selection.setCursorLocation(here, 0);
           editor.nodeChanged();
-          api.close();
-          return;
+        } else {
+          insertBlock(editor, html);
         }
-        var srcs = d.urls.split(/\s+/).map(youtubeEmbed).filter(Boolean);
-        if (!srcs.length) { editor.notificationManager.open({ text: 'Não reconheci nenhum link do YouTube.', type: 'warning', timeout: 3000 }); return; }
-        insertBlock(editor, srcs.map(function (src) { return videoHtml(src, d.size); }).join(''));
+        openVideoDialog = null;
         api.close();
-      }
+      },
+      onClose: function () { openVideoDialog = null; }
     });
+    openVideoDialog = dialog;
   }
 
   /* ---------- Botão ---------- */
@@ -360,19 +420,29 @@
     content_css: [A.fonts, A.site],
     content_style: A.vars + ' body{background:var(--c-post-box-bg);color:var(--c-post-text);margin:24px 28px;max-width:none}' +
       ' .spacer{background:repeating-linear-gradient(45deg,#f2efe4,#f2efe4 6px,#fff 6px,#fff 12px);outline:1px dashed #c9c4ad}' +
-      ' .video{outline:3px dashed transparent} .video[data-mce-selected]{outline-color:#CDF50D}' +
+      ' .video, .yt-card{outline:3px dashed transparent} .video[data-mce-selected], .yt-card[data-mce-selected]{outline-color:#CDF50D}' +
+      ' .video iframe{pointer-events:none} .yt-card{cursor:pointer}' +
       ' figure.image[data-mce-selected]{outline:3px solid #CDF50D}',
     paste_preprocess: function (editor, args) {
       // Link do YouTube colado sozinho vira vídeo
       var text = args.content.replace(/<[^>]+>/g, '').trim();
-      var id = /^https?:\/\/\S+$/.test(text) ? youtubeId(text) : null;
-      if (id) args.content = videoHtml(id);
+      var l = /^https?:\/\/\S+$/.test(text) ? youtubeLinks(text) : null;
+      if (l) args.content = videoCardHtml({ embed: l.embed, watch: l.watch, size: '100', button: 'Ver no YouTube ↗' });
     },
     images_upload_handler: function (blobInfo) {
       var file = new File([blobInfo.blob()], blobInfo.filename(), { type: blobInfo.blob().type });
       return window.ArquivoMedia.upload(file).then(function (item) { return item.url; });
     },
     setup: function (editor) {
+      // Vídeos continuam blocos inteiros ao reabrir o post (o site guarda sem a marcação do editor)
+      editor.on('SetContent', function () {
+        editor.dom.select('div.yt-card, div.video').forEach(function (el) { el.setAttribute('contenteditable', 'false'); });
+      });
+      // Clique duplo num vídeo abre a janela para editar
+      editor.on('dblclick', function (e) {
+        var card = editor.dom.getParent(e.target, 'div.yt-card') || editor.dom.getParent(e.target, 'div.video');
+        if (card) { editor.selection.select(card); videoDialog(editor, card); }
+      });
       editor.ui.registry.addIcon('arq-video', '<svg width="24" height="24" viewBox="0 0 24 24"><path d="M21.6 7.2a2.5 2.5 0 0 0-1.8-1.8C18.2 5 12 5 12 5s-6.2 0-7.8.4a2.5 2.5 0 0 0-1.8 1.8C2 8.8 2 12 2 12s0 3.2.4 4.8a2.5 2.5 0 0 0 1.8 1.8C5.8 19 12 19 12 19s6.2 0 7.8-.4a2.5 2.5 0 0 0 1.8-1.8c.4-1.6.4-4.8.4-4.8s0-3.2-.4-4.8zM10 15V9l5.2 3z"/></svg>');
       editor.ui.registry.addIcon('arq-button', '<svg width="24" height="24" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="10" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 12h8" stroke="currentColor" stroke-width="2"/></svg>');
       editor.ui.registry.addIcon('arq-spacer', '<svg width="24" height="24" viewBox="0 0 24 24"><path d="M12 3v6M9 6l3-3 3 3M12 21v-6M9 18l3 3 3-3M4 12h16" fill="none" stroke="currentColor" stroke-width="2"/></svg>');

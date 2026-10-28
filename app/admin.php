@@ -849,7 +849,15 @@ function admin_appearance(): void
         foreach (['heading' => [24, 80], 'body' => [13, 24], 'ui' => [11, 22]] as $role => [$min, $max]) {
             $fontSizes[$role] = max($min, min($max, (int) ($_POST['font_sizes'][$role] ?? base_font_sizes()[$role])));
         }
-        save_setting('appearance', ['colors' => $colors, 'fonts' => $fonts, 'font_sizes' => $fontSizes, 'sizes' => $sizes]);
+        $fontWeights = [
+            'heading' => valid_weight($_POST['font_weights']['heading'] ?? 0, 800),
+            'body'    => valid_weight($_POST['font_weights']['body'] ?? 0, 400),
+        ];
+        $header = ['overlay' => max(0, min(100, (int) input('header_overlay', 100))), 'gradient' => (bool) post_bool('header_gradient')];
+        save_setting('appearance', ['colors' => $colors, 'fonts' => $fonts, 'font_sizes' => $fontSizes, 'font_weights' => $fontWeights, 'header' => $header, 'sizes' => $sizes]);
+        $site = setting('site');
+        $site['header_bg'] = mb_substr(input('header_image'), 0, 255);
+        save_setting('site', $site);
         save_type_from_post(['post_title']);
         $blog = setting('blog');
         $blog['cards_per_row'] = max(2, min(5, (int) input('cards_per_row', 3)));
@@ -865,6 +873,7 @@ function admin_appearance(): void
         'title'    => 'Aparência',
         'a'        => $current,
         'blog'     => setting('blog'),
+        'site'     => setting('site'),
         'groups'   => appearance_groups(),
     ]);
 }
@@ -882,7 +891,7 @@ function admin_content(): void
             foreach (['title' => 120, 'tagline' => 300, 'description' => 300, 'email' => 190] as $k => $len) {
                 $site[$k] = mb_substr(input($k), 0, $len);
             }
-            foreach (['logo', 'header_bg', 'share_image'] as $k) {
+            foreach (['logo', 'share_image'] as $k) {
                 $site[$k] = mb_substr(input($k), 0, 255);
             }
             foreach (array_keys($site['socials']) as $net) {
@@ -942,6 +951,7 @@ function admin_content(): void
                 'rss_label'    => mb_substr(input('rss_label'), 0, 40),
                 'copyright'    => mb_substr(input('copyright'), 0, 200),
                 'author_label' => mb_substr(input('author_label'), 0, 40),
+                'email_label'  => mb_substr(input('email_label'), 0, 40),
             ]);
             save_setting('newsletter', [
                 'title'       => mb_substr(input('news_title'), 0, 120),
@@ -949,7 +959,7 @@ function admin_content(): void
                 'placeholder' => mb_substr(input('news_placeholder'), 0, 60),
                 'button'      => mb_substr(input('news_button'), 0, 40) ?: 'Quero receber',
             ]);
-            save_type_from_post(['footer_name', 'footer_description', 'footer_nav_title', 'footer_links', 'footer_news_title', 'footer_news_text', 'footer_news_button', 'footer_email', 'footer_word', 'footer_copyright', 'footer_author']);
+            save_type_from_post(['footer_titles', 'footer_texts', 'footer_links', 'footer_news_button', 'footer_email', 'footer_word', 'footer_copyright', 'footer_author']);
         } elseif ($tab === 'blog') {
             $blog = setting('blog');
             $blog['per_page'] = max(3, min(48, (int) input('per_page', 9)));

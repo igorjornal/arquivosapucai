@@ -91,6 +91,16 @@
     if (document.fonts) document.fonts.ready.then(fit);
   }
 
+  // Voltar: retorna para a página anterior do site; quem chegou de fora vai para a home
+  document.querySelectorAll('[data-back]').forEach(function (a) {
+    a.addEventListener('click', function (e) {
+      if (document.referrer && document.referrer.indexOf(location.origin) === 0 && history.length > 1) {
+        e.preventDefault();
+        history.back();
+      }
+    });
+  });
+
   // Tabelas largas rolam de lado no celular
   document.querySelectorAll('.post-content table').forEach(function (t) {
     if (t.parentElement.classList.contains('table-scroll')) return;

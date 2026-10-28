@@ -76,6 +76,7 @@ function settings_defaults(): array
             'rss_label'    => 'RSS',
             'copyright'    => '© 2024–{ano} Arquivo Sapucaí. Todos os direitos reservados.',
             'author_label' => 'Área do autor',
+            'email_label'  => 'Contato:',
         ],
         'newsletter' => [
             'title'       => 'Receba as novidades',
@@ -90,6 +91,14 @@ function settings_defaults(): array
                 'heading' => 44, // títulos das seções
                 'body'    => 16, // texto corrido
                 'ui'      => 15, // botões e detalhes
+            ],
+            'font_weights' => [
+                'heading' => 800,
+                'body'    => 400,
+            ],
+            'header' => [
+                'overlay'  => 100,  // força da cor por cima da imagem (0 = só imagem, 100 = só cor)
+                'gradient' => true, // cor mais forte à esquerda
             ],
             'sizes' => [
                 'logo'   => 96,  // tamanho do logo no cabeçalho (px)

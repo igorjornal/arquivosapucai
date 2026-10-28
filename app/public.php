@@ -185,10 +185,18 @@ function page_search(): void
     ]);
 }
 
+// Volta para a página de onde o formulário foi enviado (home ou página interna), no ponto certo
+function back_to_referer(string $anchor): string
+{
+    $ref = (string) ($_SERVER['HTTP_REFERER'] ?? '');
+    $ref = $ref !== '' && str_starts_with($ref, base_url()) ? strtok($ref, '#') : '/';
+    return $ref . '#' . $anchor;
+}
+
 function action_contact(): void
 {
     csrf_check();
-    $back = '/#contato';
+    $back = back_to_referer('contato');
     $data = [
         'first_name' => mb_substr(input('nome'), 0, 120),
         'last_name'  => mb_substr(input('sobrenome'), 0, 120),
@@ -224,9 +232,7 @@ function action_contact(): void
 function action_newsletter(): void
 {
     csrf_check();
-    $back = ($_SERVER['HTTP_REFERER'] ?? '') !== '' && str_starts_with((string) $_SERVER['HTTP_REFERER'], base_url())
-        ? $_SERVER['HTTP_REFERER'] . '#newsletter'
-        : '/#newsletter';
+    $back = back_to_referer('newsletter');
     $email = mb_strtolower(mb_substr(input('email'), 0, 190));
     if (looks_like_spam(2)) {
         flash('newsletter_error', 'Não foi possível enviar. Tente de novo em alguns segundos.');

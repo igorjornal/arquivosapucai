@@ -16,7 +16,7 @@
         <label>Descrição (rodapé e Google)<textarea name="description" rows="3"><?= e($site['description']) ?></textarea></label>
         <label>E-mail de contato<input type="email" name="email" value="<?= e($site['email']) ?>"></label>
         <?= image_field('logo', $site['logo'], 'Logo') ?>
-        <?= image_field('header_bg', $site['header_bg'], 'Imagem de fundo do cabeçalho') ?>
+        <small class="a-help">A imagem de fundo do cabeçalho fica em <a href="/admin/aparencia#g-cabecalho">Aparência → Cabeçalho e logo</a>.</small>
         <?= image_field('share_image', $site['share_image'], 'Imagem padrão de compartilhamento', 'Aparece no WhatsApp e redes quando a página não tem imagem própria.') ?>
       </section>
       <section class="a-card">
@@ -153,7 +153,7 @@
       <div class="a-cols">
         <section class="a-card">
           <h3>Coluna dos links</h3>
-          <label>Título<input name="nav_title" value="<?= e($footer['nav_title']) ?>" maxlength="60"></label>
+          <label>Título<input name="nav_title" value="<?= e($footer['nav_title']) ?>" maxlength="60" required></label>
           <label>Nome do link do RSS<input name="rss_label" value="<?= e($footer['rss_label']) ?>" maxlength="40"></label>
           <small class="a-help">Vazio: some. Os outros links vêm do <a href="/admin/menu">Menu</a>.</small>
           <h3>Linha de baixo</h3>
@@ -168,17 +168,19 @@
           <label>Texto<textarea name="news_text" rows="3"><?= e($news['text']) ?></textarea></label>
           <label>Texto dentro do campo<input name="news_placeholder" value="<?= e($news['placeholder']) ?>" maxlength="60"></label>
           <label>Botão<input name="news_button" value="<?= e($news['button']) ?>" maxlength="40" required></label>
+          <label>Palavra antes do e-mail<input name="email_label" value="<?= e($footer['email_label']) ?>" maxlength="40" placeholder="Contato:"></label>
+          <small class="a-help">Aparece em destaque antes do e-mail, por exemplo “Contato:”. O e-mail vem da aba Site e redes.</small>
           <h3>Texto grande ao fundo</h3>
           <label class="a-check"><input type="checkbox" name="show_word" value="1"<?= $footer['show_word'] ? ' checked' : '' ?>> Mostrar</label>
           <label>Texto<input name="word" value="<?= e($footer['word']) ?>" maxlength="40"></label>
           <small class="a-help">O tamanho se ajusta sozinho para caber numa linha.</small>
         </section>
       </div>
-      <p class="a-help">Nome do site, descrição, e-mail e redes vêm da aba <a href="/admin/conteudo?aba=site">Site e redes</a>, porque também aparecem no Google e no WhatsApp. Aqui embaixo você escolhe só a fonte deles.</p>
+      <p class="a-help">O título da 1ª coluna é o nome do site; o texto embaixo dele é a descrição. Os dois, o e-mail e as redes vêm da aba <a href="/admin/conteudo?aba=site">Site e redes</a>, porque também aparecem no Google e no WhatsApp. Os 3 títulos usam sempre a mesma fonte, para ficarem alinhados.</p>
     </section>
     <section class="a-group" id="g-fontes-rodape">
       <h2 class="a-group-title">Fontes do rodapé</h2>
-      <section class="a-card"><?= type_fields(['footer_name', 'footer_description', 'footer_nav_title', 'footer_links', 'footer_news_title', 'footer_news_text', 'footer_news_button', 'footer_email', 'footer_word', 'footer_copyright', 'footer_author']) ?></section>
+      <section class="a-card"><?= type_fields(['footer_titles', 'footer_texts', 'footer_links', 'footer_news_button', 'footer_email', 'footer_word', 'footer_copyright', 'footer_author']) ?></section>
     </section>
 
   <?php else: ?>

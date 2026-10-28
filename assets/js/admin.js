@@ -87,7 +87,7 @@
     if (['Syne', 'Bitter', 'Instrument Sans'].indexOf(family) !== -1 || loadedFonts[family]) return;
     var link = document.createElement('link');
     link.rel = 'stylesheet';
-    link.href = 'https://fonts.googleapis.com/css2?family=' + family.replace(/ /g, '+') + ':wght@400;700;800&display=swap';
+    link.href = 'https://fonts.googleapis.com/css2?family=' + family.replace(/ /g, '+') + ':wght@300;400;600;700;800&display=swap';
     document.head.appendChild(link);
     loadedFonts[family] = true;
   }
@@ -104,15 +104,16 @@
   // Fonte de uma parte do site: “usar o padrão” esconde as escolhas; negrito muda a amostra
   document.querySelectorAll('[data-type-field]').forEach(function (box) {
     var def = box.querySelector('[data-type-default]');
-    var bold = box.querySelector('[data-type-bold]');
+    var weight = box.querySelector('[data-type-weight]');
     var sample = box.querySelector('[data-size-sample]');
     def.addEventListener('change', function () {
       box.querySelector('[data-type-custom]').hidden = def.checked;
       box.querySelector('[data-type-summary]').hidden = !def.checked;
     });
-    bold.addEventListener('change', function () {
-      sample.style.fontWeight = bold.checked ? bold.dataset.weight : 400;
-    });
+    weight.addEventListener('change', function () { sample.style.fontWeight = weight.value; });
+  });
+  document.querySelectorAll('[data-base-weight]').forEach(function (sel) {
+    sel.addEventListener('change', function () { sel.closest('fieldset').querySelector('[data-size-sample]').style.fontWeight = sel.value; });
   });
 
   // Mais um aviso na faixa corrida

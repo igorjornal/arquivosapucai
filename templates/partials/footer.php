@@ -5,12 +5,14 @@ $footer = setting('footer');
 $socials = array_filter($site['socials']);
 $names = ['youtube' => 'YouTube', 'instagram' => 'Instagram', 'facebook' => 'Facebook', 'x' => 'X', 'tiktok' => 'TikTok', 'linkedin' => 'LinkedIn'];
 $linkStyle = type_style('footer_links');
+$titleStyle = type_style('footer_titles');
+$textStyle = type_style('footer_texts');
 ?>
 <footer class="site-footer">
   <div class="wrap footer-grid">
     <div class="footer-brand">
-      <a class="footer-logo" href="/"><img src="<?= e(media_url($site['logo'])) ?>" alt="" width="72" height="72"><span<?= type_style('footer_name') ?>><?= e($site['title']) ?></span></a>
-      <p<?= type_style('footer_description') ?>><?= e($site['description']) ?></p>
+      <h2 class="footer-title"<?= $titleStyle ?>><a href="/"><?= e($site['title']) ?></a></h2>
+      <?php if ($site['description'] !== ''): ?><p class="footer-text"<?= $textStyle ?>><?= e($site['description']) ?></p><?php endif; ?>
       <?php if ($socials): ?>
         <ul class="socials">
           <?php foreach ($socials as $net => $link): ?>
@@ -20,7 +22,7 @@ $linkStyle = type_style('footer_links');
       <?php endif; ?>
     </div>
     <nav class="footer-nav" aria-label="Rodapé">
-      <?php if ($footer['nav_title'] !== ''): ?><h2<?= type_style('footer_nav_title') ?>><?= e($footer['nav_title']) ?></h2><?php endif; ?>
+      <h2 class="footer-title"<?= $titleStyle ?>><?= e($footer['nav_title']) ?></h2>
       <ul>
         <?php foreach (menu_items() as $item): ?>
           <li><a href="<?= e($item['url']) ?>"<?= $linkStyle ?><?= $item['new_tab'] ? ' target="_blank" rel="noopener"' : '' ?>><?= e($item['label']) ?></a></li>
@@ -29,8 +31,8 @@ $linkStyle = type_style('footer_links');
       </ul>
     </nav>
     <div class="footer-news" id="newsletter">
-      <h2<?= type_style('footer_news_title') ?>><?= e($news['title']) ?></h2>
-      <p<?= type_style('footer_news_text') ?>><?= e($news['text']) ?></p>
+      <h2 class="footer-title"<?= $titleStyle ?>><?= e($news['title']) ?></h2>
+      <?php if ($news['text'] !== ''): ?><p class="footer-text"<?= $textStyle ?>><?= e($news['text']) ?></p><?php endif; ?>
       <?php foreach (take_flash_group('newsletter') as $f): ?>
         <p class="notice notice-<?= e($f['type']) ?>" role="status"><?= e($f['message']) ?></p>
       <?php endforeach; ?>
@@ -40,7 +42,9 @@ $linkStyle = type_style('footer_links');
         <input id="news-email" type="email" name="email" placeholder="<?= e($news['placeholder']) ?>" required>
         <button class="btn" type="submit"<?= type_style('footer_news_button') ?>><?= e($news['button']) ?></button>
       </form>
-      <p class="footer-contact"><a href="mailto:<?= e($site['email']) ?>"<?= type_style('footer_email') ?>><?= e($site['email']) ?></a></p>
+      <?php if ($site['email'] !== ''): ?>
+        <p class="footer-contact"<?= type_style('footer_email') ?>><?php if ($footer['email_label'] !== ''): ?><strong><?= e($footer['email_label']) ?></strong> <?php endif; ?><a href="mailto:<?= e($site['email']) ?>"><?= e($site['email']) ?></a></p>
+      <?php endif; ?>
     </div>
   </div>
   <?php if ($footer['show_word'] && $footer['word'] !== ''): ?>

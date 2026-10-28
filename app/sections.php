@@ -139,7 +139,7 @@ function run_migrations(): void
             $t = $old[$key] ?? null;
             $d = type_default($key);
             if (!empty($saved[$key]) && is_array($t) && (($t['font'] ?? '') !== $d['font'] || (int) ($t['size'] ?? 0) !== $d['size'])) {
-                $type[$key] = ['font' => (string) $t['font'], 'size' => (int) $t['size'], 'bold' => $d['bold']];
+                $type[$key] = ['font' => (string) $t['font'], 'size' => (int) $t['size'], 'weight' => $d['weight']];
             }
         }
         save_setting('type', $type);
@@ -159,6 +159,20 @@ function run_migrations(): void
             save_setting('home', $home);
         }
         save_setting_raw('schema_version', 5);
+    }
+    if ($version < 6) {
+        // Rodapé: os 3 títulos passam a ter uma fonte só, e os textos também (aproveita a primeira escolha feita)
+        $type = json_decode((string) db_val("SELECT value FROM settings WHERE name = 'type'"), true) ?: [];
+        foreach (['footer_titles' => ['footer_nav_title', 'footer_news_title', 'footer_name'], 'footer_texts' => ['footer_news_text', 'footer_description']] as $new => $olds) {
+            foreach ($olds as $old) {
+                if (isset($type[$old]) && !isset($type[$new])) {
+                    $type[$new] = $type[$old];
+                }
+                unset($type[$old]);
+            }
+        }
+        save_setting('type', $type);
+        save_setting_raw('schema_version', 6);
     }
 }
 

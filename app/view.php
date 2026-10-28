@@ -57,18 +57,44 @@ function type_targets(): array
         'contact_text'       => $t('Texto', 'body', null, false),
         'contact_labels'     => $t('Nomes dos campos', 'ui', 14, true),
         'contact_button'     => $t('Botão', 'ui', null, true),
-        'footer_name'        => $t('Nome do site (ao lado do logo)', 'heading', 22, true),
-        'footer_description' => $t('Descrição', 'body', 15, false),
-        'footer_nav_title'   => $t('Título dos links', 'heading', 18, true),
-        'footer_links'       => $t('Links', 'ui', 16, false),
-        'footer_news_title'  => $t('Título da newsletter', 'heading', 18, true),
-        'footer_news_text'   => $t('Texto da newsletter', 'body', null, false),
+        'footer_titles'      => $t('Títulos das 3 colunas', 'heading', 18, true),
+        'footer_texts'       => $t('Textos das colunas', 'body', 15, false),
+        'footer_links'       => $t('Links', 'ui', 15, false),
         'footer_news_button' => $t('Botão da newsletter', 'ui', null, true),
-        'footer_email'       => $t('E-mail', 'ui', 14, false),
+        'footer_email'       => $t('Linha do contato (e-mail)', 'ui', 15, false),
         'footer_word'        => $t('Texto grande ao fundo', 'heading', false, true),
         'footer_copyright'   => $t('Linha do ©', 'ui', 13, false),
         'footer_author'      => $t('“Área do autor”', 'ui', 13, false),
     ];
+}
+
+// Pesos oferecidos (nem toda fonte tem todos; o navegador usa o mais próximo)
+function weight_choices(): array
+{
+    return [300 => 'Fino', 400 => 'Normal', 600 => 'Seminegrito', 700 => 'Negrito', 800 => 'Extra negrito'];
+}
+
+function valid_weight($w, int $fallback): int
+{
+    return isset(weight_choices()[(int) $w]) ? (int) $w : $fallback;
+}
+
+function base_font_weights(): array
+{
+    $w = setting('appearance')['font_weights'] ?? [];
+    return ['heading' => valid_weight($w['heading'] ?? 800, 800), 'body' => valid_weight($w['body'] ?? 400, 400)];
+}
+
+// Peso que a parte usa no padrão: títulos e texto corrido seguem o peso escolhido em Aparência
+function default_weight(array $target): int
+{
+    if ($target['base'] === 'heading' && $target['bold']) {
+        return base_font_weights()['heading'];
+    }
+    if ($target['base'] === 'body' && !$target['bold']) {
+        return base_font_weights()['body'];
+    }
+    return $target['bold'] ? 700 : 400;
 }
 
 // Menor e maior tamanho oferecidos na régua de cada fonte base
@@ -95,7 +121,7 @@ function type_default(string $key): array
     return [
         'font' => setting('appearance')['fonts'][$t['base']],
         'size' => $t['size'] === false ? 0 : ($t['size'] ?? base_font_sizes()[$t['base']]),
-        'bold' => $t['bold'],
+        'weight' => default_weight($t),
     ];
 }
 
@@ -109,7 +135,9 @@ function type_choice(string $key): ?array
     $t = type_targets()[$key];
     [$min, $max] = type_limits($t['base']);
     $font = preg_replace('/[^A-Za-z0-9 ]/', '', (string) ($c['font'] ?? '')) ?: type_default($key)['font'];
-    return ['font' => $font, 'size' => $t['size'] === false ? 0 : max($min, min($max, (int) ($c['size'] ?? 0))), 'bold' => !empty($c['bold'])];
+    // Escolhas antigas guardavam só "negrito sim/não"
+    $weight = isset($c['weight']) ? valid_weight($c['weight'], 400) : (!empty($c['bold']) ? default_weight(['bold' => true, 'base' => $t['base']]) : 400);
+    return ['font' => $font, 'size' => $t['size'] === false ? 0 : max($min, min($max, (int) ($c['size'] ?? 0))), 'weight' => $weight];
 }
 
 // CSS da escolha (vazio quando segue o padrão). Tamanhos grandes encolhem no celular.
@@ -125,7 +153,7 @@ function type_css(string $key): string
     if ($c['size']) {
         $css .= ';font-size:' . ($c['size'] >= 26 ? 'clamp(' . round($c['size'] * .6) . 'px, 7vw, ' . $c['size'] . 'px)' : $c['size'] . 'px');
     }
-    return $css . ';font-weight:' . ($c['bold'] ? ($base === 'heading' ? 800 : 700) : 400);
+    return $css . ';font-weight:' . $c['weight'];
 }
 
 function type_style(string $key): string
@@ -147,8 +175,14 @@ function appearance_css(): string
     foreach (base_font_sizes() as $role => $size) {
         $lines[] = "--fs-{$role}:{$size}px";
     }
+    foreach (base_font_weights() as $role => $weight) {
+        $lines[] = "--fw-{$role}:{$weight}";
+    }
     $logo = max(40, min(220, (int) ($a['sizes']['logo'] ?? 96)));
     $header = max(60, min(320, (int) ($a['sizes']['header'] ?? 120)));
+    $overlay = max(0, min(100, (int) ($a['header']['overlay'] ?? 100)));
+    $lines[] = '--header-overlay-a:' . $overlay . '%';
+    $lines[] = '--header-overlay-b:' . (!empty($a['header']['gradient']) ? (int) round($overlay * .55) : $overlay) . '%';
     $lines[] = '--logo-size:' . $logo . 'px';
     $lines[] = '--header-height:' . $header . 'px';
     $blog = setting('blog');
@@ -172,7 +206,7 @@ function google_fonts_link(): string
     foreach ($all as $family) {
         $family = preg_replace('/[^A-Za-z0-9 ]/', '', (string) $family);
         if ($family !== '' && !in_array($family, bundled_fonts(), true)) {
-            $families[$family] = 'family=' . str_replace(' ', '+', $family) . ':ital,wght@0,400;0,600;0,700;0,800;1,400;1,700';
+            $families[$family] = 'family=' . str_replace(' ', '+', $family) . ':ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700';
         }
     }
     if (!$families) {
@@ -214,7 +248,7 @@ function save_type_from_post(array $keys): void
         $all[$key] = [
             'font' => in_array($font, font_choices(), true) ? $font : type_default($key)['font'],
             'size' => max($min, min($max, (int) ($p['size'] ?? type_default($key)['size']))),
-            'bold' => !empty($p['bold']),
+            'weight' => valid_weight($p['weight'] ?? 0, type_default($key)['weight']),
         ];
     }
     save_setting('type', $all);

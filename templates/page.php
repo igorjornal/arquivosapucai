@@ -20,6 +20,7 @@ $isDraft = $page['status'] !== 'published';
     </header>
   <?php endif; ?>
   <div class="wrap<?= $page['width'] === 'narrow' ? ' narrow' : '' ?> page-body">
+    <a class="back-link" href="/" data-back>← Voltar</a>
     <?php if ($isDraft): ?><p class="notice notice-info">Pré-visualização: esta página ainda não está publicada.</p><?php endif; ?>
     <?php if (!$page['banner_image'] || !$page['title_over_banner']): ?>
       <h1 class="post-title"<?= type_style('post_title') ?>><?= e($page['title']) ?></h1>
@@ -28,3 +29,4 @@ $isDraft = $page['status'] !== 'published';
     <div class="post-content"><?= $page['content'] /* sanitizado ao salvar */ ?></div>
   </div>
 </article>
+<?php partial('contact', ['home' => setting('home'), 'anchor' => 'contato']); ?>

@@ -12,14 +12,17 @@
     <h2 class="a-group-title">Fontes do site</h2>
     <p class="a-muted">É o padrão do site inteiro. Todo texto que estiver em “Usar o padrão do site” segue o que for escolhido aqui. A fonte de cada texto da home, do rodapé, do menu e dos avisos pode ser trocada junto do próprio texto.</p>
     <div class="a-type-grid">
-      <?php $sizes = base_font_sizes(); foreach (['heading' => ['Títulos', 'Títulos das seções da home', 24, 80], 'body' => ['Texto corrido', 'Textos da home e dos posts', 13, 24], 'ui' => ['Menus, botões e detalhes', 'Botões, campos e textos pequenos', 11, 22]] as $role => [$label, $where, $min, $max]): ?>
+      <?php $sizes = base_font_sizes(); $weights = base_font_weights(); foreach (['heading' => ['Títulos', 'Títulos das seções da home', 24, 80], 'body' => ['Texto corrido', 'Textos da home e dos posts', 13, 24], 'ui' => ['Menus, botões e detalhes', 'Botões, campos e textos pequenos', 11, 22]] as $role => [$label, $where, $min, $max]): ?>
         <fieldset class="a-type">
           <legend><?= $label ?></legend>
           <label>Fonte<select name="fonts[<?= $role ?>]" data-font-select><?= select_options(array_combine(font_choices(), font_choices()), $a['fonts'][$role]) ?></select></label>
-          <p class="a-font-sample" data-size-sample style="font-family:'<?= e($a['fonts'][$role]) ?>';font-size:<?= min($sizes[$role], 40) ?>px<?= $role === 'heading' ? ';font-weight:800' : '' ?>">Mangueira 1988</p>
+          <p class="a-font-sample" data-size-sample style="font-family:'<?= e($a['fonts'][$role]) ?>';font-size:<?= min($sizes[$role], 40) ?>px<?= isset($weights[$role]) ? ';font-weight:' . $weights[$role] : '' ?>">Mangueira 1988</p>
           <label><span>Tamanho: <output data-range-out><?= $sizes[$role] ?></output> px</span>
             <input type="range" name="font_sizes[<?= $role ?>]" min="<?= $min ?>" max="<?= $max ?>" value="<?= $sizes[$role] ?>" data-range>
           </label>
+          <?php if (isset($weights[$role])): ?>
+            <label>Peso (grossura da letra)<select name="font_weights[<?= $role ?>]" data-base-weight><?= select_options(weight_choices(), (string) $weights[$role]) ?></select></label>
+          <?php endif; ?>
           <small class="a-help">Vale para: <?= $where ?>.</small>
         </fieldset>
       <?php endforeach; ?>
@@ -72,6 +75,14 @@
         </label>
       </div>
       <small class="a-help">No celular os dois ficam um pouco menores, automaticamente.</small>
+      <h3>Imagem de fundo</h3>
+      <?= image_field('header_image', $site['header_bg'], 'Imagem atrás do logo e do menu', 'Clique em “Remover” para deixar só a cor.') ?>
+      <?php $hd = $a['header'] ?? ['overlay' => 100, 'gradient' => true]; ?>
+      <label><span>Força da cor por cima da imagem: <output data-range-out><?= (int) $hd['overlay'] ?></output>%</span>
+        <input type="range" name="header_overlay" min="0" max="100" step="5" value="<?= (int) $hd['overlay'] ?>" data-range>
+      </label>
+      <small class="a-help">0% mostra só a imagem; 100% cobre com a cor. A cor é o “Fundo do cabeçalho”, em Cores, mais abaixo.</small>
+      <label class="a-check"><input type="checkbox" name="header_gradient" value="1"<?= !empty($hd['gradient']) ? ' checked' : '' ?>> Em degradê (cor mais forte à esquerda, a imagem aparece mais à direita)</label>
     </section>
   </section>
 

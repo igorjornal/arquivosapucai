@@ -931,7 +931,7 @@ let pageRef = null;
     await pickFromLibrary(p.locator('[data-image-field]:has(input[name=banner_image])'), 0);
     await submit(p.locator('button[value=publicar]'));
     await p.goto(base + '/blog');
-    await p.goto(base + '/acervo');
+    await Promise.all([p.waitForNavigation(), p.evaluate(() => { location.href = '/acervo'; })]); // como um clique em link: o navegador sabe de onde veio
     const h = await p.evaluate(() => document.querySelector('.page-banner').getBoundingClientRect().height);
     ok('imagem do topo mais fina (até 260px)', h > 100 && h <= 260, String(h));
     ok('botão Voltar', await p.locator('.back-link').isVisible());

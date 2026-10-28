@@ -10,6 +10,9 @@ Feito: painel organizado em grupos com atalhos; tamanhos nas fontes base; fonte,
 - [ ] **Tabela de todos os textos do site** (lembrete do Igor): onde cada texto aparece e onde se edita no painel.
 - [ ] Menu: colocar "Acervo" → /acervo e "História" → /historia quando as páginas forem publicadas.
 
+## Rodada 5: feita e revisada (249 itens passando), falta aplicar na Hostinger
+Feito: rodapé sem logo, com os 3 títulos alinhados e no mesmo estilo, links mais juntos, ícones das redes com o dobro do tamanho e "Contato:" antes do e-mail; páginas internas com faixa fina, botão Voltar e Contato no fim; peso das fontes (Fino a Extra negrito) em cada texto e em Aparência; imagem do cabeçalho e força da cor em Aparência; botão "Escolher da biblioteca" do editor não falha mais quando a janela demora a abrir.
+
 ## A resolver
 - [ ] **SSL (cadeado) do subdomínio de teste.** Pedir ao suporte da Hostinger que ative o SSL de `novo.arquivosapucai.com.br`. Depois de ativo:
   - tirar o `#` das duas linhas de HTTPS no `.htaccess`;

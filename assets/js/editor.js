@@ -87,7 +87,7 @@
           { type: 'htmlpanel', html: '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
             '<button type="button" class="tox-button" data-arq="pick">Escolher da biblioteca / enviar</button>' +
             '<span data-arq="status" style="font-size:13px;color:#555"></span></div>' +
-            '<div data-arq="thumb" style="margin-top:10px"></div>' },
+            '<div data-arq="thumb" style="margin-top:10px">' + thumbHtml(data.src) + '</div>' },
           { type: 'input', name: 'src', label: 'Endereço da imagem' },
           { type: 'input', name: 'alt', label: 'Descrição (acessibilidade)' },
           { type: 'input', name: 'caption', label: 'Legenda (opcional)' },
@@ -143,23 +143,26 @@
       }
     });
 
-    // Botão da biblioteca dentro da janela
-    setTimeout(function () {
-      var root = document.querySelector('.tox-dialog');
-      if (!root) return;
-      var thumb = root.querySelector('[data-arq="thumb"]');
-      var showThumb = function (src) {
-        thumb.innerHTML = src ? '<img src="' + esc(src) + '" style="max-height:120px;border-radius:8px">' : '';
-      };
-      showThumb(data.src);
-      root.querySelector('[data-arq="pick"]').addEventListener('click', function () {
-        window.ArquivoMedia.open(function (item) {
-          dialog.setData({ src: item.url, alt: dialog.getData().alt || item.alt || '' });
-          showThumb(item.url);
-        });
-      });
-    }, 50);
+    // O botão da biblioteca é atendido por um ouvinte único (abaixo), que precisa saber qual janela está aberta
+    openImageDialog = dialog;
   }
+
+  function thumbHtml(src) {
+    return src ? '<img src="' + esc(src) + '" style="max-height:120px;border-radius:8px">' : '';
+  }
+
+  // Funciona mesmo se a janela demorar a aparecer: não depende de achar o botão logo depois de abrir
+  var openImageDialog = null;
+  document.addEventListener('click', function (e) {
+    var btn = e.target.closest && e.target.closest('.tox-dialog [data-arq="pick"]');
+    if (!btn || !openImageDialog) return;
+    var dialog = openImageDialog;
+    var thumb = btn.closest('.tox-dialog').querySelector('[data-arq="thumb"]');
+    window.ArquivoMedia.open(function (item) {
+      dialog.setData({ src: item.url, alt: dialog.getData().alt || item.alt || '' });
+      if (thumb) thumb.innerHTML = thumbHtml(item.url);
+    });
+  }, true);
 
   /* ---------- Vídeo ---------- */
   function videoDialog(editor) {

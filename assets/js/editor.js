@@ -19,12 +19,23 @@
     return m ? m[1] : null;
   }
 
-  function videoHtml(id, width, align) {
-    width = width || '100';
-    align = align || 'center';
-    return '<div class="video align-' + align + '"' + (width !== '100' ? ' style="width:' + width + '%"' : '') +
-      ' contenteditable="false"><iframe src="https://www.youtube-nocookie.com/embed/' + id +
-      '" title="Vídeo do YouTube" allowfullscreen="allowfullscreen"></iframe></div><p></p>';
+  // size: '100' | '75' | '50' (sozinho, no centro) ou 'r2' | 'r3' | 'r4' (vários por linha)
+  function videoHtml(src, size) {
+    size = size || '100';
+    if (src.indexOf('/') === -1) src = 'https://www.youtube-nocookie.com/embed/' + src;
+    var row = size.charAt(0) === 'r';
+    return '<div class="video ' + (row ? 'video-row-' + size.charAt(1) : 'video-solo') + '"' +
+      (!row && size !== '100' ? ' style="width:' + size + '%"' : '') +
+      ' contenteditable="false"><iframe src="' + src + '" title="Vídeo do YouTube" allowfullscreen="allowfullscreen"></iframe></div>';
+  }
+
+  // Link de vídeo ou de playlist do YouTube vira o endereço do player
+  function youtubeEmbed(url) {
+    var list = (String(url).match(/[?&]list=([A-Za-z0-9_-]{10,})/) || [])[1];
+    var id = youtubeId(url);
+    if (id) return 'https://www.youtube-nocookie.com/embed/' + id + (list ? '?list=' + list : '');
+    if (list) return 'https://www.youtube-nocookie.com/embed/videoseries?list=' + list;
+    return null;
   }
 
   function esc(s) {
@@ -168,39 +179,46 @@
   }, true);
 
   /* ---------- Vídeo ---------- */
-  // Vídeo novo ou, com um vídeo selecionado, edita tamanho e alinhamento dele
+  // Tamanhos: os de "por linha" deixam vários vídeos lado a lado
+  var VIDEO_SIZES = [
+    { value: '100', text: 'Largura toda' }, { value: '75', text: '75%' }, { value: '50', text: '50% (sozinho)' },
+    { value: 'r2', text: '2 por linha (lado a lado)' }, { value: 'r3', text: '3 por linha (lado a lado)' }, { value: 'r4', text: '4 por linha (lado a lado)' }
+  ];
+
+  // Vídeo novo (um ou vários links) ou, com um vídeo selecionado, muda o tamanho dele
   function videoDialog(editor) {
     var current = editor.dom.getParent(editor.selection.getNode(), 'div.video');
     var frame = current ? current.querySelector('iframe') : null;
-    var data = {
-      url: frame ? 'https://www.youtube.com/watch?v=' + (frame.getAttribute('src').split('/embed/')[1] || '').split('?')[0] : '',
-      width: current && current.style.width ? String(parseInt(current.style.width, 10)) : '100',
-      align: current ? (['left', 'right', 'center'].filter(function (a) { return current.classList.contains('align-' + a); })[0] || 'center') : 'center'
-    };
+    var size = '100';
+    if (current) {
+      var row = (current.className.match(/video-row-(\d)/) || [])[1];
+      size = row ? 'r' + row : (current.style.width ? String(parseInt(current.style.width, 10)) : '100');
+    }
     editor.windowManager.open({
-      title: current ? 'Editar vídeo' : 'Vídeo do YouTube',
-      body: { type: 'panel', items: [
-        { type: 'input', name: 'url', label: 'Cole o link do vídeo', placeholder: 'https://www.youtube.com/watch?v=...' },
-        { type: 'htmlpanel', html: '<p style="font-size:13px;color:#555">Vale link normal, de Shorts, de transmissão ao vivo ou youtu.be.</p>' },
-        { type: 'grid', columns: 2, items: [
-          { type: 'selectbox', name: 'width', label: 'Tamanho', items: ['100', '90', '80', '75', '70', '60', '50', '40', '30'].map(function (w) { return { value: w, text: w + '%' }; }) },
-          { type: 'selectbox', name: 'align', label: 'Alinhamento', items: [
-            { value: 'center', text: 'Centro' }, { value: 'left', text: 'Esquerda (texto contorna)' }, { value: 'right', text: 'Direita (texto contorna)' }
-          ] }
-        ] }
-      ] },
-      initialData: data,
+      title: current ? 'Tamanho do vídeo' : 'Vídeo do YouTube',
+      body: { type: 'panel', items: (current ? [] : [
+        { type: 'textarea', name: 'urls', label: 'Cole o link do vídeo ou da playlist (para vários, um por linha)', placeholder: 'https://www.youtube.com/watch?v=...\nhttps://www.youtube.com/playlist?list=...' },
+        { type: 'htmlpanel', html: '<p style="font-size:13px;color:#555">Vale vídeo, playlist, Shorts, transmissão ao vivo ou youtu.be.</p>' }
+      ]).concat([
+        { type: 'selectbox', name: 'size', label: 'Tamanho', items: VIDEO_SIZES }
+      ]) },
+      initialData: { urls: '', size: size },
       buttons: [{ type: 'cancel', text: 'Cancelar' }, { type: 'submit', text: current ? 'Salvar' : 'Inserir', primary: true }],
       onSubmit: function (api) {
         var d = api.getData();
-        var id = youtubeId(d.url);
-        if (!id) { editor.notificationManager.open({ text: 'Não reconheci esse link do YouTube.', type: 'warning', timeout: 3000 }); return; }
-        var html = videoHtml(id, d.width, d.align).replace('<p></p>', '');
         if (current) {
-          editor.undoManager.transact(function () { editor.dom.setOuterHTML(current, html); });
-        } else {
-          insertBlock(editor, html);
+          editor.undoManager.transact(function () {
+            current.className = current.className.replace(/\s*video-row-\d|\s*video-solo/g, '') + (d.size.charAt(0) === 'r' ? ' video-row-' + d.size.charAt(1) : ' video-solo');
+            current.style.width = d.size.charAt(0) === 'r' || d.size === '100' ? '' : d.size + '%';
+            if (!current.getAttribute('style')) current.removeAttribute('style');
+          });
+          editor.nodeChanged();
+          api.close();
+          return;
         }
+        var srcs = d.urls.split(/\s+/).map(youtubeEmbed).filter(Boolean);
+        if (!srcs.length) { editor.notificationManager.open({ text: 'Não reconheci nenhum link do YouTube.', type: 'warning', timeout: 3000 }); return; }
+        insertBlock(editor, srcs.map(function (src) { return videoHtml(src, d.size); }).join(''));
         api.close();
       }
     });

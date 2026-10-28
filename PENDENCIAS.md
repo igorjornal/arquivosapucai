@@ -22,6 +22,7 @@ Feito: ponto da foto na faixa das páginas; espessura da faixa de avisos; prévi
 1. Seção Playlists da home com dois formatos, escolhidos no painel (o que não está em uso fica guardado):
    - "Grade de playlists": o formato de hoje.
    - "Imagem + texto": imagem à esquerda, clicável; à direita, título, texto e um botão. A imagem e o botão levam para a página interna com a lista de playlists. Alinhamento do título e do texto: esquerda, centro, direita ou justificado. O "texto depois das imagens" não aparece nesse formato. No celular, a imagem fica em cima.
+2. Seções com imagem ao lado do texto (O Arquivo, "Texto + imagem" e o formato novo de Playlists): quando a imagem é diminuída, o texto vem junto para perto dela, em vez de ficar parado longe. O espaço entre a imagem e o texto cai pela metade. A imagem continua alinhada com a margem do blog.
 
 ## A resolver
 - [ ] **SSL (cadeado) do subdomínio de teste.** Pedir ao suporte da Hostinger que ative o SSL de `novo.arquivosapucai.com.br`. Depois de ativo:

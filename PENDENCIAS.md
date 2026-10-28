@@ -27,7 +27,7 @@ Feito: ponto da foto na faixa das páginas; espessura da faixa de avisos; prévi
 4. Faixa de avisos (Conteúdo do site → Faixa de avisos): régua de velocidade (de "Bem devagar" a "Rápida", igual com 1 ou 10 avisos; continua parando com o mouse em cima) e separador à escolha: bandeirinha (a de hoje), estrela, ponto, losango, traço, barra, nenhum, texto/emoji próprio ou imagem da biblioteca; os desenhos seguem a cor do texto da faixa; régua do espaço entre aviso e separador.
 5. Menu do topo: cores em Aparência → Cores → Cabeçalho para o link ao passar o mouse, o risco embaixo e a página atual; efeito à escolha: risco embaixo (o de hoje), risco que cresce do meio, fundo arredondado (pílula) ou só troca de cor.
 6. Fontes novas na lista: a família Archivo inteira em larguras (Extra Condensed, Condensed, Semi Condensed, Semi Expanded, Expanded) e a Archivo Narrow. No Google Fonts é a mesma Archivo com largura ajustável: um arquivo só, não pesa. Conferir Condensed e Expanded lado a lado com o print do Igor.
-7. Cabeçalho: trocar a caixa de busca pelos ícones das redes (os mesmos do rodapé, YouTube e Instagram) e uma lupinha que abre o campo de busca; no painel, escolher "com lupa" ou "sem busca".
+7. Cabeçalho: trocar a caixa de busca pelos ícones das redes (os mesmos do rodapé, YouTube e Instagram) e uma lupinha que abre o campo de busca (a lupinha fica sempre; sem opção de tirar).
 8. Aparência → Cabeçalho e logo: alinhamento do menu (colado no logo, centro ou direita) e régua de espaço entre os itens, com prévia ao vivo.
 9. Tirar a caixa "Buscar" da barra de categorias (posts e blog); a busca fica só na lupinha do cabeçalho.
 

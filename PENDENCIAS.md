@@ -21,6 +21,13 @@ Feito: ponto da foto na faixa das páginas; espessura da faixa de avisos; prévi
 ## Rodada 7: feita, revisada (335 itens) e aplicada na Hostinger (29/10; a pasta templates precisou ser substituída de novo)
 Feito: Playlists em dois formatos (grade ou imagem + texto + botão, com alinhamento); texto acompanha a imagem diminuída (espaço de 24px); cores próprias dos 3 tipos de botão; faixa de avisos com velocidade, separador à escolha e espaço; menu com cores ao passar o mouse, efeito (risco, risco que cresce, fundo arredondado, só cor), alinhamento e espaço entre itens; família Archivo inteira na lista de fontes; redes sociais e lupinha no cabeçalho no lugar da caixa de busca; uma busca só (saiu a da barra de categorias).
 
+## Rodada 8 (planejando): reorganizar o painel pelo lugar onde a coisa aparece no site
+- Uma tela por parte do site, com tudo dela dentro (texto, fonte, cor): Cabeçalho (logo, imagem, menu inteiro), Faixa de avisos, Página inicial (cada seção), Rodapé, Blog e posts, Páginas, Padrão do site (fontes e cores gerais), Configurações (e-mails de aviso, redes, Google, Pixel).
+- Nomes simples, do jeito do Igor ("Cor do texto do menu", não "Menu e destaques").
+- Antes de fazer: desenho de cada tela para o Igor aprovar + tabela "onde estava / onde vai ficar" de cada ajuste (serve também como a tabela de todos os textos que ele pediu).
+- Nada se perde: só muda o lugar do controle; o valor salvo continua o mesmo. A revisão confere que cada ajuste já salvo aparece igual no lugar novo.
+- Incluir: envio dos avisos por SMTP (hoje caem no spam).
+
 ## A resolver
 - [ ] **SSL (cadeado) do subdomínio de teste.** Pedir ao suporte da Hostinger que ative o SSL de `novo.arquivosapucai.com.br`. Depois de ativo:
   - tirar o `#` das duas linhas de HTTPS no `.htaccess`;

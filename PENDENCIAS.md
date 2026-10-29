@@ -18,7 +18,7 @@ Feito: ponto da foto na faixa das páginas; espessura da faixa de avisos; prévi
 
 - [ ] Na mudança para o endereço oficial: cadeado (SSL), Search Console com o mapa do site, colar os números do Pixel e do Analytics.
 
-## Rodada 7: feita e revisada (335 itens passando), falta aplicar na Hostinger
+## Rodada 7: feita, revisada (335 itens) e aplicada na Hostinger (29/10; a pasta templates precisou ser substituída de novo)
 Feito: Playlists em dois formatos (grade ou imagem + texto + botão, com alinhamento); texto acompanha a imagem diminuída (espaço de 24px); cores próprias dos 3 tipos de botão; faixa de avisos com velocidade, separador à escolha e espaço; menu com cores ao passar o mouse, efeito (risco, risco que cresce, fundo arredondado, só cor), alinhamento e espaço entre itens; família Archivo inteira na lista de fontes; redes sociais e lupinha no cabeçalho no lugar da caixa de busca; uma busca só (saiu a da barra de categorias).
 
 ## A resolver
@@ -27,7 +27,8 @@ Feito: Playlists em dois formatos (grade ou imagem + texto + botão, com alinham
   - trocar `base_url` para `https://` no `config.php` do servidor.
 - [ ] **Trocar a senha do banco de dados.** A senha atual apareceu na conversa. Pedir à Hostinger uma senha nova e atualizar o campo `password` no `config.php` do servidor.
 - [ ] **Forma de atualizar o site.** Decidir entre um zip novo a cada mudança ou ligar o GitHub direto na Hostinger (deploy automático).
-- [ ] **Avisos por e-mail.** Confirmar se os avisos de nova mensagem e de comentário pendente chegam no e-mail. Se não chegarem, configurar o envio por SMTP da Hostinger.
+- [x] **Avisos por e-mail.** E-mail de teste chegou no Gmail do Igor (29/10). Ele vai testar também com o e-mail da Hostinger.
+- [ ] **Limpar as pastas com número no nome** em public_html (app.1533, templates.6108 etc.): são cópias antigas criadas pelo Gerenciador de Arquivos ao mover pastas. O site não usa; apagar com calma, uma vez só, quando o Igor quiser.
 - [ ] **Testes do Igor.** O Igor está testando e anotando o que mudar. Trazer a lista para a próxima conversa.
 - [ ] **Links das playlists.** Trocar os links das 3 imagens de Playlists pelos links de cada playlist (Painel → Conteúdo do site → Textos da home).
 - [ ] **Redes sociais.** Preencher Instagram e as outras redes (Painel → Conteúdo do site → Site e redes).

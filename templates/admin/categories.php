@@ -1,3 +1,4 @@
+<?= render_to_string('admin/posts-tabs', ['current' => 'categorias']) ?>
 <div class="a-head"><h1>Categorias</h1></div>
 <div class="a-cols a-cols-form">
   <form class="a-card" method="post" action="/admin/categorias">

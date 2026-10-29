@@ -30,7 +30,7 @@ function partial(string $template, array $vars = []): void
 
 // Partes do site com fonte, tamanho e negrito próprios.
 // base: fonte de Aparência usada no padrão (heading = Títulos, body = Texto corrido, ui = Menus/botões).
-// size: tamanho no padrão (null = o tamanho dessa fonte em Aparência; false = ajusta sozinho, sem escolha).
+// size: tamanho no padrão (null = o tamanho dessa fonte em Padrão do site; false = ajusta sozinho, sem escolha).
 function type_targets(): array
 {
     $t = fn (string $label, string $base, $size, bool $bold) => ['label' => $label, 'base' => $base, 'size' => $size, 'bold' => $bold];
@@ -86,7 +86,7 @@ function base_font_weights(): array
     return ['heading' => valid_weight($w['heading'] ?? 800, 800), 'body' => valid_weight($w['body'] ?? 400, 400)];
 }
 
-// Peso que a parte usa no padrão: títulos e texto corrido seguem o peso escolhido em Aparência
+// Peso que a parte usa no padrão: títulos e texto corrido seguem o peso escolhido em Padrão do site
 function default_weight(array $target): int
 {
     if ($target['base'] === 'heading' && $target['bold']) {

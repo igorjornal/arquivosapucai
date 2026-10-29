@@ -1,3 +1,4 @@
+<?= render_to_string('admin/posts-tabs', ['current' => 'tags']) ?>
 <div class="a-head"><h1>Tags</h1></div>
 <p class="a-muted">As tags são criadas ao escrever o post (campo “Tags”). Aqui você renomeia ou apaga.</p>
 <?php if (!$tags): ?>

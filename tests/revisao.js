@@ -332,22 +332,26 @@ let pageRef = null;
   /* ---------------- Menu ---------------- */
   area = 'Menu';
   await safe('menu', async () => {
-    await p.goto(base + '/admin/menu');
-    await p.fill('form.a-card:has-text("Adicionar item") input[name=label]', 'Guia 2027');
-    await p.fill('form.a-card:has-text("Adicionar item") input[name=url]', '/blog/categoria/guia-2027');
-    await p.check('form.a-card:has-text("Adicionar item") input[name=new_tab]');
-    await submit(p.locator('button:has-text("Adicionar ao menu")'));
+    await p.goto(base + '/admin/cabecalho');
+    await p.click('[data-add-menu]');
+    const row = p.locator('[data-menu-row]').last();
+    await row.locator('input[name$="[label]"]').fill('Guia 2027');
+    await row.locator('input[name$="[url]"]').fill('/blog/categoria/guia-2027');
+    await row.locator('input[name$="[new_tab]"]').check();
+    await submit(p.locator('.a-sticky-save button'));
     let home = await pub('/');
     ok('adicionar item aparece no topo e no rodapé', (home.match(/>Guia 2027</g) || []).length >= 2);
     ok('item em nova aba', /href="\/blog\/categoria\/guia-2027" target="_blank"/.test(home));
-    const last = p.locator('.a-menu-item').last();
-    await last.locator('input[name=label]').fill('Guia dos Enredos');
-    await submit(last.locator('button:has-text("Salvar")'));
+    await p.locator('[data-menu-row]').last().locator('input[name$="[label]"]').fill('Guia dos Enredos');
+    await submit(p.locator('.a-sticky-save button'));
     ok('renomear item', (await pub('/')).includes('>Guia dos Enredos<'));
-    await submit(p.locator('.a-menu-item').last().locator('button[title=Subir]'));
+    await p.locator('[data-menu-row]').last().locator('button[title=Subir]').click();
+    await submit(p.locator('.a-sticky-save button'));
     home = await pub('/');
     ok('mover item', home.indexOf('>Guia dos Enredos<') < home.indexOf('>Contato<'));
-    await submit(p.locator('.a-menu-item:has(input[value="Guia dos Enredos"]) button[title=Remover]'));
+    await p.locator('[data-menu-row]:has(input[value="Guia dos Enredos"]) button[title=Remover]').click();
+    ok('remover marca o item antes de salvar', await p.locator('[data-menu-row].is-removed').count() === 1);
+    await submit(p.locator('.a-sticky-save button'));
     ok('remover item', !(await pub('/')).includes('>Guia dos Enredos<'));
   });
 
@@ -395,9 +399,11 @@ let pageRef = null;
   /* ---------------- Conteúdo do site ---------------- */
   area = 'Conteúdo do site';
   await safe('site e redes', async () => {
-    await p.goto(base + '/admin/conteudo?aba=site');
+    await p.goto(base + '/admin/configuracoes');
     await p.fill('input[name=title]', 'Arquivo Sapucaí QA');
     await p.fill('input[name="socials[instagram]"]', 'instagram.com/arquivosapucai');
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/admin/cabecalho');
     await pickFromLibrary(p.locator('[data-image-field]:has(input[name=logo])'), 0);
     await submit(p.locator('.a-sticky-save button'));
     const home = await pub('/');
@@ -406,9 +412,11 @@ let pageRef = null;
     ok('logo novo aparece', /class="logo"[\s\S]*?<img src="\/uploads\//.test(home));
   });
   await safe('textos da home e avisos', async () => {
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/faixa');
     await p.fill('input[name="ticker_items[0][text]"]', 'Aviso um QA'); await p.fill('input[name="ticker_items[1][text]"]', 'Aviso dois QA');
     await p.fill('input[name="ticker_items[1][link]"]', '/blog');
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/admin/pagina-inicial');
     await p.fill('input[name=arquivo_title]', 'O Arquivo QA');
     await p.fill('input[name="playlists[0][link]"]', 'https://www.youtube.com/playlist?list=QA');
     await p.fill('input[name=blog_count]', '2');
@@ -417,30 +425,30 @@ let pageRef = null;
     ok('faixa com 2 avisos', home.includes('Aviso um QA') && /<a href="\/blog"[^>]*>Aviso dois QA/.test(home));
     ok('título O Arquivo muda', home.includes('O Arquivo QA'));
     ok('link da playlist', home.includes('playlist?list=QA'));
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/faixa');
     await p.fill('input[name="ticker_items[0][text]"]', ''); await p.fill('input[name="ticker_items[1][text]"]', '');
     await submit(p.locator('.a-sticky-save button'));
     ok('sem avisos a faixa some', !(await pub('/')).includes('class="ticker"'));
   });
   await safe('rodapé', async () => {
-    await p.goto(base + '/admin/conteudo?aba=rodape');
+    await p.goto(base + '/admin/rodape');
     await p.fill('input[name=word]', 'SAPUCAÍ QA'); await submit(p.locator('.a-sticky-save button'));
     ok('texto grande do rodapé muda', (await pub('/')).includes('SAPUCAÍ QA'));
     await p.uncheck('input[name=show_word]'); await submit(p.locator('.a-sticky-save button'));
     ok('esconder texto grande', !(await pub('/')).includes('footer-word'));
   });
   await safe('blog e comentários', async () => {
-    await p.goto(base + '/admin/conteudo?aba=blog');
+    await p.goto(base + '/admin/blog-posts');
     await p.uncheck('input[name=comments_moderate]'); await submit(p.locator('.a-sticky-save button'));
     const msg = await comment('Sem moderação QA');
     ok('sem moderação o comentário entra direto', msg.includes('publicado'), msg);
-    await p.goto(base + '/admin/conteudo?aba=blog');
+    await p.goto(base + '/admin/blog-posts');
     await p.uncheck('input[name=comments_enabled]'); await p.uncheck('input[name=share_buttons]');
     await submit(p.locator('.a-sticky-save button'));
     const post = await pub('/blog/mangueira-1988-o-samba-que-contou-a-historia');
     ok('desligar comentários tira o formulário', !post.includes('comment-form'));
     ok('desligar compartilhar tira os botões', !post.includes('class="share"'));
-    await p.goto(base + '/admin/conteudo?aba=blog');
+    await p.goto(base + '/admin/blog-posts');
     await p.check('input[name=comments_enabled]'); await p.check('input[name=share_buttons]'); await p.check('input[name=comments_moderate]');
     await submit(p.locator('.a-sticky-save button'));
   });
@@ -448,23 +456,35 @@ let pageRef = null;
   /* ---------------- Aparência ---------------- */
   area = 'Aparência';
   await safe('cores, fontes e cards', async () => {
-    await p.goto(base + '/admin/aparencia');
+    await p.goto(base + '/admin/pagina-inicial');
     await p.locator('input[name="colors[blog_bg]"]').evaluate(el => { el.value = '#003366'; });
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/admin/padrao');
     await p.selectOption('select[name="fonts[heading]"]', 'Anton');
+    await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
+    await p.goto(base + '/admin/cabecalho');
     await p.locator('input[name=size_logo]').fill('140'); await p.locator('input[name=size_header]').fill('200');
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/admin/blog-posts');
     await p.selectOption('select[name=cards_per_row]', '4');
-    await p.check('input[name=cards_layout][value=masonry]', { force: true });
+    await p.click('label:has(input[name=cards_layout][value=masonry]) span');
     await p.selectOption('select[name=card_ratio]', 'original');
     await p.selectOption('select[name=card_title_lines]', '2');
-    await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
+    await submit(p.locator('.a-sticky-save button'));
     const home = await pub('/');
     ok('cor muda no site', home.includes('--c-blog-bg:#003366'));
     ok('fonte do Google carrega', home.includes('fonts.googleapis.com/css2?family=Anton'));
     ok('tamanho do logo e do cabeçalho', home.includes('--logo-size:140px') && home.includes('--header-height:200px'));
     ok('4 por linha em mosaico', home.includes('cards cols-4 is-masonry'));
     ok('limite de linhas do título', home.includes('--card-title-lines:2'));
+    await p.goto(base + '/admin/padrao');
     await submit(p.locator('button:has-text("Restaurar padrão")'));
-    ok('restaurar padrão', (await pub('/')).includes('--c-blog-bg:#20063A'));
+    const h2 = await pub('/');
+    ok('restaurar padrão volta as fontes', !h2.includes('family=Anton'));
+    ok('restaurar padrão não mexe nas cores das seções', h2.includes('--c-blog-bg:#003366'));
+    await p.goto(base + '/admin/pagina-inicial');
+    await p.locator('input[name="colors[blog_bg]"]').evaluate(el => { el.value = '#20063a'; });
+    await submit(p.locator('.a-sticky-save button'));
   });
 
   /* ---------------- Autores ---------------- */
@@ -477,9 +497,11 @@ let pageRef = null;
     ok('cadastrar autor', (await notice()).includes('salvo'));
     await logout(); await login('autor@teste.com', 'senha-autor-123');
     ok('autor faz login', p.url().endsWith('/admin'));
-    ok('autor não vê menus de administrador', !(await p.content()).includes('/admin/aparencia'));
-    const r = await p.goto(base + '/admin/aparencia');
-    ok('autor é bloqueado em Aparência', r.status() === 403);
+    ok('autor não vê menus de administrador', !(await p.content()).includes('/admin/padrao') && !(await p.content()).includes('/admin/cabecalho'));
+    const r = await p.goto(base + '/admin/padrao');
+    ok('autor é bloqueado em Padrão do site', r.status() === 403);
+    const r2 = await p.goto(base + '/admin/configuracoes');
+    ok('autor é bloqueado em Configurações', r2.status() === 403);
     await p.goto(base + '/admin/posts/' + postId);
     ok('autor não edita post de outro', p.url().endsWith('/admin/posts'));
     await p.goto(base + '/admin/posts/novo'); await editorReady();
@@ -530,6 +552,7 @@ let pageRef = null;
   area = 'Fontes (rodada 4)';
   const custom = async (key, font, size, bold) => {
     const box = p.locator(`[data-type-field]:has(input[name="type[${key}][padrao]"])`);
+    await box.evaluate(el => { const d = el.closest('details'); if (d) d.open = true; }); // fontes ficam em “Fontes e tamanhos”, fechado
     await box.locator(`input[name="type[${key}][padrao]"]`).uncheck();
     ok(`${key}: desmarcar padrão mostra as escolhas`, await box.locator('[data-type-custom]').isVisible());
     if (font) await box.locator(`select[name="type[${key}][font]"]`).selectOption(font);
@@ -538,13 +561,15 @@ let pageRef = null;
   };
   const cs = async (sel, prop) => p.evaluate(([s, pr]) => { const el = document.querySelector(s); return el ? getComputedStyle(el)[pr] : 'NÃO ACHOU ' + s; }, [sel, prop]);
   await safe('Aparência: tamanhos base e título dos posts', async () => {
-    await p.goto(base + '/admin/aparencia');
-    ok('Aparência: menu e faixa saíram daqui', !(await p.content()).includes('type[menu]') && !(await p.content()).includes('type[ticker]'));
+    await p.goto(base + '/admin/padrao');
+    ok('Padrão do site: só fontes base e botões', !(await p.content()).includes('type[menu]') && !(await p.content()).includes('type[ticker]') && !(await p.content()).includes('type[post_title]'));
     await p.locator('input[name="font_sizes[heading]"]').fill('50');
     await p.locator('input[name="font_sizes[body]"]').fill('18');
     await p.locator('input[name="font_sizes[ui]"]').fill('16');
-    await custom('post_title', 'Bitter', 32, true);
     await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
+    await p.goto(base + '/admin/blog-posts');
+    await custom('post_title', 'Bitter', 32, true);
+    await submit(p.locator('.a-sticky-save button'));
     const home = await pub('/');
     ok('tamanhos base viram variáveis do site', home.includes('--fs-heading:50px') && home.includes('--fs-body:18px') && home.includes('--fs-ui:16px'));
     await p.goto(base + '/');
@@ -555,38 +580,39 @@ let pageRef = null;
     ok('título do post com 32px', (await cs('.post-title', 'fontSize')) === '32px', await cs('.post-title', 'fontSize'));
     ok('título do post em Bitter', (await cs('.post-title', 'fontFamily')).includes('Bitter'));
     ok('texto do post segue “Texto corrido” (18px)', (await cs('.post-content', 'fontSize')) === '18px', await cs('.post-content', 'fontSize'));
-    await p.goto(base + '/admin/aparencia');
+    await p.goto(base + '/admin/blog-posts');
     ok('título do post continua salvo no painel', (await p.inputValue('input[name="type[post_title][size]"]')) === '32' && !(await p.isChecked('input[name="type[post_title][padrao]"]')));
+    await p.goto(base + '/admin/padrao');
     ok('tamanho base continua salvo', (await p.inputValue('input[name="font_sizes[body]"]')) === '18');
     await p.locator('input[name="font_sizes[heading]"]').fill('44'); await p.locator('input[name="font_sizes[body]"]').fill('16'); await p.locator('input[name="font_sizes[ui]"]').fill('15');
     await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
   });
-  await safe('fonte do menu (tela Menu)', async () => {
-    await p.goto(base + '/admin/menu');
+  await safe('fonte do menu (tela Cabeçalho e menu)', async () => {
+    await p.goto(base + '/admin/cabecalho');
     await custom('menu', 'Oswald', 20, true);
-    await submit(p.locator('button:has-text("Salvar fonte do menu")'));
-    ok('menu: aviso de salvo', (await notice()).includes('Fonte do menu salva'), await notice());
+    await submit(p.locator('.a-sticky-save button'));
+    ok('menu: aviso de salvo', (await notice()).includes('salvas'), await notice());
     const home = await pub('/');
     ok('menu: fonte nova carrega do Google', home.includes('family=Oswald'));
     await p.goto(base + '/');
     ok('menu aparece com 20px', (await cs('.main-nav a', 'fontSize')) === '20px', await cs('.main-nav a', 'fontSize'));
     ok('menu aparece em Oswald', (await cs('.main-nav a', 'fontFamily')).includes('Oswald'));
-    await p.goto(base + '/admin/menu');
+    await p.goto(base + '/admin/cabecalho');
     await p.check('input[name="type[menu][padrao]"]');
-    ok('marcar padrão esconde as escolhas', !(await p.locator('[data-type-field] [data-type-custom]').isVisible()));
-    await submit(p.locator('button:has-text("Salvar fonte do menu")'));
+    ok('marcar padrão esconde as escolhas', !(await p.locator('[data-type-field]:has(input[name="type[menu][padrao]"]) [data-type-custom]').isVisible()));
+    await submit(p.locator('.a-sticky-save button'));
     await p.goto(base + '/');
     ok('menu volta ao padrão (15px)', (await cs('.main-nav a', 'fontSize')) === '15px', await cs('.main-nav a', 'fontSize'));
   });
-  await safe('fonte dos avisos (Conteúdo do site)', async () => {
-    await p.goto(base + '/admin/conteudo?aba=home');
+  await safe('fonte dos avisos (tela Faixa de avisos)', async () => {
+    await p.goto(base + '/admin/faixa');
     await p.fill('input[name="ticker_items[0][text]"]', 'Aviso fonte QA');
     await custom('ticker', 'Bebas Neue', 18, false);
     await submit(p.locator('.a-sticky-save button'));
     await p.goto(base + '/');
     ok('avisos com 18px', (await cs('.ticker-track', 'fontSize')) === '18px', await cs('.ticker-track', 'fontSize'));
     ok('avisos em Bebas Neue', (await cs('.ticker-track', 'fontFamily')).includes('Bebas Neue'));
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/faixa');
     await p.fill('input[name="ticker_items[0][text]"]', '');
     await p.check('input[name="type[ticker][padrao]"]');
     await submit(p.locator('.a-sticky-save button'));
@@ -611,23 +637,23 @@ let pageRef = null;
     p.once('dialog', () => {}); // o aviso é aceito pelo ouvinte geral
     await Promise.all([p.waitForNavigation().catch(() => {}), p.click('.a-side a:has-text("Imagens")')]);
     ok('aviso aparece ao clicar fora do post', lastDialog.includes('não foram salvas'), lastDialog);
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     await p.fill('input[name=arquivo_title]', 'mexi');
     lastDialog = '';
     await Promise.all([p.waitForNavigation().catch(() => {}), p.click('.a-side a:has-text("Menu")')]);
     ok('aviso também em outras telas (Textos da home)', lastDialog.includes('não foram salvas'));
     lastDialog = '';
-    await p.goto(base + '/admin/menu'); await p.click('.a-side a:has-text("Tags")'); await p.waitForLoadState();
+    await p.goto(base + '/admin/cabecalho'); await p.click('.a-side a:has-text("Posts")'); await p.waitForLoadState();
     ok('sem mudanças, sai sem aviso', lastDialog === '');
   });
   await safe('“Salvando…” e aviso de salvo', async () => {
-    await p.goto(base + '/admin/conteudo?aba=rodape');
-    await p.route(/\/admin\/conteudo/, async r => { try { if (r.request().method() === 'POST') await new Promise(x => setTimeout(x, 1200)); await r.continue(); } catch (e) {} });
+    await p.goto(base + '/admin/rodape');
+    await p.route(/\/admin\/rodape/, async r => { try { if (r.request().method() === 'POST') await new Promise(x => setTimeout(x, 1200)); await r.continue(); } catch (e) {} });
     await p.fill('input[name=word]', 'ARQUIVO SAPUCAÍ');
     const r = await p.evaluate(async () => { const btn = document.querySelector('.a-sticky-save button'); btn.click(); await new Promise(x => setTimeout(x, 150)); return [btn.textContent, document.body.classList.contains('is-saving')]; });
     ok('botão mostra “Salvando…” enquanto salva', r[0].includes('Salvando'), r[0]);
     ok('barra de carregamento no topo', r[1]);
-    await p.waitForURL(/aba=rodape/); await p.waitForLoadState(); await p.unroute(/\/admin\/conteudo/);
+    await p.waitForURL(/\/admin\/rodape/); await p.waitForLoadState(); await p.unroute(/\/admin\/rodape/);
     await p.waitForSelector('.a-toast-success');
     ok('aviso verde de salvo aparece', (await p.textContent('.a-toast-success')).includes('salvas'));
   });
@@ -675,7 +701,7 @@ let pageRef = null;
 
   area = 'Imagens da home';
   await safe('opções de imagem em O Arquivo e Acervo', async () => {
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     await p.locator('input[name="arquivo_img[width]"]').fill('60');
     await p.selectOption('select[name="arquivo_img[radius]"]', '999');
     await p.selectOption('select[name="arquivo_img[ratio]"]', 'square');
@@ -684,7 +710,7 @@ let pageRef = null;
     const home = await pub('/');
     ok('O Arquivo: tamanho, cantos e formato', home.includes('class="wrap split" style="--img-w:0.6"') && /split-media"><img style="width:100%;border-radius:999px;aspect-ratio:1 \/ 1/.test(home));
     ok('Acervo: alinhado ao centro', /acervo-media"><img style="[^"]*margin-left:auto;margin-right:auto/.test(home));
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     ok('opções continuam salvas', (await p.inputValue('select[name="arquivo_img[ratio]"]')) === 'square');
   });
 
@@ -714,7 +740,7 @@ let pageRef = null;
     await p.fill('[data-title]', 'Teste'); await p.fill('[data-slug]', 'blog');
     await submit(p.locator('button[value=publicar]'));
     ok('endereço reservado é recusado', (await p.content()).includes('usado pelo próprio site'));
-    await p.goto(base + '/admin/menu');
+    await p.goto(base + '/admin/cabecalho');
     ok('página aparece nas sugestões do menu', (await p.content()).includes('Página: Acervo'));
     await p.goto(base + '/admin/paginas'); await p.locator('a.a-strong:has-text("História")').click(); await p.waitForLoadState();
     await submit(p.locator('button:has-text("Excluir página")'));
@@ -724,22 +750,25 @@ let pageRef = null;
   /* ---------------- Rodada 4 ---------------- */
   area = 'Painel organizado';
   await safe('grupos e atalhos', async () => {
-    await p.goto(base + '/admin/conteudo?aba=home');
-    ok('Textos da home: 6 grupos com título', await p.locator('.a-group .a-group-title').count() === 6);
-    ok('Textos da home: atalhos no topo', await p.locator('.a-toc a').count() === 6);
+    await p.goto(base + '/admin/pagina-inicial');
+    ok('Página inicial: 5 seções com título', await p.locator('.a-group .a-group-title').count() === 5);
+    ok('Página inicial: atalhos no topo', await p.locator('.a-toc a').count() === 5);
+    ok('Página inicial: abas de seções, ordem e banners', await p.locator('.a-tabs a').count() === 3);
     await p.click('.a-toc a:has-text("Contato")');
     ok('atalho leva ao grupo Contato', p.url().endsWith('#g-contato'));
-    await p.goto(base + '/admin/conteudo?aba=rodape');
+    await p.goto(base + '/admin/rodape');
     ok('Rodapé: grupos e atalhos', await p.locator('.a-group').count() === 2 && await p.locator('.a-toc a').count() === 2);
-    await p.goto(base + '/admin/aparencia');
-    ok('Aparência: 4 grupos e atalhos', await p.locator('.a-group').count() === 4 && await p.locator('.a-toc a').count() === 4);
+    for (const [scr, n] of [['padrao', 2], ['cabecalho', 5], ['faixa', 2], ['blog-posts', 3]]) {
+      await p.goto(base + '/admin/' + scr);
+      ok(scr + ': ' + n + ' grupos com título', await p.locator('.a-group .a-group-title').count() === n, String(await p.locator('.a-group .a-group-title').count()));
+    }
   });
 
   area = 'Textos da home com fonte própria';
   await safe('fonte, tamanho e negrito em cada texto', async () => {
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     const boxes = await p.locator('[data-type-field]').count();
-    ok('cada texto da home tem controle de fonte (21)', boxes === 21, String(boxes));
+    ok('cada texto da home tem controle de fonte (20)', boxes === 20, String(boxes));
     await custom('arquivo_text', 'Lora', 20, true);
     await custom('playlists_intro', null, 22, false);
     await custom('playlists_names', 'Oswald', 14, false);
@@ -757,9 +786,10 @@ let pageRef = null;
     ok('Blog: título 28px', (await cs('.sec-blog .sec-title', 'fontSize')) === '28px', await cs('.sec-blog .sec-title', 'fontSize'));
     ok('Blog: texto do botão muda', (await p.content()).includes('VER TUDO QA'));
     ok('textos sem mudança seguem o padrão', (await cs('.sec-arquivo .sec-title', 'fontSize')) === '44px', await cs('.sec-arquivo .sec-title', 'fontSize'));
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     ok('escolhas continuam salvas no painel', (await p.inputValue('input[name="type[arquivo_text][size]"]')) === '20' && (await p.inputValue('select[name="type[arquivo_text][font]"]')) === 'Lora' && (await p.inputValue('select[name="type[arquivo_text][weight]"]')) === '700');
     ok('quem não mudou continua em “padrão”', await p.isChecked('input[name="type[arquivo_title][padrao]"]'));
+    await p.evaluate(() => document.querySelectorAll('details.a-adv').forEach(d => { d.open = true; }));
     await p.check('input[name="type[arquivo_text][padrao]"]');
     await submit(p.locator('.a-sticky-save button'));
     await p.goto(base + '/');
@@ -768,7 +798,7 @@ let pageRef = null;
 
   area = 'Acervo e História';
   await safe('duas colunas com foto, botão e link próprios', async () => {
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     await p.fill('input[name=acervo_link]', '/acervo'); await p.fill('input[name=historia_link]', '/historia');
     await p.fill('input[name=historia_title]', 'História QA'); await p.fill('input[name=historia_button]', 'LER A HISTÓRIA');
     await pickFromLibrary(p.locator('[data-image-field]:has(input[name=historia_image])'), 1);
@@ -790,12 +820,12 @@ let pageRef = null;
     const mcols = await m.evaluate(() => getComputedStyle(document.querySelector('.acervo-cols')).gridTemplateColumns);
     ok('uma embaixo da outra no celular', mcols.split(' ').length === 1, mcols);
     await m.close();
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     await p.uncheck('input[name=historia_show]');
     await submit(p.locator('.a-sticky-save button'));
     const h2 = await pub('/');
     ok('esconder só a História', !h2.includes('id="historia"') && h2.includes('id="acervo"') && h2.includes('acervo-cols is-single'));
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     await p.check('input[name=historia_show]');
     await p.fill('input[name=historia_link]', '');
     await submit(p.locator('.a-sticky-save button'));
@@ -804,7 +834,7 @@ let pageRef = null;
 
   area = 'Contato e rodapé';
   await safe('textos e fontes do contato', async () => {
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     await p.fill('input[name="contact_labels[nome]"]', 'Seu nome QA'); await p.fill('input[name=contact_button]', 'Mandar QA');
     await custom('contact_labels', null, 18, false);
     await submit(p.locator('.a-sticky-save button'));
@@ -820,7 +850,7 @@ let pageRef = null;
     ok('formulário continua enviando', (await p.content()).includes('notice-success'));
   });
   await safe('textos e fontes do rodapé', async () => {
-    await p.goto(base + '/admin/conteudo?aba=rodape');
+    await p.goto(base + '/admin/rodape');
     ok('rodapé: 8 controles de fonte (títulos e textos juntos)', await p.locator('[data-type-field]').count() === 8);
     await p.fill('input[name=nav_title]', 'Links QA'); await p.fill('input[name=rss_label]', '');
     await p.fill('input[name=copyright]', '© 2024–{ano} QA. Direitos reservados.');
@@ -839,7 +869,7 @@ let pageRef = null;
     ok('newsletter: campo e botão', home.includes('placeholder="Seu e-mail QA"') && home.includes('Assinar QA'));
     await p.goto(base + '/');
     ok('linha do © com 16px e negrito', (await cs('.footer-bottom span', 'fontSize')) === '16px' && (await cs('.footer-bottom span', 'fontWeight')) === '700');
-    await p.goto(base + '/admin/conteudo?aba=rodape');
+    await p.goto(base + '/admin/rodape');
     ok('textos do rodapé continuam salvos', (await p.inputValue('input[name=author_label]')) === 'Painel QA');
     await p.goto(base + '/');
     const tops = await p.evaluate(() => [...document.querySelectorAll('.footer-title')].map(h => Math.round(h.getBoundingClientRect().top)));
@@ -862,7 +892,7 @@ let pageRef = null;
     const home = await pub('/blog');
     const m2 = home.match(/<p class="card-excerpt">([^<]*)<\/p>/);
     ok('card não corta mais em 140 letras', m2 && m2[1].length > 300, m2 ? String(m2[1].length) : 'sem card');
-    await p.goto(base + '/admin/aparencia');
+    await p.goto(base + '/admin/blog-posts');
     await p.selectOption('select[name=card_excerpt_lines]', '5');
     await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
     await p.goto(base + '/blog');
@@ -870,7 +900,7 @@ let pageRef = null;
     ok('com 5 linhas, o card mostra 5 linhas', Math.round(h) === 5, String(h));
   });
   await safe('apagar uma playlist some do site', async () => {
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     await p.fill('input[name="playlists[2][title]"]', '');
     await p.locator('[data-image-field]:has(input[name="playlists[2][image]"]) [data-clear]').click();
     await submit(p.locator('.a-sticky-save button'));
@@ -880,30 +910,30 @@ let pageRef = null;
 
   area = 'Peso das fontes';
   await safe('peso: fino, normal, negrito', async () => {
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     await custom('playlists_intro', 'Merriweather', 18, '300');
     await submit(p.locator('.a-sticky-save button'));
     await p.goto(base + '/');
     ok('Playlists: Merriweather fina (300)', (await cs('.sec-playlists .sec-intro p', 'fontWeight')) === '300' && (await cs('.sec-playlists .sec-intro p', 'fontFamily')).includes('Merriweather'));
     ok('peso fino carrega do Google', (await p.content()).includes('family=Merriweather:ital,wght@0,300'));
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     ok('peso continua salvo', (await p.inputValue('select[name="type[playlists_intro][weight]"]')) === '300');
-    await p.goto(base + '/admin/aparencia');
+    await p.goto(base + '/admin/padrao');
     await p.selectOption('select[name="font_weights[heading]"]', '600');
     await p.selectOption('select[name="font_weights[body]"]', '300');
     await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
     await p.goto(base + '/');
     ok('Aparência: peso dos títulos (600)', (await cs('.sec-arquivo .sec-title', 'fontWeight')) === '600');
     ok('Aparência: peso do texto corrido (300)', (await cs('.sec-arquivo .split-text p', 'fontWeight')) === '300');
-    await p.goto(base + '/admin/aparencia');
+    await p.goto(base + '/admin/padrao');
     await p.selectOption('select[name="font_weights[heading]"]', '800'); await p.selectOption('select[name="font_weights[body]"]', '400');
     await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
   });
 
   area = 'Cabeçalho: imagem e cor';
   await safe('trocar imagem, tirar imagem e força da cor', async () => {
-    await p.goto(base + '/admin/aparencia');
-    ok('imagem do cabeçalho está em Aparência', await p.locator('input[name=header_image]').count() === 1);
+    await p.goto(base + '/admin/cabecalho');
+    ok('imagem do cabeçalho está em Cabeçalho e menu', await p.locator('input[name=header_image]').count() === 1);
     await pickFromLibrary(p.locator('[data-image-field]:has(input[name=header_image])'), 0);
     await p.locator('input[name=header_overlay]').fill('40');
     await p.uncheck('input[name=header_gradient]');
@@ -911,18 +941,18 @@ let pageRef = null;
     let home = await pub('/');
     ok('imagem nova no cabeçalho', /class="site-header" style="--header-image:url\('\/uploads\//.test(home));
     ok('cor a 40% sem degradê', home.includes('--header-overlay-a:40%') && home.includes('--header-overlay-b:40%'));
-    await p.goto(base + '/admin/aparencia');
+    await p.goto(base + '/admin/cabecalho');
     await p.check('input[name=header_gradient]');
     await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
     home = await pub('/');
     ok('degradê: direita mais clara', home.includes('--header-overlay-a:40%') && home.includes('--header-overlay-b:22%'));
-    await p.goto(base + '/admin/aparencia');
+    await p.goto(base + '/admin/cabecalho');
     await p.locator('[data-image-field]:has(input[name=header_image]) [data-clear]').click();
     await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
     home = await pub('/');
     ok('sem imagem: só a cor', home.includes('<header class="site-header">'));
-    await p.goto(base + '/admin/conteudo?aba=site');
-    ok('Site e redes aponta para Aparência', (await p.content()).includes('/admin/aparencia#g-cabecalho'));
+    await p.goto(base + '/admin/configuracoes');
+    ok('Configurações aponta para Cabeçalho e menu (logo e imagem)', (await p.content()).includes('href="/admin/cabecalho"'));
   });
 
   area = 'Páginas internas';
@@ -970,20 +1000,20 @@ let pageRef = null;
 
   area = 'Faixa de avisos: espessura';
   await safe('espessura da faixa', async () => {
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/faixa');
     await p.fill('input[name="ticker_items[0][text]"]', 'Aviso espessura QA');
     await p.locator('input[name=ticker_pad]').fill('20');
     await submit(p.locator('.a-sticky-save button'));
     await p.goto(base + '/');
     ok('espessura 20px no site', (await cs('.ticker-track', 'paddingTop')) === '20px', await cs('.ticker-track', 'paddingTop'));
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/faixa');
     ok('espessura continua salva', (await p.inputValue('input[name=ticker_pad]')) === '20');
-    ok('quadro com um controle só não repete o título', await p.locator('#g-avisos .a-type-bare').count() === 1);
+    ok('quadro com um controle só não repete o título', await p.locator('#g-aparencia-faixa .a-type-bare').count() === 1);
   });
 
   area = 'Cabeçalho: prévia ao vivo';
   await safe('prévia muda na hora', async () => {
-    await p.goto(base + '/admin/aparencia');
+    await p.goto(base + '/admin/cabecalho');
     await pickFromLibrary(p.locator('[data-image-field]:has(input[name=header_image])'), 0);
     const bgi = () => p.locator('[data-header-preview]').evaluate(el => el.style.backgroundImage);
     ok('prévia mostra a imagem escolhida', (await bgi()).includes('url('));
@@ -995,12 +1025,13 @@ let pageRef = null;
     ok('degradê na prévia', (await bgi()).includes('0.17)'), (await bgi()).slice(0, 120));
     await p.locator('input[name=size_header]').fill('200');
     ok('altura na prévia', (await p.locator('[data-header-preview]').evaluate(el => el.style.minHeight)) === '200px');
-    ok('título dos posts sem quadro repetido', await p.locator('#g-fontes .a-type-bare').count() === 1);
+    await p.goto(base + '/admin/blog-posts');
+    ok('título dos posts sem quadro repetido', await p.locator('#g-post .a-type-bare').count() === 1);
   });
 
   area = 'Avisos por e-mail';
   await safe('e-mails de aviso no painel', async () => {
-    await p.goto(base + '/admin/conteudo?aba=site');
+    await p.goto(base + '/admin/configuracoes');
     ok('começa com o e-mail da instalação', (await p.inputValue('input[name="notify[contact]"]')) === 'admin@teste.com');
     await p.fill('input[name="notify[contact]"]', 'contato-qa@teste.com');
     await p.fill('input[name="notify[newsletter]"]', '');
@@ -1008,7 +1039,7 @@ let pageRef = null;
     ok('e-mail sem @ é barrado antes de salvar', !(await p.locator('input[name="notify[comments]"]').evaluate(el => el.checkValidity())));
     await p.fill('input[name="notify[comments]"]', 'admin@teste.com');
     await submit(p.locator('.a-sticky-save button'));
-    await p.goto(base + '/admin/conteudo?aba=site');
+    await p.goto(base + '/admin/configuracoes');
     ok('e-mail do contato salvo', (await p.inputValue('input[name="notify[contact]"]')) === 'contato-qa@teste.com');
     ok('newsletter vazio = sem aviso', (await p.inputValue('input[name="notify[newsletter]"]')) === '');
     ok('comentários mantém o anterior', (await p.inputValue('input[name="notify[comments]"]')) === 'admin@teste.com');
@@ -1020,14 +1051,14 @@ let pageRef = null;
   area = 'Medição e cookies';
   await safe('Pixel, Analytics e aviso de cookies', async () => {
     ok('sem números, sem aviso de cookies', !(await pub('/')).includes('data-cookie-bar'));
-    await p.goto(base + '/admin/conteudo?aba=site');
+    await p.goto(base + '/admin/configuracoes');
     await p.fill('input[name=ga4]', 'X-123');
     await submit(p.locator('.a-sticky-save button'));
     ok('código do Analytics errado é recusado', (await p.content()).includes('começa com “G-”'));
-    await p.goto(base + '/admin/conteudo?aba=site');
+    await p.goto(base + '/admin/configuracoes');
     await p.fill('input[name=meta_pixel]', '1234 5678 9012 345'); await p.fill('input[name=ga4]', 'g-test1234');
     await submit(p.locator('.a-sticky-save button'));
-    await p.goto(base + '/admin/conteudo?aba=site');
+    await p.goto(base + '/admin/configuracoes');
     ok('Pixel salvo só com números', (await p.inputValue('input[name=meta_pixel]')) === '123456789012345');
     ok('Analytics salvo em maiúsculas', (await p.inputValue('input[name=ga4]')) === 'G-TEST1234');
     const ctx2 = await b.newContext(); const r = await ctx2.newPage();
@@ -1123,7 +1154,7 @@ let pageRef = null;
   /* ---------------- Rodada 7 ---------------- */
   area = 'Playlists: dois formatos';
   await safe('grade ou imagem + texto', async () => {
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     ok('na grade, campos do outro formato ficam escondidos', !(await p.locator('input[name=playlists_button]').isVisible()) && await p.locator('textarea[name=playlists_outro]').isVisible());
     await p.click('label:has(input[name=playlists_layout][value=feature]) span');
     ok('trocando o formato, aparecem os campos dele', await p.locator('input[name=playlists_button]').isVisible() && !(await p.locator('textarea[name=playlists_outro]').isVisible()));
@@ -1142,12 +1173,12 @@ let pageRef = null;
     await p.goto(base + '/');
     const g = await p.evaluate(() => { const i = document.querySelector('.sec-playlists .split-media img').getBoundingClientRect(); const t = document.querySelector('.sec-playlists .split-text').getBoundingClientRect(); return Math.round(t.left - i.right); });
     ok('texto perto da imagem (24px)', g === 24, String(g));
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     await p.click('label:has(input[name=playlists_layout][value=grid]) span');
     await submit(p.locator('.a-sticky-save button'));
     const h2 = await pub('/');
     ok('volta para a grade', h2.includes('class="playlists"'));
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     ok('o outro formato fica guardado', (await p.inputValue('input[name=playlists_button]')) === 'VER AS PLAYLISTS QA');
   });
 
@@ -1161,8 +1192,8 @@ let pageRef = null;
 
   area = 'Cores dos 3 botões';
   await safe('botões com cores próprias', async () => {
-    await p.goto(base + '/admin/aparencia');
-    ok('3 grupos de botões em Cores', await p.locator('h3:has-text("Botão principal")').count() === 1 && await p.locator('h3:has-text("Ver todas")').count() === 1 && await p.locator('h3:has-text("Botão escuro")').count() === 1);
+    await p.goto(base + '/admin/padrao');
+    ok('3 tipos de botão em Padrão do site', await p.locator('h3:has-text("Botão principal")').count() === 1 && await p.locator('h3:has-text("Ver todas")').count() === 1 && await p.locator('h3:has-text("Botão escuro")').count() === 1);
     await p.locator('input[name="colors[button_all_text]"]').evaluate(el => { el.value = '#000000'; });
     await p.locator('input[name="colors[button_dark_bg]"]').evaluate(el => { el.value = '#003366'; });
     await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
@@ -1173,7 +1204,7 @@ let pageRef = null;
 
   area = 'Faixa: velocidade e separador';
   await safe('velocidade e separador', async () => {
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/faixa');
     await p.fill('input[name="ticker_items[0][text]"]', 'Aviso separador QA');
     await p.selectOption('select[name=ticker_sep]', 'star');
     ok('campos de texto e imagem só aparecem quando escolhidos', !(await p.locator('input[name=ticker_sep_text]').isVisible()));
@@ -1183,7 +1214,7 @@ let pageRef = null;
     ok('separador estrela', (await p.locator('.ticker .tk-sep').first().textContent()) === '★');
     ok('espaço do separador 40px', (await cs('.ticker-track', 'columnGap')) === '40px', await cs('.ticker-track', 'columnGap'));
     const fast = parseFloat(await cs('.ticker-track', 'animationDuration'));
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/faixa');
     await p.locator('input[name=ticker_speed]').fill('1');
     await p.selectOption('select[name=ticker_sep]', 'text');
     ok('escolhendo texto, aparece o campo', await p.locator('input[name=ticker_sep_text]').isVisible());
@@ -1193,7 +1224,7 @@ let pageRef = null;
     const slow = parseFloat(await cs('.ticker-track', 'animationDuration'));
     ok('velocidade 1 é bem mais lenta que 10', slow > fast * 5, fast + 's / ' + slow + 's');
     ok('separador de texto/emoji', (await p.locator('.ticker .tk-sep').first().textContent()) === '🥁');
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/faixa');
     await p.selectOption('select[name=ticker_sep]', 'none');
     await submit(p.locator('.a-sticky-save button'));
     ok('sem separador', !(await pub('/')).includes('tk-sep'));
@@ -1201,7 +1232,7 @@ let pageRef = null;
 
   area = 'Menu: cores, efeito, alinhamento';
   await safe('menu do topo', async () => {
-    await p.goto(base + '/admin/aparencia');
+    await p.goto(base + '/admin/cabecalho');
     await p.locator('input[name="colors[menu_hover]"]').evaluate(el => { el.value = '#ffffff'; });
     await p.selectOption('select[name=menu_effect]', 'pill');
     await p.click('label:has(input[name=menu_align][value=center]) span');
@@ -1237,7 +1268,7 @@ let pageRef = null;
 
   area = 'Família Archivo';
   await safe('Archivo Condensed e Expanded', async () => {
-    await p.goto(base + '/admin/aparencia');
+    await p.goto(base + '/admin/padrao');
     ok('larguras da Archivo na lista', await p.locator('select[name="fonts[heading]"] option[value="Archivo Condensed"]').count() === 1 && await p.locator('select[name="fonts[heading]"] option[value="Archivo Expanded"]').count() === 1 && await p.locator('select[name="fonts[heading]"] option[value="Archivo Narrow"]').count() === 1);
     await p.selectOption('select[name="fonts[heading]"]', 'Archivo Condensed');
     ok('amostra fica apertada', (await p.locator('[data-font-select][name="fonts[heading]"]').evaluate(s => s.closest('label').nextElementSibling.style.fontStretch)) === '75%');
@@ -1246,13 +1277,85 @@ let pageRef = null;
     ok('site pede a Archivo com as larguras', home.includes('family=Archivo:ital,wdth,wght@0,62..125'));
     await p.goto(base + '/');
     ok('títulos apertados (Condensed)', (await cs('.sec-arquivo .sec-title', 'fontStretch')) === '75%' && (await cs('.sec-arquivo .sec-title', 'fontFamily')).includes('Archivo'));
-    await p.goto(base + '/admin/conteudo?aba=home');
+    await p.goto(base + '/admin/pagina-inicial');
     await custom('arquivo_text', 'Archivo Expanded', 18, '400');
     await submit(p.locator('.a-sticky-save button'));
     await p.goto(base + '/');
     ok('texto esticado (Expanded) num texto só', (await cs('.split-text > div p', 'fontStretch')) === '125%');
-    await p.goto(base + '/admin/aparencia');
+    await p.goto(base + '/admin/padrao');
     await submit(p.locator('button:has-text("Restaurar padrão")'));
+  });
+
+  /* ---------------- Rodada 8: painel por parte do site ---------------- */
+  area = 'Nada se perdeu na reorganização';
+  await safe('cada ajuste do site tem lugar no painel', async () => {
+    const names = new Set();
+    for (const scr of ['cabecalho', 'faixa', 'pagina-inicial', 'rodape', 'blog-posts', 'padrao', 'configuracoes']) {
+      await p.goto(base + '/admin/' + scr);
+      (await p.evaluate(() => [...document.querySelectorAll('form [name]')].map(el => el.name))).forEach(n => names.add(n));
+    }
+    const has = n => names.has(n);
+    const colorKeys = ['header_bg','header_text','header_accent','menu_hover','menu_line','menu_current','header_social','ticker_bg','ticker_text','blog_bg','blog_title','card_bg','card_title','card_text','arquivo_bg','arquivo_title','arquivo_text','playlists_bg','playlists_title','playlists_text','acervo_bg','acervo_title','acervo_text','contact_bg','contact_title','contact_text','footer_bg','footer_text','footer_accent','button_bg','button_text','button_hover_bg','button_hover_text','button_all_bg','button_all_text','button_all_hover_bg','button_all_hover_text','button_dark_bg','button_dark_text','button_dark_hover_bg','button_dark_hover_text','post_page_bg','post_box_bg','post_title','post_text','post_link','post_nav_bg','post_nav_text'];
+    const missingColors = colorKeys.filter(k => !has('colors[' + k + ']'));
+    ok('todas as 48 cores estão em alguma tela', missingColors.length === 0, missingColors.join(', '));
+    const typeKeys = ['post_title','menu','ticker','blog_title','blog_button','arquivo_title','arquivo_text','arquivo_button','playlists_title','playlists_intro','playlists_names','playlists_outro','playlists_button','acervo_title','acervo_text','acervo_button','historia_title','historia_text','historia_button','contact_title','contact_text','contact_labels','contact_button','footer_titles','footer_texts','footer_links','footer_news_button','footer_email','footer_word','footer_copyright','footer_author'];
+    const missingTypes = typeKeys.filter(k => !has('type[' + k + '][padrao]'));
+    ok('todas as 31 fontes de texto estão em alguma tela', missingTypes.length === 0, missingTypes.join(', '));
+    const fields = ['logo','header_image','size_logo','size_header','header_overlay','header_gradient','menu_effect','menu_align','menu_gap','ticker_items[0][text]','ticker_speed','ticker_gap','ticker_pad','ticker_sep','ticker_sep_text','ticker_sep_image',
+      'blog_title','blog_count','blog_button','arquivo_title','arquivo_text','arquivo_button','arquivo_link','arquivo_new_tab','arquivo_image','arquivo_img[width]','playlists_layout','playlists_title','playlists_intro','playlists_outro','playlists_image','playlists_img[width]','playlists_button','playlists_link','playlists_new_tab','playlists_align','playlists[0][title]',
+      'acervo_show','acervo_image','acervo_img[width]','acervo_title','acervo_text','acervo_button','acervo_link','acervo_new_tab','historia_show','historia_image','historia_img[width]','historia_title','historia_text','historia_button','historia_link','historia_new_tab','contact_title','contact_text','contact_labels[nome]','contact_button',
+      'nav_title','rss_label','copyright','author_label','email_label','news_title','news_text','news_placeholder','news_button','show_word','word',
+      'cards_per_row','cards_layout','card_ratio','card_title_lines','card_excerpt_lines','per_page','comments_enabled','comments_moderate','share_buttons',
+      'fonts[heading]','fonts[body]','fonts[ui]','font_sizes[heading]','font_sizes[body]','font_sizes[ui]','font_weights[heading]','font_weights[body]',
+      'title','tagline','description','email','share_image','socials[youtube]','socials[instagram]','notify[contact]','notify[newsletter]','notify[comments]','meta_pixel','ga4','cookie_text'];
+    const missing = fields.filter(f => !has(f));
+    ok('todos os outros ' + fields.length + ' ajustes estão em alguma tela', missing.length === 0, missing.join(', '));
+  });
+  await safe('valores salvos continuam no lugar novo', async () => {
+    await p.goto(base + '/admin/faixa');
+    ok('faixa: espessura salva antes aparece', (await p.inputValue('input[name=ticker_pad]')) === '20');
+    await p.goto(base + '/admin/cabecalho');
+    ok('cabeçalho: efeito salvo antes aparece', (await p.inputValue('select[name=menu_effect]')) === 'pill');
+    ok('cabeçalho: cor do menu ao passar o mouse aparece', (await p.inputValue('input[name="colors[menu_hover]"]')) === '#ffffff');
+    await p.goto(base + '/admin/blog-posts');
+    ok('blog: linhas da descrição salvas antes aparecem', (await p.inputValue('select[name=card_excerpt_lines]')) === '5');
+    await p.goto(base + '/admin/configuracoes');
+    ok('configurações: nome do site aparece', (await p.inputValue('input[name=title]')) === 'Arquivo Sapucaí QA');
+  });
+  await safe('salvar uma tela não mexe nas outras', async () => {
+    await p.goto(base + '/admin/cabecalho');
+    await p.locator('input[name="colors[header_social]"]').evaluate(el => { el.value = '#ff0000'; });
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/');
+    ok('ícones das redes com a cor escolhida', (await cs('.header-social', 'color')) === 'rgb(255, 0, 0)', await cs('.header-social', 'color'));
+    ok('ícones das redes com destaque (borda)', (await cs('.header-social', 'borderTopWidth')) === '2px');
+    await p.goto(base + '/admin/faixa');
+    ok('faixa continua com a espessura dela', (await p.inputValue('input[name=ticker_pad]')) === '20');
+    await p.goto(base + '/admin/pagina-inicial');
+    ok('página inicial continua com o título dela', (await p.inputValue('input[name=arquivo_title]')) !== '');
+  });
+  await safe('menu lateral por parte do site', async () => {
+    await p.goto(base + '/admin');
+    const groups = await p.locator('.a-nav-group').allTextContents();
+    ok('grupos do menu lateral', groups.join('|') === 'Escrever|Leitores|O site, parte por parte|Geral', groups.join('|'));
+    for (const name of ['Cabeçalho e menu', 'Faixa de avisos', 'Página inicial', 'Rodapé', 'Blog e posts', 'Padrão do site', 'Configurações']) {
+      ok('menu lateral tem “' + name + '”', await p.locator('.a-side nav a:has-text("' + name + '")').count() === 1);
+    }
+    await p.goto(base + '/admin/tags');
+    ok('Tags acende “Posts” no menu lateral', (await p.locator('.a-side nav a[aria-current=page]').textContent()).includes('Posts'));
+    await p.goto(base + '/admin/banners');
+    ok('Banners acende “Página inicial”', (await p.locator('.a-side nav a[aria-current=page]').textContent()).includes('Página inicial'));
+    for (const [old, now] of [['/admin/aparencia', '/admin/padrao'], ['/admin/conteudo?aba=home', '/admin/pagina-inicial'], ['/admin/menu', '/admin/cabecalho']]) {
+      await p.goto(base + old);
+      ok('endereço antigo ' + old + ' leva à tela nova', p.url().includes(now), p.url());
+    }
+  });
+  await safe('prévia da faixa no painel', async () => {
+    await p.goto(base + '/admin/faixa');
+    await p.fill('input[name="ticker_items[0][text]"]', 'Prévia QA');
+    ok('prévia mostra o aviso digitado', (await p.locator('[data-tk-track]').textContent()).includes('Prévia QA'));
+    await p.locator('input[name="colors[ticker_bg]"]').evaluate(el => { el.value = '#003366'; el.dispatchEvent(new Event('input', { bubbles: true })); });
+    ok('prévia muda a cor na hora', (await p.locator('[data-tk-preview]').evaluate(el => el.style.background)).includes('rgb(0, 51, 102)'));
   });
 
   area = 'Geral';

@@ -1,3 +1,4 @@
+<?= render_to_string('admin/posts-tabs', ['current' => 'posts']) ?>
 <div class="a-head">
   <h1>Posts</h1>
   <a class="a-btn" href="/admin/posts/novo">+ Escrever post</a>

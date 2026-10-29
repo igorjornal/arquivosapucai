@@ -2,7 +2,7 @@
   <h1>Páginas</h1>
   <a class="a-btn" href="/admin/paginas/nova">+ Nova página</a>
 </div>
-<p class="a-muted">Páginas fixas do site, com endereço próprio (ex.: <code>/acervo</code>, <code>/historia</code>). Boas para o Google. Para aparecer no menu, adicione em <a href="/admin/menu">Menu</a>.</p>
+<p class="a-muted">Páginas fixas do site, com endereço próprio (ex.: <code>/acervo</code>, <code>/historia</code>). Boas para o Google. Para aparecer no menu, adicione em <a href="/admin/cabecalho#g-itens">Cabeçalho e menu → Itens do menu</a>.</p>
 <?php if (!$pages): ?>
   <div class="a-card a-empty"><p>Nenhuma página ainda.</p><a class="a-btn" href="/admin/paginas/nova">Criar a primeira</a></div>
 <?php else: ?>

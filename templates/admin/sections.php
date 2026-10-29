@@ -1,7 +1,8 @@
 <div class="a-head">
-  <h1>Seções da home</h1>
-  <a class="a-btn a-btn-ghost" href="/" target="_blank" rel="noopener">Ver a home ↗</a>
+  <h1>Página inicial</h1>
+  <a class="a-btn a-btn-ghost" href="/" target="_blank" rel="noopener">Ver o site ↗</a>
 </div>
+<?= render_to_string('admin/home-tabs', ['current' => 'secoes']) ?>
 <p class="a-muted">A home mostra as seções nesta ordem, de cima para baixo. Use ↑ ↓ para mudar a ordem e o olho para esconder sem apagar.</p>
 <div class="a-sections">
 <?php foreach ($sections as $i => $s):

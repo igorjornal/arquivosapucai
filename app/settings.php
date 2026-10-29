@@ -145,6 +145,7 @@ function settings_defaults(): array
                 'menu_hover'    => '#FFFFFF',
                 'menu_line'     => '#CDF50D',
                 'menu_current'  => '#CDF50D',
+                'header_social' => '#CDF50D',
                 'ticker_bg'     => '#E31E24',
                 'ticker_text'   => '#FFFFFF',
                 'blog_bg'       => '#20063A',
@@ -191,9 +192,16 @@ function settings_defaults(): array
     ];
 }
 
-function setting(string $name)
+// Memória das configurações durante a página (atualizada a cada save_setting)
+function &settings_cache(): ?array
 {
     static $cache = null;
+    return $cache;
+}
+
+function setting(string $name)
+{
+    $cache = &settings_cache();
     if ($cache === null) {
         $cache = settings_defaults();
         try {
@@ -233,6 +241,12 @@ function save_setting(string $name, array $value): void
         'INSERT INTO settings (name, value) VALUES (?, ?) ON DUPLICATE KEY UPDATE value = VALUES(value)',
         [$name, $json]
     );
+    // A próxima leitura na mesma página já vê o valor novo
+    $cache = &settings_cache();
+    if ($cache !== null) {
+        $defaults = settings_defaults()[$name] ?? null;
+        $cache[$name] = is_array($defaults) ? settings_merge($defaults, $value) : $value;
+    }
 }
 
 // Fontes que já vêm junto com o site (não dependem do Google)

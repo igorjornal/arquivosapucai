@@ -2,11 +2,11 @@
 $d = $s['data'];
 $editTexts = [
     'hero'      => ['/admin/banners', 'Banners do topo'],
-    'blog'      => ['/admin/conteudo?aba=home', 'Conteúdo do site → Textos da home'],
-    'arquivo'   => ['/admin/conteudo?aba=home', 'Conteúdo do site → Textos da home'],
-    'playlists' => ['/admin/conteudo?aba=home', 'Conteúdo do site → Textos da home'],
-    'acervo'    => ['/admin/conteudo?aba=home', 'Conteúdo do site → Textos da home'],
-    'contact'   => ['/admin/conteudo?aba=home', 'Conteúdo do site → Textos da home'],
+    'blog'      => ['/admin/pagina-inicial', 'Página inicial → Textos, imagens e cores das seções'],
+    'arquivo'   => ['/admin/pagina-inicial', 'Página inicial → Textos, imagens e cores das seções'],
+    'playlists' => ['/admin/pagina-inicial', 'Página inicial → Textos, imagens e cores das seções'],
+    'acervo'    => ['/admin/pagina-inicial', 'Página inicial → Textos, imagens e cores das seções'],
+    'contact'   => ['/admin/pagina-inicial', 'Página inicial → Textos, imagens e cores das seções'],
 ];
 ?>
 <div class="a-head"><h1><?= e($s['label']) ?></h1></div>
@@ -30,7 +30,7 @@ $editTexts = [
     <section class="a-card">
       <h2>Conteúdo</h2>
       <?php if ($builtin): ?>
-        <p>Os textos e imagens desta seção ficam em <a href="<?= e($editTexts[$s['type']][0]) ?>"><?= e($editTexts[$s['type']][1]) ?></a>. As cores ficam em <a href="/admin/aparencia">Aparência</a>.</p>
+        <p>Os textos e imagens desta seção ficam em <a href="<?= e($editTexts[$s['type']][0]) ?>"><?= e($editTexts[$s['type']][1]) ?></a>, junto com as cores dela.</p>
       <?php else: ?>
         <label>Título <small>(opcional)</small><input name="title" value="<?= e($d['title']) ?>"></label>
 

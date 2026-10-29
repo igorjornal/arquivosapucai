@@ -3,22 +3,26 @@ $user = current_user();
 $isAdmin = $user['role'] === 'admin';
 $counts = pending_counts();
 $here = strtok($_SERVER['REQUEST_URI'] ?? '/admin', '?');
+// Menu lateral: [nome, endereço, ícone, mostrar?, contador, outros endereços que também acendem o item]
 $nav = [
+    ['#', 'Escrever'],
     ['Início', '/admin', 'home', true],
-    ['Posts', '/admin/posts', 'doc', true],
+    ['Posts', '/admin/posts', 'doc', true, 0, ['/admin/categorias', '/admin/tags']],
+    ['Páginas', '/admin/paginas', 'doc', $isAdmin],
     ['Imagens', '/admin/midia', 'image', true],
+    ['#', 'Leitores'],
     ['Comentários', '/admin/comentarios', 'chat', true, $counts['comments']],
     ['Mensagens', '/admin/mensagens', 'mail', true, $counts['messages']],
     ['Newsletter', '/admin/newsletter', 'send', true],
-    ['Categorias', '/admin/categorias', 'folder', true],
-    ['Tags', '/admin/tags', 'tag', true],
-    ['—'],
-    ['Conteúdo do site', '/admin/conteudo', 'edit', $isAdmin],
-    ['Páginas', '/admin/paginas', 'doc', $isAdmin],
-    ['Seções da home', '/admin/secoes', 'layers', $isAdmin],
-    ['Banners do topo', '/admin/banners', 'slides', $isAdmin],
-    ['Menu', '/admin/menu', 'menu', $isAdmin],
-    ['Aparência', '/admin/aparencia', 'palette', $isAdmin],
+    ['#', 'O site, parte por parte', $isAdmin],
+    ['Cabeçalho e menu', '/admin/cabecalho', 'menu', $isAdmin],
+    ['Faixa de avisos', '/admin/faixa', 'slides', $isAdmin],
+    ['Página inicial', '/admin/pagina-inicial', 'layers', $isAdmin, 0, ['/admin/secoes', '/admin/banners']],
+    ['Rodapé', '/admin/rodape', 'edit', $isAdmin],
+    ['Blog e posts', '/admin/blog-posts', 'folder', $isAdmin],
+    ['#', 'Geral', $isAdmin],
+    ['Padrão do site', '/admin/padrao', 'palette', $isAdmin],
+    ['Configurações', '/admin/configuracoes', 'gear', $isAdmin],
     ['Autores', '/admin/autores', 'users', $isAdmin],
 ];
 $icons = [
@@ -35,6 +39,7 @@ $icons = [
     'slides' => '<rect x="3" y="6" width="18" height="12" rx="2"/><path d="M8 21h8"/>',
     'menu' => '<path d="M4 6h16M4 12h16M4 18h16"/>',
     'palette' => '<path d="M12 3a9 9 0 1 0 0 18c1.1 0 1.5-.8 1.5-1.5 0-1.4-1-1.7-1-3 0-1 .8-1.5 1.8-1.5H17a4 4 0 0 0 4-4c0-4.4-4-8-9-8z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/>',
+    'gear' => '<circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M4.9 4.9 7 7M17 17l2.1 2.1M4.9 19.1 7 17M17 7l2.1-2.1"/>',
     'users' => '<circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.7-4 3.3-6 6.5-6s5.8 2 6.5 6M16 4.5a3.5 3.5 0 0 1 0 7M18 14c2 .7 3.2 2.6 3.5 6"/>',
 ];
 ?><!doctype html>
@@ -53,9 +58,10 @@ $icons = [
   <a class="a-brand" href="/admin"><img src="<?= e(media_url(setting('site')['logo'])) ?>" alt="" width="42" height="42"><span>Painel do<br>Arquivo</span></a>
   <nav aria-label="Painel">
     <?php foreach ($nav as $item):
-        if ($item[0] === '—') { echo '<hr>'; continue; }
+        if ($item[0] === '#') { if ($item[2] ?? true) echo '<div class="a-nav-group">' . e($item[1]) . '</div>'; continue; }
         if (!$item[3]) continue;
-        $active = $item[1] === '/admin' ? $here === '/admin' : str_starts_with((string) $here, $item[1]); ?>
+        $active = $item[1] === '/admin' ? $here === '/admin' : str_starts_with((string) $here, $item[1]);
+        foreach ($item[5] ?? [] as $alt) { $active = $active || str_starts_with((string) $here, $alt); } ?>
       <a href="<?= e($item[1]) ?>"<?= $active ? ' aria-current="page"' : '' ?>>
         <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round" aria-hidden="true"><?= $icons[$item[2]] ?></svg>
         <span><?= e($item[0]) ?></span>

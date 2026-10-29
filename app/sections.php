@@ -198,6 +198,15 @@ function run_migrations(): void
         }
         save_setting_raw('schema_version', 8);
     }
+    if ($version < 9) {
+        // Ícones das redes no topo: começam na mesma cor do menu
+        $app = json_decode((string) db_val("SELECT value FROM settings WHERE name = 'appearance'"), true);
+        if (is_array($app) && isset($app['colors']) && !isset($app['colors']['header_social'])) {
+            $app['colors']['header_social'] = $app['colors']['header_accent'] ?? '#CDF50D';
+            save_setting('appearance', $app);
+        }
+        save_setting_raw('schema_version', 9);
+    }
 }
 
 function save_setting_raw(string $name, $value): void

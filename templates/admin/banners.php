@@ -1,4 +1,5 @@
-<div class="a-head"><h1>Banners do topo</h1></div>
+<div class="a-head"><h1>Página inicial</h1><a class="a-btn a-btn-ghost" href="/" target="_blank" rel="noopener">Ver o site ↗</a></div>
+<?= render_to_string('admin/home-tabs', ['current' => 'banners']) ?>
 <p class="a-muted">O carrossel da home. Tamanho ideal: 1728 × 568 pixels (ou qualquer imagem bem larga).</p>
 <?php foreach ($slides as $i => $s): ?>
   <div class="a-card a-banner">

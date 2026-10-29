@@ -359,6 +359,72 @@
     show();
   });
 
+  // Itens do menu (tela Cabeçalho e menu): subir, descer, remover e adicionar; vale depois de salvar
+  var menuRows = document.querySelector('[data-menu-rows]');
+  if (menuRows) {
+    var renumber = function () {
+      menuRows.querySelectorAll('[data-menu-row]').forEach(function (row, i) {
+        row.querySelectorAll('[name^="menu["]').forEach(function (el) { el.name = el.name.replace(/^menu\[\d+\]/, 'menu[' + i + ']'); });
+      });
+    };
+    var changed = function () { menuRows.dispatchEvent(new Event('change', { bubbles: true })); };
+    menuRows.addEventListener('click', function (e) {
+      var btn = e.target.closest('button');
+      if (!btn) return;
+      var row = btn.closest('[data-menu-row]');
+      if (btn.dataset.move === 'up' && row.previousElementSibling) row.parentNode.insertBefore(row, row.previousElementSibling);
+      if (btn.dataset.move === 'down' && row.nextElementSibling) row.parentNode.insertBefore(row.nextElementSibling, row);
+      if (btn.hasAttribute('data-remove-row')) {
+        var rm = row.querySelector('[data-remove]');
+        rm.value = rm.value ? '' : '1';
+        row.classList.toggle('is-removed', rm.value === '1');
+        btn.title = rm.value ? 'Desfazer' : 'Remover';
+      }
+      renumber(); changed();
+    });
+    document.querySelector('[data-add-menu]').addEventListener('click', function () {
+      var n = menuRows.querySelectorAll('[data-menu-row]').length;
+      var row = document.createElement('div');
+      row.className = 'a-menu-row';
+      row.setAttribute('data-menu-row', '');
+      row.innerHTML = '<input type="hidden" name="menu[' + n + '][id]" value="0"><input type="hidden" name="menu[' + n + '][remove]" value="" data-remove>' +
+        '<label><span class="sr">Nome</span><input name="menu[' + n + '][label]" placeholder="Nome"></label>' +
+        '<label><span class="sr">Endereço</span><input name="menu[' + n + '][url]" placeholder="Endereço" list="menu-sugestoes"></label>' +
+        '<label class="a-check"><input type="checkbox" name="menu[' + n + '][new_tab]" value="1"> Nova aba</label>' +
+        '<div class="a-order"><button type="button" class="a-icon-btn" title="Subir" data-move="up">↑</button><button type="button" class="a-icon-btn" title="Descer" data-move="down">↓</button><button type="button" class="a-icon-btn a-danger-text" title="Remover" data-remove-row>×</button></div>';
+      menuRows.appendChild(row);
+      row.querySelector('input[name$="[label]"]').focus();
+      changed();
+    });
+  }
+
+  // Faixa de avisos: prévia correndo com os avisos, cores, separador, espaço, espessura e velocidade
+  var tk = document.querySelector('[data-tk-preview]');
+  if (tk) {
+    var tkTrack = tk.querySelector('[data-tk-track]');
+    var val = function (n) { var el = document.querySelector('[name="' + n + '"]'); return el ? el.value : ''; };
+    var symbols = { star: '★', dot: '•', diamond: '◆', dash: '—', bar: '|' };
+    var drawTicker = function () {
+      var texts = [].slice.call(document.querySelectorAll('input[name$="[text]"][name^="ticker_items"]')).map(function (i) { return i.value.trim(); }).filter(Boolean);
+      if (!texts.length) texts = ['(sem avisos: a faixa some do site)'];
+      var sep = val('ticker_sep'), sepHtml = '';
+      if (symbols[sep]) sepHtml = '<span>' + symbols[sep] + '</span>';
+      else if (sep === 'text') sepHtml = '<span>' + val('ticker_sep_text').replace(/[<>&]/g, '') + '</span>';
+      else if (sep === 'image' && val('ticker_sep_image')) sepHtml = '<img src="/' + val('ticker_sep_image').replace(/^\//, '') + '" alt="">';
+      else if (sep === 'flag') sepHtml = '<img src="/assets/img/ticker-icone.svg" alt="">';
+      var once = texts.map(function (t) { var s = document.createElement('span'); s.textContent = t; return s.outerHTML + sepHtml; }).join('');
+      tkTrack.innerHTML = new Array(9).join(once);
+      tk.style.background = val('colors[ticker_bg]');
+      tk.style.color = val('colors[ticker_text]');
+      tkTrack.style.gap = val('ticker_gap') + 'px';
+      tkTrack.style.padding = val('ticker_pad') + 'px 0';
+      tkTrack.style.animationDuration = Math.max(5, (tkTrack.scrollWidth / 2) / (20 * (+val('ticker_speed') || 4))) + 's';
+    };
+    tk.closest('form').addEventListener('input', drawTicker);
+    tk.closest('form').addEventListener('change', drawTicker);
+    drawTicker();
+  }
+
   // Faixa de avisos: mostra o campo do separador escolhido (texto ou imagem)
   var sepSel = document.querySelector('[data-sep-select]');
   if (sepSel) {

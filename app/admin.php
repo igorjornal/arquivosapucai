@@ -4,6 +4,7 @@ declare(strict_types=1);
 // Painel administrativo
 
 require_once ROOT . '/app/media.php';
+require_once ROOT . '/app/admin_screens.php';
 
 function admin_dispatch(string $path): void
 {
@@ -40,8 +41,8 @@ function admin_dispatch(string $path): void
         ['#^/admin/autores/novo$#',                   'admin_user_edit', true],
         ['#^/admin/autores/(\d+)$#',                  'admin_user_edit', true],
         ['#^/admin/perfil$#',                         'admin_profile', true],
-        ['#^/admin/aparencia$#',                      'admin_appearance', true],
-        ['#^/admin/conteudo$#',                       'admin_content', true],
+        ['#^/admin/(cabecalho|faixa|pagina-inicial|rodape|blog-posts|padrao|configuracoes)$#', 'admin_screen', true],
+        ['#^/admin/(?:aparencia|conteudo|menu)$#',    'admin_old_redirect', true],
         ['#^/admin/banners$#',                        'admin_banners', true],
         ['#^/admin/secoes$#',                         'admin_sections', true],
         ['#^/admin/paginas$#',                        'admin_pages', true],
@@ -49,7 +50,6 @@ function admin_dispatch(string $path): void
         ['#^/admin/paginas/(\d+)$#',                 'admin_page_edit', true],
         ['#^/admin/paginas/(\d+)/excluir$#',         'admin_page_delete', true],
         ['#^/admin/secoes/(\d+)$#',                  'admin_section_edit', true],
-        ['#^/admin/menu$#',                           'admin_menu', true],
     ];
     foreach ($routes as [$pattern, $handler, $needsLogin]) {
         if (preg_match($pattern, $path, $m)) {
@@ -801,241 +801,6 @@ function save_user_form(array $user, bool $adminMode): array
     return [db_one('SELECT * FROM users WHERE id = ?', [$id]), []];
 }
 
-/* ---------------- Aparência ---------------- */
-
-function appearance_groups(): array
-{
-    return [
-        'Cabeçalho e faixa' => ['header_bg' => 'Fundo do cabeçalho', 'header_text' => 'Texto do cabeçalho', 'header_accent' => 'Menu e destaques',
-            'menu_hover' => 'Menu ao passar o mouse', 'menu_line' => 'Risco ou fundo do menu', 'menu_current' => 'Menu na página atual', 'ticker_bg' => 'Fundo da faixa corrida', 'ticker_text' => 'Texto da faixa corrida'],
-        'Seção Blog e cards' => ['blog_bg' => 'Fundo da seção Blog', 'blog_title' => 'Título da seção Blog', 'card_bg' => 'Fundo dos cards', 'card_title' => 'Título dos cards', 'card_text' => 'Texto dos cards'],
-        'Seção O Arquivo' => ['arquivo_bg' => 'Fundo', 'arquivo_title' => 'Título', 'arquivo_text' => 'Texto'],
-        'Seção Playlists' => ['playlists_bg' => 'Fundo', 'playlists_title' => 'Título', 'playlists_text' => 'Texto'],
-        'Seção Acervo e História' => ['acervo_bg' => 'Fundo', 'acervo_title' => 'Títulos', 'acervo_text' => 'Texto'],
-        'Seção Contato' => ['contact_bg' => 'Fundo', 'contact_title' => 'Título', 'contact_text' => 'Texto'],
-        'Rodapé' => ['footer_bg' => 'Fundo', 'footer_text' => 'Texto', 'footer_accent' => 'Títulos e destaques'],
-        'Botão principal (O Arquivo, Playlists, newsletter, Texto + imagem, busca)' => ['button_bg' => 'Fundo', 'button_text' => 'Texto', 'button_hover_bg' => 'Fundo ao passar o mouse', 'button_hover_text' => 'Texto ao passar o mouse'],
-        'Botão “Ver todas” (blog e Posts de uma categoria)' => ['button_all_bg' => 'Fundo', 'button_all_text' => 'Texto', 'button_all_hover_bg' => 'Fundo ao passar o mouse', 'button_all_hover_text' => 'Texto ao passar o mouse'],
-        'Botão escuro (Acervo, História, Enviar do contato, comentário)' => ['button_dark_bg' => 'Fundo', 'button_dark_text' => 'Texto', 'button_dark_hover_bg' => 'Fundo ao passar o mouse', 'button_dark_hover_text' => 'Texto ao passar o mouse'],
-        'Página do post' => ['post_page_bg' => 'Fundo da página', 'post_box_bg' => 'Fundo do box do post', 'post_title' => 'Títulos', 'post_text' => 'Texto', 'post_link' => 'Links', 'post_nav_bg' => 'Fundo da barra de categorias', 'post_nav_text' => 'Texto da barra de categorias'],
-    ];
-}
-
-function admin_appearance(): void
-{
-    require_admin();
-    $current = setting('appearance');
-    $defaults = settings_defaults()['appearance'];
-    if (is_post()) {
-        if (input('acao') === 'restaurar') {
-            save_setting('appearance', $defaults);
-            $type = setting('type') ?? [];
-            unset($type['post_title']);
-            save_setting('type', $type);
-            flash('success', 'Cores e fontes voltaram ao padrão.');
-            redirect('/admin/aparencia');
-        }
-        $colors = [];
-        foreach ($defaults['colors'] as $key => $default) {
-            $colors[$key] = valid_color((string) ($_POST['colors'][$key] ?? ''), $current['colors'][$key] ?? $default);
-        }
-        $fonts = [];
-        foreach (['heading', 'body', 'ui'] as $role) {
-            $font = (string) ($_POST['fonts'][$role] ?? '');
-            $fonts[$role] = in_array($font, font_choices(), true) ? $font : $current['fonts'][$role];
-        }
-        $sizes = [
-            'logo'   => max(40, min(220, (int) input('size_logo', 96))),
-            'header' => max(60, min(320, (int) input('size_header', 120))),
-        ];
-        $fontSizes = [];
-        foreach (['heading' => [24, 80], 'body' => [13, 24], 'ui' => [11, 22]] as $role => [$min, $max]) {
-            $fontSizes[$role] = max($min, min($max, (int) ($_POST['font_sizes'][$role] ?? base_font_sizes()[$role])));
-        }
-        $fontWeights = [
-            'heading' => valid_weight($_POST['font_weights']['heading'] ?? 0, 800),
-            'body'    => valid_weight($_POST['font_weights']['body'] ?? 0, 400),
-        ];
-        $header = ['overlay' => max(0, min(100, (int) input('header_overlay', 100))), 'gradient' => (bool) post_bool('header_gradient')];
-        $menu = [
-            'align'  => in_array(input('menu_align'), ['logo', 'center', 'right'], true) ? input('menu_align') : 'right',
-            'gap'    => max(8, min(80, (int) input('menu_gap', 30))),
-            'effect' => in_array(input('menu_effect'), ['line', 'grow', 'pill', 'color'], true) ? input('menu_effect') : 'line',
-        ];
-        save_setting('appearance', ['colors' => $colors, 'fonts' => $fonts, 'font_sizes' => $fontSizes, 'font_weights' => $fontWeights, 'header' => $header, 'menu' => $menu, 'sizes' => $sizes]);
-        $site = setting('site');
-        $site['header_bg'] = mb_substr(input('header_image'), 0, 255);
-        save_setting('site', $site);
-        save_type_from_post(['post_title']);
-        $blog = setting('blog');
-        $blog['cards_per_row'] = max(2, min(5, (int) input('cards_per_row', 3)));
-        $blog['cards_layout'] = input('cards_layout') === 'masonry' ? 'masonry' : 'grid';
-        $blog['card_ratio'] = array_key_exists(input('card_ratio'), image_ratios()) ? input('card_ratio') : 'wide';
-        $blog['card_title_lines'] = max(0, min(6, (int) input('card_title_lines')));
-        $blog['card_excerpt_lines'] = max(0, min(8, (int) input('card_excerpt_lines')));
-        save_setting('blog', $blog);
-        flash('success', 'Aparência salva. Abra o site para conferir.');
-        redirect('/admin/aparencia');
-    }
-    admin_render('appearance', [
-        'title'    => 'Aparência',
-        'a'        => $current,
-        'blog'     => setting('blog'),
-        'site'     => setting('site'),
-        'groups'   => appearance_groups(),
-    ]);
-}
-
-/* ---------------- Conteúdo do site ---------------- */
-
-function admin_content(): void
-{
-    require_admin();
-    $tab = in_array($_GET['aba'] ?? '', ['site', 'home', 'rodape', 'blog'], true) ? $_GET['aba'] : 'site';
-    if (is_post()) {
-        $tab = input('aba');
-        if ($tab === 'site') {
-            $site = setting('site');
-            foreach (['title' => 120, 'tagline' => 300, 'description' => 300, 'email' => 190] as $k => $len) {
-                $site[$k] = mb_substr(input($k), 0, $len);
-            }
-            foreach (['logo', 'share_image'] as $k) {
-                $site[$k] = mb_substr(input($k), 0, 255);
-            }
-            foreach (array_keys($site['socials']) as $net) {
-                $link = trim((string) ($_POST['socials'][$net] ?? ''));
-                $site['socials'][$net] = $link === '' || preg_match('#^https?://#', $link) ? $link : 'https://' . $link;
-            }
-            save_setting('site', $site);
-            $notify = [];
-            foreach (['contact', 'newsletter', 'comments'] as $k) {
-                $addr = mb_strtolower(trim((string) ($_POST['notify'][$k] ?? '')));
-                if ($addr !== '' && !filter_var($addr, FILTER_VALIDATE_EMAIL)) {
-                    flash('error', 'O e-mail “' . $addr . '” não parece válido. Confira e salve de novo.');
-                    $addr = notify_to($k);
-                }
-                $notify[$k] = mb_substr($addr, 0, 190);
-            }
-            save_setting('notify', $notify);
-            $pixel = preg_replace('/\D/', '', input('meta_pixel'));
-            $ga = strtoupper(trim(input('ga4')));
-            if ($ga !== '' && !preg_match('/^G-[A-Z0-9]{4,20}$/', $ga)) {
-                flash('error', 'O código do Google Analytics começa com “G-”, por exemplo G-AB12CD34EF.');
-                $ga = (string) (setting('tracking')['ga4'] ?? '');
-            }
-            save_setting('tracking', [
-                'meta_pixel'  => mb_substr($pixel, 0, 20),
-                'ga4'         => $ga,
-                'cookie_text' => mb_substr(input('cookie_text'), 0, 300) ?: settings_defaults()['tracking']['cookie_text'],
-            ]);
-            if (input('acao') === 'teste_email') {
-                $sent = [];
-                foreach (array_unique(array_filter([notify_to('contact'), notify_to('newsletter'), notify_to('comments')])) as $addr) {
-                    if (send_mail($addr, 'Teste de aviso do site', "Se você recebeu este e-mail, os avisos do site estão chegando.\n\n" . absolute_url('/admin'))) {
-                        $sent[] = $addr;
-                    }
-                }
-                if ($sent) {
-                    flash('success', 'E-mail de teste enviado para ' . implode(', ', $sent) . '. Confira a caixa de entrada e o spam nos próximos minutos.');
-                } else {
-                    flash('error', 'O servidor não conseguiu enviar o e-mail de teste (ou nenhum e-mail está preenchido).');
-                }
-                redirect('/admin/conteudo?aba=site#g-avisos');
-            }
-        } elseif ($tab === 'home') {
-            $home = setting('home');
-            $ticker = [];
-            foreach ((array) ($_POST['ticker_items'] ?? []) as $item) {
-                $t = mb_substr(trim((string) ($item['text'] ?? '')), 0, 200);
-                if ($t !== '') {
-                    $ticker[] = ['text' => $t, 'link' => mb_substr(trim((string) ($item['link'] ?? '')), 0, 255), 'new_tab' => !empty($item['new_tab'])];
-                }
-            }
-            $home['ticker_items'] = $ticker;
-            $home['ticker'] = '';
-            $text = ['blog_title', 'blog_button', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'arquivo_link', 'playlists_title', 'playlists_intro', 'playlists_outro', 'contact_title', 'contact_text', 'arquivo_image',
-                'playlists_image', 'playlists_button', 'playlists_link'];
-            $home['playlists_layout'] = input('playlists_layout') === 'feature' ? 'feature' : 'grid';
-            $home['playlists_align'] = in_array(input('playlists_align'), ['left', 'center', 'right', 'justify'], true) ? input('playlists_align') : 'left';
-            $home['playlists_new_tab'] = (bool) post_bool('playlists_new_tab');
-            $home['playlists_img'] = image_opts_from_post('playlists_img');
-            foreach (['acervo', 'historia'] as $col) {
-                array_push($text, $col . '_title', $col . '_text', $col . '_button', $col . '_link', $col . '_image');
-                $home[$col . '_show'] = (bool) post_bool($col . '_show');
-                $home[$col . '_new_tab'] = (bool) post_bool($col . '_new_tab');
-                $home[$col . '_img'] = image_opts_from_post($col . '_img');
-            }
-            foreach ($text as $k) {
-                $home[$k] = trim(mb_substr((string) ($_POST[$k] ?? ''), 0, 3000));
-            }
-            foreach (array_keys(settings_defaults()['home']['contact_labels']) as $f) {
-                $home['contact_labels'][$f] = mb_substr(trim((string) ($_POST['contact_labels'][$f] ?? '')), 0, 60) ?: settings_defaults()['home']['contact_labels'][$f];
-            }
-            $home['contact_button'] = mb_substr(input('contact_button'), 0, 40) ?: 'Enviar';
-            $home['blog_count'] = max(1, min(24, (int) input('blog_count', 6)));
-            $home['ticker_pad'] = max(0, min(40, (int) input('ticker_pad', 9)));
-            $home['ticker_speed'] = max(1, min(10, (int) input('ticker_speed', 4)));
-            $home['ticker_gap'] = max(0, min(80, (int) input('ticker_gap', 22)));
-            $home['ticker_sep'] = in_array(input('ticker_sep'), ['flag', 'star', 'dot', 'diamond', 'dash', 'bar', 'none', 'text', 'image'], true) ? input('ticker_sep') : 'flag';
-            $home['ticker_sep_text'] = mb_substr(input('ticker_sep_text'), 0, 30);
-            $home['ticker_sep_image'] = mb_substr(input('ticker_sep_image'), 0, 255);
-            $home['arquivo_new_tab'] = (bool) post_bool('arquivo_new_tab');
-            $home['arquivo_img'] = image_opts_from_post('arquivo_img');
-            $playlists = [];
-            foreach ((array) ($_POST['playlists'] ?? []) as $pl) {
-                if (trim((string) ($pl['title'] ?? '')) === '' && trim((string) ($pl['image'] ?? '')) === '') {
-                    continue;
-                }
-                $playlists[] = [
-                    'title' => mb_substr(trim((string) $pl['title']), 0, 120),
-                    'image' => mb_substr(trim((string) $pl['image']), 0, 255),
-                    'link'  => mb_substr(trim((string) $pl['link']), 0, 255),
-                    'new_tab' => !empty($pl['new_tab']),
-                ];
-            }
-            $home['playlists'] = $playlists;
-            save_setting('home', $home);
-            save_type_from_post(['ticker', 'blog_title', 'blog_button', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'playlists_title', 'playlists_intro', 'playlists_names', 'playlists_outro', 'playlists_button',
-                'acervo_title', 'acervo_text', 'acervo_button', 'historia_title', 'historia_text', 'historia_button', 'contact_title', 'contact_text', 'contact_labels', 'contact_button']);
-        } elseif ($tab === 'rodape') {
-            save_setting('footer', [
-                'word'         => mb_substr(input('word'), 0, 40),
-                'show_word'    => (bool) post_bool('show_word'),
-                'nav_title'    => mb_substr(input('nav_title'), 0, 60),
-                'rss_label'    => mb_substr(input('rss_label'), 0, 40),
-                'copyright'    => mb_substr(input('copyright'), 0, 200),
-                'author_label' => mb_substr(input('author_label'), 0, 40),
-                'email_label'  => mb_substr(input('email_label'), 0, 40),
-            ]);
-            save_setting('newsletter', [
-                'title'       => mb_substr(input('news_title'), 0, 120),
-                'text'        => mb_substr(input('news_text'), 0, 400),
-                'placeholder' => mb_substr(input('news_placeholder'), 0, 60),
-                'button'      => mb_substr(input('news_button'), 0, 40) ?: 'Quero receber',
-            ]);
-            save_type_from_post(['footer_titles', 'footer_texts', 'footer_links', 'footer_news_button', 'footer_email', 'footer_word', 'footer_copyright', 'footer_author']);
-        } elseif ($tab === 'blog') {
-            $blog = setting('blog');
-            $blog['per_page'] = max(3, min(48, (int) input('per_page', 9)));
-            $blog['comments_enabled'] = (bool) post_bool('comments_enabled');
-            $blog['comments_moderate'] = (bool) post_bool('comments_moderate');
-            $blog['share_buttons'] = (bool) post_bool('share_buttons');
-            save_setting('blog', $blog);
-        }
-        flash('success', 'Alterações salvas.');
-        redirect('/admin/conteudo?aba=' . urlencode($tab));
-    }
-    admin_render('content', [
-        'title'  => 'Conteúdo do site',
-        'tab'    => $tab,
-        'site'   => setting('site'),
-        'home'   => setting('home'),
-        'footer' => setting('footer'),
-        'news'   => setting('newsletter'),
-        'blog'   => setting('blog'),
-    ]);
-}
-
 /* ---------------- Páginas ---------------- */
 
 const RESERVED_SLUGS = ['admin', 'blog', 'busca', 'contato', 'newsletter', 'sitemap', 'feed', 'robots', 'install', 'assets', 'uploads', 'app', 'templates', 'database', 'storage', 'tests', 'index'];
@@ -1250,46 +1015,6 @@ function admin_banners(): void
     admin_render('banners', ['title' => 'Banners do topo', 'slides' => db_all('SELECT * FROM slides ORDER BY sort_order, id')]);
 }
 
-function admin_menu(): void
-{
-    require_admin();
-    if (is_post()) {
-        $action = input('acao');
-        $id = (int) input('id');
-        if ($action === 'excluir' && $id) {
-            db_exec('DELETE FROM menu_items WHERE id = ?', [$id]);
-            flash('success', 'Item removido do menu.');
-        } elseif ($action === 'mover' && $id) {
-            move_row('menu_items', $id, input('direcao'));
-        } elseif ($action === 'fonte') {
-            save_type_from_post(['menu']);
-            flash('success', 'Fonte do menu salva.');
-        } elseif ($action === 'salvar') {
-            $data = [
-                'label'   => mb_substr(input('label'), 0, 80),
-                'url'     => mb_substr(input('url'), 0, 255),
-                'new_tab' => post_bool('new_tab'),
-            ];
-            if ($data['label'] === '' || $data['url'] === '') {
-                flash('error', 'Preencha o nome e o endereço do item.');
-            } elseif ($id) {
-                db_update('menu_items', $id, $data);
-                flash('success', 'Item atualizado.');
-            } else {
-                $data['sort_order'] = (int) db_val('SELECT COALESCE(MAX(sort_order), 0) + 1 FROM menu_items');
-                db_insert('menu_items', $data);
-                flash('success', 'Item adicionado ao menu.');
-            }
-        }
-        redirect('/admin/menu');
-    }
-    admin_render('menu', [
-        'title' => 'Menu',
-        'items' => db_all('SELECT * FROM menu_items ORDER BY sort_order, id'),
-        'categories' => db_all('SELECT name, slug FROM categories ORDER BY sort_order, name'),
-        'pages'      => db_all('SELECT title, slug FROM pages ORDER BY title'),
-    ]);
-}
 
 // Sobe ou desce um item numa lista ordenada
 function move_row(string $table, int $id, string $direction): void

@@ -45,6 +45,7 @@ Painel reorganizado pelo lugar onde a coisa aparece no site: Escrever (Início, 
    - Embaixo do ano, duas linhas livres: título e subtítulo (ex.: "Grupo Especial" / "Desfiles completos").
    - Clicar na capa abre a playlist no YouTube.
    - No painel: para cada playlist, década, ano, título, subtítulo e link, numa tela só.
+10. Números das páginas do blog (1, 2, 3…): hoje não muda nada ao passar o mouse (conferido: não existe regra de hover). Ao passar o mouse, o número ganha a cor de destaque, igual à da página atual. Em Blog e posts, um grupinho de cores "Números das páginas": fundo e número normais, e fundo e número em destaque (página atual e mouse por cima). Começa com as cores de hoje.
 - Pendente de resposta: a fileira de atalhos ("Logo, Fundo, Itens do menu…") continua fixa no topo; o Igor ainda vai dizer se prefere que role junto.
 
 ## A resolver

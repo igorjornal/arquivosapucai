@@ -25,6 +25,10 @@ Feito: Playlists em dois formatos (grade ou imagem + texto + botão, com alinham
 Painel reorganizado pelo lugar onde a coisa aparece no site: Escrever (Início, Posts com Categorias e Tags, Páginas, Imagens), Leitores (Comentários, Mensagens, Newsletter), O site parte por parte (Cabeçalho e menu, Faixa de avisos, Página inicial com abas de seções/ordem/banners, Rodapé, Blog e posts), Geral (Padrão do site, Configurações, Autores). Cada tela salva só o que é dela. Fontes de cada texto ficam em "Fontes e tamanhos" (fechado). Prévia ao vivo da faixa. Ícones das redes no topo com destaque e cor própria. A revisão confere que as 48 cores, as 31 fontes de texto e os outros 109 ajustes estão em alguma tela. Endereços antigos do painel levam às telas novas.
 - [ ] Ainda falta: envio dos avisos por SMTP (hoje caem no spam).
 
+## Rodada 9 (coletando; só anotar, fazer quando o Igor mandar)
+1. Prévias do painel iguais ao site: a prévia do cabeçalho passa a ser o próprio cabeçalho do site (mesmo código e visual: fonte e tamanho do menu, ícones das redes, lupinha, efeito ao passar o mouse, largura real), reagindo na hora ao que se mexe no painel. O mesmo para a prévia da faixa de avisos.
+- Pendente de resposta: a fileira de atalhos ("Logo, Fundo, Itens do menu…") continua fixa no topo; o Igor ainda vai dizer se prefere que role junto.
+
 ## A resolver
 - [ ] **SSL (cadeado) do subdomínio de teste.** Pedir ao suporte da Hostinger que ative o SSL de `novo.arquivosapucai.com.br`. Depois de ativo:
   - tirar o `#` das duas linhas de HTTPS no `.htaccess`;

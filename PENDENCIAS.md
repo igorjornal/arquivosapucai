@@ -26,7 +26,7 @@ Painel reorganizado pelo lugar onde a coisa aparece no site: Escrever (Início, 
 - [ ] Ainda falta: envio dos avisos por SMTP (hoje caem no spam).
 
 ## Rodada 9 (coletando; só anotar, fazer quando o Igor mandar)
-1. Prévias do painel iguais ao site: a prévia do cabeçalho passa a ser o próprio cabeçalho do site (mesmo código e visual: fonte e tamanho do menu, ícones das redes, lupinha, efeito ao passar o mouse, largura real), reagindo na hora ao que se mexe no painel. O mesmo para a prévia da faixa de avisos.
+1. Prévias do painel iguais ao site: a prévia do cabeçalho passa a ser o próprio cabeçalho do site (mesmo código e visual: fonte e tamanho do menu, ícones das redes, lupinha, efeito ao passar o mouse, largura real), reagindo na hora a tudo que se mexe no painel, inclusive fonte, tamanho e peso escolhidos (já aparece com a fonte que está no site). O mesmo para a prévia da faixa de avisos.
 - Pendente de resposta: a fileira de atalhos ("Logo, Fundo, Itens do menu…") continua fixa no topo; o Igor ainda vai dizer se prefere que role junto.
 
 ## A resolver

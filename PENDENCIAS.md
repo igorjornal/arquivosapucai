@@ -28,6 +28,7 @@ Painel reorganizado pelo lugar onde a coisa aparece no site: Escrever (Início, 
 ## Rodada 9 (coletando; só anotar, fazer quando o Igor mandar)
 1. Prévias do painel iguais ao site: a prévia do cabeçalho passa a ser o próprio cabeçalho do site (mesmo código e visual: fonte e tamanho do menu, ícones das redes, lupinha, efeito ao passar o mouse, largura real), reagindo na hora a tudo que se mexe no painel, inclusive fonte, tamanho e peso escolhidos (já aparece com a fonte que está no site). O mesmo para a prévia da faixa de avisos.
 2. Espaço entre os itens do menu: deixar chegar bem mais perto (régua começando em 0). Causa: no efeito "fundo arredondado" cada item tem 14px de folga de cada lado, que somam 28px ao espaço escolhido; por isso a régua parece não diminuir. Fazer o espaço da régua ser o espaço que se vê entre um texto e outro, em qualquer efeito.
+3. Posts da página inicial e do blog com o mesmo número: um valor só ("quantos posts por vez"), que aparece em Página inicial → Blog e em Blog e posts; mudou num lugar, muda no outro. Embaixo dos posts da página inicial, link para a página 2 do blog (só aparece se houver mais posts), começando exatamente no post seguinte.
 - Pendente de resposta: a fileira de atalhos ("Logo, Fundo, Itens do menu…") continua fixa no topo; o Igor ainda vai dizer se prefere que role junto.
 
 ## A resolver

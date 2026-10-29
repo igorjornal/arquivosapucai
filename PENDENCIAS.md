@@ -27,7 +27,7 @@ Feito: Playlists em dois formatos (grade ou imagem + texto + botão, com alinham
   - trocar `base_url` para `https://` no `config.php` do servidor.
 - [ ] **Trocar a senha do banco de dados.** A senha atual apareceu na conversa. Pedir à Hostinger uma senha nova e atualizar o campo `password` no `config.php` do servidor.
 - [ ] **Forma de atualizar o site.** Decidir entre um zip novo a cada mudança ou ligar o GitHub direto na Hostinger (deploy automático).
-- [x] **Avisos por e-mail.** E-mail de teste chegou no Gmail do Igor (29/10). Ele vai testar também com o e-mail da Hostinger.
+- [ ] **Avisos por e-mail caem no spam.** O teste chegou no Gmail, mas na caixa de spam (29/10). Solução: enviar pelo e-mail de verdade da Hostinger (SMTP com usuário e senha), em vez do envio simples do PHP. A senha fica só no config.php do servidor, nunca na conversa. Enquanto isso: marcar "Não é spam" no Gmail.
 - [ ] **Limpar as pastas com número no nome** em public_html (app.1533, templates.6108 etc.): são cópias antigas criadas pelo Gerenciador de Arquivos ao mover pastas. O site não usa; apagar com calma, uma vez só, quando o Igor quiser.
 - [ ] **Testes do Igor.** O Igor está testando e anotando o que mudar. Trazer a lista para a próxima conversa.
 - [ ] **Links das playlists.** Trocar os links das 3 imagens de Playlists pelos links de cada playlist (Painel → Conteúdo do site → Textos da home).

@@ -37,6 +37,7 @@ Painel reorganizado pelo lugar onde a coisa aparece no site: Escrever (Início, 
    - Embaixo do post, "Posts relacionados" no lugar de "Posts recentes".
    - Antes de fazer: mandar ao Igor um desenho da página do post com a coluna, para ele aprovar o visual.
    - Na tela do post, um campo "Posts relacionados" para escolher posts já publicados (como no Wix), buscando pelo título, com ordem. Se nenhum for escolhido, mostra sozinho os da mesma categoria, para nunca ficar vazio.
+8. Itálico em todo controle de fonte (ao lado do peso): sim/não. A faixa de avisos começa em itálico, como hoje, e o Igor pode desligar. Os outros textos começam sem itálico. Carregar do Google as versões em itálico de todos os pesos (hoje só 400 e 700).
 - Pendente de resposta: a fileira de atalhos ("Logo, Fundo, Itens do menu…") continua fixa no topo; o Igor ainda vai dizer se prefere que role junto.
 
 ## A resolver

@@ -32,6 +32,10 @@ Painel reorganizado pelo lugar onde a coisa aparece no site: Escrever (Início, 
 4. Espaço entre a imagem e o texto (O Arquivo, Playlists em "Imagem + texto" e seções "Texto + imagem"): ficou colado demais (24px fixo). Erro de interpretação: o pedido era reduzir pela metade o espaço total que sobrava, e não o espaço mínimo. Corrigir com UMA régua "Espaço entre a imagem e o texto" que vale igual para todas essas seções (para ficarem uniformes), no topo de Página inicial → Textos, imagens e cores das seções. Começa em 40px (só um pouco mais que hoje).
 5. Busca do cabeçalho: ao abrir pela lupinha, o campo empurra o menu e quebra a linha (Contato desce). Abrir a busca numa caixinha flutuante logo abaixo da lupinha, por cima da faixa e do banner, sem mexer em nada do menu; fecha com X, com Esc ou clicando fora. É a mesma caixa de hoje (campo + botão Buscar), só que aparecendo embaixo da lupinha. Dar mais folga dentro do botão "Buscar", que está grudado na borda. No celular, continua dentro do menu aberto.
 6. Seção Contato antes do rodapé também nas páginas do blog (lista de posts, categoria, tag, autor e busca). Hoje só aparece nas Páginas criadas no painel (Acervo, História, Playlists…). Dentro de cada post NÃO (decisão do Igor: o post já tem "Posts recentes").
+7. Página do post com coluna lateral e posts relacionados:
+   - Coluna à direita com os últimos posts do site (todas as categorias, sem o post aberto): miniatura, título e data, uns 5. No celular desce para depois do texto. Liga/desliga em Blog e posts.
+   - Embaixo do post, "Posts relacionados" no lugar de "Posts recentes".
+   - Na tela do post, um campo "Posts relacionados" para escolher posts já publicados (como no Wix), buscando pelo título, com ordem. Se nenhum for escolhido, mostra sozinho os da mesma categoria, para nunca ficar vazio.
 - Pendente de resposta: a fileira de atalhos ("Logo, Fundo, Itens do menu…") continua fixa no topo; o Igor ainda vai dizer se prefere que role junto.
 
 ## A resolver

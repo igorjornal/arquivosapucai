@@ -38,6 +38,13 @@ Painel reorganizado pelo lugar onde a coisa aparece no site: Escrever (Início, 
    - Antes de fazer: mandar ao Igor um desenho da página do post com a coluna, para ele aprovar o visual.
    - Na tela do post, um campo "Posts relacionados" para escolher posts já publicados (como no Wix), buscando pelo título, com ordem. Se nenhum for escolhido, mostra sozinho os da mesma categoria, para nunca ficar vazio.
 8. Itálico em todo controle de fonte (ao lado do peso): sim/não. A faixa de avisos começa em itálico, como hoje, e o Igor pode desligar. Os outros textos começam sem itálico. Carregar do Google as versões em itálico de todos os pesos (hoje só 400 e 700).
+9. Página de Playlists em sanfona (desenho aprovado: opção 2 em sanfona):
+   - Cada década é uma barra (Anos 70, Anos 80…, Especiais). Clicou, abre e mostra as capas; clicou de novo, fecha. Abrir uma não fecha a outra.
+   - A primeira década da lista começa aberta, para a página não parecer vazia.
+   - Capa automática, sem imagem: fundo roxo, o ano em limão (um pouco menor que no desenho, sem encostar na borda), botão de play. Sai o "ARQUIVO SAPUCAÍ".
+   - Embaixo do ano, duas linhas livres: título e subtítulo (ex.: "Grupo Especial" / "Desfiles completos").
+   - Clicar na capa abre a playlist no YouTube.
+   - No painel: para cada playlist, década, ano, título, subtítulo e link, numa tela só.
 - Pendente de resposta: a fileira de atalhos ("Logo, Fundo, Itens do menu…") continua fixa no topo; o Igor ainda vai dizer se prefere que role junto.
 
 ## A resolver

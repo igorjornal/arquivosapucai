@@ -35,6 +35,7 @@ Painel reorganizado pelo lugar onde a coisa aparece no site: Escrever (Início, 
 7. Página do post com coluna lateral e posts relacionados:
    - Coluna à direita com os últimos posts do site (todas as categorias, sem o post aberto): miniatura, título e data, uns 5. No celular desce para depois do texto. Liga/desliga em Blog e posts.
    - Embaixo do post, "Posts relacionados" no lugar de "Posts recentes".
+   - Antes de fazer: mandar ao Igor um desenho da página do post com a coluna, para ele aprovar o visual.
    - Na tela do post, um campo "Posts relacionados" para escolher posts já publicados (como no Wix), buscando pelo título, com ordem. Se nenhum for escolhido, mostra sozinho os da mesma categoria, para nunca ficar vazio.
 - Pendente de resposta: a fileira de atalhos ("Logo, Fundo, Itens do menu…") continua fixa no topo; o Igor ainda vai dizer se prefere que role junto.
 

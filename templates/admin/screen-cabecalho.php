@@ -2,11 +2,8 @@
 <div class="a-head"><h1>Cabeçalho e menu</h1><a class="a-btn a-btn-ghost" href="/" target="_blank" rel="noopener">Ver o site ↗</a></div>
 <form method="post">
   <?= csrf_field() ?>
-  <div class="a-header-preview" data-header-preview>
-    <img src="<?= e(media_url($site['logo'])) ?>" alt="" data-hp-logo>
-    <span class="a-hp-menu" data-hp-menu><?php foreach (array_slice($items, 0, 6) as $mi): ?><span><?= e($mi['label']) ?></span><?php endforeach; ?></span>
-  </div>
-  <small class="a-help" style="margin:-6px 0 14px">Prévia: muda na hora enquanto você mexe. No site, só depois de salvar.</small>
+  <div class="a-live" data-live-preview="cabecalho"><iframe title="Prévia do topo do site" tabindex="-1"></iframe></div>
+  <small class="a-help" style="margin:4px 0 14px">Prévia: é o topo do site de verdade, na largura de um computador, e muda na hora enquanto você mexe. No site, só depois de salvar.</small>
   <nav class="a-toc" aria-label="Nesta página"><a href="#g-logo">Logo</a><a href="#g-fundo">Fundo</a><a href="#g-itens">Itens do menu</a><a href="#g-aparencia-menu">Como o menu aparece</a><a href="#g-redes">Redes e busca</a></nav>
 
   <section class="a-group" id="g-logo">
@@ -78,6 +75,7 @@
           <label>Efeito ao passar o mouse
             <select name="menu_effect"><?= select_options(['line' => 'Risco embaixo', 'grow' => 'Risco que cresce do meio', 'pill' => 'Fundo arredondado', 'color' => 'Só troca de cor'], $mn['effect']) ?></select>
           </label>
+          <small class="a-help">No “Fundo arredondado”, o texto em cima do fundo fica com a cor do fundo do cabeçalho, para nunca sumir.</small>
           <div class="a-label">Posição do menu</div>
           <div class="a-seg">
             <?php foreach (['logo' => 'Colado no logo', 'center' => 'Centro', 'right' => 'Direita'] as $k => $l): ?>
@@ -85,7 +83,7 @@
             <?php endforeach; ?>
           </div>
           <label><span>Espaço entre os itens: <output data-range-out><?= (int) $mn['gap'] ?></output> px</span>
-            <input type="range" name="menu_gap" min="8" max="80" step="2" value="<?= (int) $mn['gap'] ?>" data-range>
+            <input type="range" name="menu_gap" min="0" max="80" step="2" value="<?= (int) $mn['gap'] ?>" data-range>
           </label>
         </div>
       </div>

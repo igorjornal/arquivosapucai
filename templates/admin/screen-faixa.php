@@ -1,8 +1,8 @@
 <div class="a-head"><h1>Faixa de avisos</h1><a class="a-btn a-btn-ghost" href="/" target="_blank" rel="noopener">Ver o site ↗</a></div>
 <form method="post">
   <?= csrf_field() ?>
-  <div class="a-tk-preview" data-tk-preview><div class="a-tk-track" data-tk-track></div></div>
-  <small class="a-help" style="margin:4px 0 14px">Prévia: corre e muda na hora enquanto você mexe. No site, só depois de salvar.</small>
+  <div class="a-live" data-live-preview="faixa"><iframe title="Prévia do topo do site" tabindex="-1"></iframe></div>
+  <small class="a-help" style="margin:4px 0 14px">Prévia: é o topo do site de verdade, na largura de um computador, e muda na hora enquanto você mexe. No site, só depois de salvar.</small>
   <section class="a-group" id="g-avisos">
     <h2 class="a-group-title">1. Avisos</h2>
       <section class="a-card">

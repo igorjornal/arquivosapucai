@@ -24,6 +24,7 @@ function settings_defaults(): array
             ],
         ],
         'home' => [
+            'split_gap'       => 40, // espaço entre a imagem e o texto (O Arquivo, Playlists e Texto + imagem)
             'ticker_speed'    => 4,      // 1 (bem devagar) a 10 (rápida)
             'ticker_sep'      => 'flag', // flag | star | dot | diamond | dash | bar | none | text | image
             'ticker_sep_text' => '',
@@ -32,7 +33,6 @@ function settings_defaults(): array
             'ticker_pad'      => 9, // espaço em cima e embaixo do texto da faixa de avisos (px)
             'ticker'          => 'O seu acervo no YouTube para reviver os grandes momentos do carnaval na Marquês de Sapucaí.',
             'blog_title'      => 'Blog - Crônicas e Estudos de Caso',
-            'blog_count'      => 6,
             'arquivo_title'   => 'O Arquivo',
             'arquivo_text'    => "Nosso objetivo é transformar o Canal Arquivo Sapucaí em um acervo mesmo, uma espécie de arquivo histórico, onde os apaixonados podem experienciar de novo os desfiles que marcaram épocas. Planejamos enriquecer este acervo aos poucos, garantindo a preservação e a celebração da rica história do carnaval do Rio de Janeiro.\n\nQuer participar? Se inscreva no nosso canal no YouTube e acompanhe a história do carnaval sendo contada desfile após desfile.",
             'arquivo_image'   => 'assets/img/print-youtube.webp',
@@ -71,7 +71,7 @@ function settings_defaults(): array
             'contact_button'  => 'Enviar',
         ],
         'blog' => [
-            'per_page'          => 9,
+            'per_page'          => 6,      // posts por vez: página do blog e seção Blog da home
             'comments_enabled'  => true,
             'comments_moderate' => true,
             'share_buttons'     => true,
@@ -80,6 +80,15 @@ function settings_defaults(): array
             'card_ratio'         => 'wide',  // original | banner | wide | landscape | square | portrait
             'card_title_lines'   => 3, // 0 = sem limite
             'card_excerpt_lines' => 3,
+            'post_sidebar'       => true,  // coluna com os últimos posts ao lado do post
+            'sidebar_title'      => 'Últimos posts',
+            'sidebar_count'      => 5,
+            'related_title'      => 'Posts relacionados',
+        ],
+        'playlist_page' => [
+            'page_slug'   => 'playlists', // página (de Páginas) onde as décadas aparecem, depois do texto
+            'count_label' => 'playlists', // "8 playlists" ao lado do nome da década
+            'decades'     => [],          // [{name, items: [{year, title, subtitle, link}]}]
         ],
         'footer' => [
             'word'         => 'ARQUIVO SAPUCAÍ', // texto grande ao fundo do rodapé
@@ -153,6 +162,16 @@ function settings_defaults(): array
                 'card_bg'       => '#F1F0EC',
                 'card_title'    => '#1E0D06',
                 'card_text'     => '#4A3F3A',
+                'pl_bar_bg'         => '#FBFAFD', // página de Playlists
+                'pl_bar_text'       => '#20063A',
+                'pl_card_bg'        => '#20063A',
+                'pl_year'           => '#CDF50D',
+                'pl_text'           => '#FFFFFF',
+                'pl_accent'         => '#CDF50D',
+                'pager_bg'          => '#3A2352', // números das páginas do blog
+                'pager_text'        => '#FFFFFF',
+                'pager_active_bg'   => '#CDF50D', // página aberta e mouse por cima
+                'pager_active_text' => '#1E0D06',
                 'arquivo_bg'    => '#E9E6D3',
                 'arquivo_title' => '#1E0D06',
                 'arquivo_text'  => '#1E0D06',

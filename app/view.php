@@ -33,11 +33,11 @@ function partial(string $template, array $vars = []): void
 // size: tamanho no padrão (null = o tamanho dessa fonte em Padrão do site; false = ajusta sozinho, sem escolha).
 function type_targets(): array
 {
-    $t = fn (string $label, string $base, $size, bool $bold) => ['label' => $label, 'base' => $base, 'size' => $size, 'bold' => $bold];
+    $t = fn (string $label, string $base, $size, bool $bold, bool $italic = false) => ['label' => $label, 'base' => $base, 'size' => $size, 'bold' => $bold, 'italic' => $italic];
     return [
         'post_title'         => $t('Título dos posts e páginas', 'heading', 50, true),
         'menu'               => $t('Menu do topo', 'ui', 15, true),
-        'ticker'             => $t('Texto dos avisos', 'ui', 14, false),
+        'ticker'             => $t('Texto dos avisos', 'ui', 14, false, true),
         'blog_title'         => $t('Título', 'heading', 34, true),
         'blog_button'        => $t('Botão', 'ui', 13, true),
         'arquivo_title'      => $t('Título', 'heading', null, true),
@@ -123,6 +123,7 @@ function type_default(string $key): array
         'font' => setting('appearance')['fonts'][$t['base']],
         'size' => $t['size'] === false ? 0 : ($t['size'] ?? base_font_sizes()[$t['base']]),
         'weight' => default_weight($t),
+        'italic' => !empty($t['italic']),
     ];
 }
 
@@ -138,7 +139,8 @@ function type_choice(string $key): ?array
     $font = preg_replace('/[^A-Za-z0-9 ]/', '', (string) ($c['font'] ?? '')) ?: type_default($key)['font'];
     // Escolhas antigas guardavam só "negrito sim/não"
     $weight = isset($c['weight']) ? valid_weight($c['weight'], 400) : (!empty($c['bold']) ? default_weight(['bold' => true, 'base' => $t['base']]) : 400);
-    return ['font' => $font, 'size' => $t['size'] === false ? 0 : max($min, min($max, (int) ($c['size'] ?? 0))), 'weight' => $weight];
+    $italic = isset($c['italic']) ? (bool) $c['italic'] : !empty($t['italic']);
+    return ['font' => $font, 'size' => $t['size'] === false ? 0 : max($min, min($max, (int) ($c['size'] ?? 0))), 'weight' => $weight, 'italic' => $italic];
 }
 
 // CSS da escolha (vazio quando segue o padrão). Tamanhos grandes encolhem no celular.
@@ -155,7 +157,7 @@ function type_css(string $key): string
     if ($c['size']) {
         $css .= ';font-size:' . ($c['size'] >= 26 ? 'clamp(' . round($c['size'] * .6) . 'px, 7vw, ' . $c['size'] . 'px)' : $c['size'] . 'px');
     }
-    return $css . ';font-weight:' . $c['weight'];
+    return $css . ';font-weight:' . $c['weight'] . ';font-style:' . ($c['italic'] ? 'italic' : 'normal');
 }
 
 function type_style(string $key): string
@@ -185,7 +187,8 @@ function appearance_css(): string
     $overlay = max(0, min(100, (int) ($a['header']['overlay'] ?? 100)));
     $lines[] = '--header-overlay-a:' . $overlay . '%';
     $lines[] = '--header-overlay-b:' . (!empty($a['header']['gradient']) ? (int) round($overlay * .55) : $overlay) . '%';
-    $lines[] = '--menu-gap:' . max(8, min(80, (int) ($a['menu']['gap'] ?? 30))) . 'px';
+    $lines[] = '--menu-gap:' . max(0, min(80, (int) ($a['menu']['gap'] ?? 30))) . 'px';
+    $lines[] = '--split-gap:' . max(0, min(120, (int) (setting('home')['split_gap'] ?? 40))) . 'px';
     $lines[] = '--ticker-pad:' . max(0, min(40, (int) (setting('home')['ticker_pad'] ?? 9))) . 'px';
     $lines[] = '--logo-size:' . $logo . 'px';
     $lines[] = '--header-height:' . $header . 'px';
@@ -214,7 +217,7 @@ function google_fonts_link(): string
             // A Archivo vem com todas as larguras (Condensed, Expanded…) num arquivo só
             $families[$family] = 'family=Archivo:ital,wdth,wght@0,62..125,100..900;1,62..125,100..900';
         } elseif ($family !== '' && !in_array($family, bundled_fonts(), true)) {
-            $families[$family] = 'family=' . str_replace(' ', '+', $family) . ':ital,wght@0,300;0,400;0,600;0,700;0,800;1,400;1,700';
+            $families[$family] = 'family=' . str_replace(' ', '+', $family) . ':ital,wght@0,300;0,400;0,600;0,700;0,800;1,300;1,400;1,600;1,700;1,800';
         }
     }
     if (!$families) {
@@ -257,6 +260,7 @@ function save_type_from_post(array $keys): void
             'font' => in_array($font, font_choices(), true) ? $font : type_default($key)['font'],
             'size' => max($min, min($max, (int) ($p['size'] ?? type_default($key)['size']))),
             'weight' => valid_weight($p['weight'] ?? 0, type_default($key)['weight']),
+            'italic' => !empty($p['italic']),
         ];
     }
     save_setting('type', $all);

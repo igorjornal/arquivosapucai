@@ -24,6 +24,8 @@ let pageRef = null;
   const go = async (path) => (await p.goto(base + path)).text();
   const pub = async (path) => { const r = await fetch(base + path); return r.text(); };
   const submit = async (locator) => { await Promise.all([p.waitForNavigation(), locator.click()]); };
+  // Prévia ao vivo do topo (iframe desenhado pelo próprio site)
+  const prevHtml = async () => { await p.waitForTimeout(1300); return p.locator('[data-live-preview] iframe').evaluate(f => f.contentDocument.documentElement.outerHTML); };
   const notice = async () => (await p.locator('.a-toast, .notice').first().textContent({ timeout: 3000 }).catch(() => '')) || '';
   const login = async (email, pass) => {
     await p.goto(base + '/admin/login');
@@ -419,7 +421,7 @@ let pageRef = null;
     await p.goto(base + '/admin/pagina-inicial');
     await p.fill('input[name=arquivo_title]', 'O Arquivo QA');
     await p.fill('input[name="playlists[0][link]"]', 'https://www.youtube.com/playlist?list=QA');
-    await p.fill('input[name=blog_count]', '2');
+    await p.fill('input[name=per_page]', '2');
     await submit(p.locator('.a-sticky-save button'));
     const home = await pub('/');
     ok('faixa com 2 avisos', home.includes('Aviso um QA') && /<a href="\/blog"[^>]*>Aviso dois QA/.test(home));
@@ -1015,16 +1017,17 @@ let pageRef = null;
   await safe('prévia muda na hora', async () => {
     await p.goto(base + '/admin/cabecalho');
     await pickFromLibrary(p.locator('[data-image-field]:has(input[name=header_image])'), 0);
-    const bgi = () => p.locator('[data-header-preview]').evaluate(el => el.style.backgroundImage);
-    ok('prévia mostra a imagem escolhida', (await bgi()).includes('url('));
+    ok('prévia mostra a imagem escolhida', /--header-image:url\('\/uploads\//.test(await prevHtml()));
     await p.locator('input[name=header_overlay]').fill('30');
     await p.uncheck('input[name=header_gradient]');
-    const g1 = await bgi();
-    ok('força 30% sem degradê na prévia', (g1.match(/, 0\.3\)/g) || []).length === 2, g1.slice(0, 120));
+    const g1 = await prevHtml();
+    ok('força 30% sem degradê na prévia', g1.includes('--header-overlay-a:30%') && g1.includes('--header-overlay-b:30%'));
     await p.check('input[name=header_gradient]');
-    ok('degradê na prévia', (await bgi()).includes('0.17)'), (await bgi()).slice(0, 120));
-    await p.locator('input[name=size_header]').fill('200');
-    ok('altura na prévia', (await p.locator('[data-header-preview]').evaluate(el => el.style.minHeight)) === '200px');
+    ok('degradê na prévia', (await prevHtml()).includes('--header-overlay-b:17%'));
+    await p.locator('input[name=size_header]').fill('210');
+    ok('altura na prévia', (await prevHtml()).includes('--header-height:210px'));
+    await p.goto(base + '/');
+    ok('mexer na prévia sem salvar não muda o site', !(await pub('/')).includes('--header-height:210px'));
     await p.goto(base + '/admin/blog-posts');
     ok('título dos posts sem quadro repetido', await p.locator('#g-post .a-type-bare').count() === 1);
   });
@@ -1172,7 +1175,7 @@ let pageRef = null;
     ok('texto depois das imagens não aparece', !sec.includes('playlists_outro') && !sec.includes('class="playlists"'));
     await p.goto(base + '/');
     const g = await p.evaluate(() => { const i = document.querySelector('.sec-playlists .split-media img').getBoundingClientRect(); const t = document.querySelector('.sec-playlists .split-text').getBoundingClientRect(); return Math.round(t.left - i.right); });
-    ok('texto perto da imagem (24px)', g === 24, String(g));
+    ok('texto perto da imagem (40px, régua da rodada 9)', g === 40, String(g));
     await p.goto(base + '/admin/pagina-inicial');
     await p.click('label:has(input[name=playlists_layout][value=grid]) span');
     await submit(p.locator('.a-sticky-save button'));
@@ -1185,8 +1188,8 @@ let pageRef = null;
   area = 'Imagem ao lado do texto';
   await safe('texto acompanha a imagem', async () => {
     await p.goto(base + '/');
-    const r = await p.evaluate(() => { const s = document.querySelector('.sec-arquivo .split'); const i = s.querySelector('.split-media img').getBoundingClientRect(); const t = s.querySelector('.split-text').getBoundingClientRect(); return { gap: Math.round(t.left - i.right), w: Math.round(i.width), full: Math.round((s.getBoundingClientRect().width - 24) * 5 / 12) }; });
-    ok('espaço entre imagem e texto: 24px', r.gap === 24, JSON.stringify(r));
+    const r = await p.evaluate(() => { const s = document.querySelector('.sec-arquivo .split'); const i = s.querySelector('.split-media img').getBoundingClientRect(); const t = s.querySelector('.split-text').getBoundingClientRect(); return { gap: Math.round(t.left - i.right), w: Math.round(i.width), full: Math.round((s.getBoundingClientRect().width - 40) * 5 / 12) }; });
+    ok('espaço entre imagem e texto: 40px', r.gap === 40, JSON.stringify(r));
     ok('imagem a 60% e o texto vem junto', Math.abs(r.w - r.full * 0.6) <= 2, JSON.stringify(r));
   });
 
@@ -1237,15 +1240,17 @@ let pageRef = null;
     await p.selectOption('select[name=menu_effect]', 'pill');
     await p.click('label:has(input[name=menu_align][value=center]) span');
     await p.locator('input[name=menu_gap]').fill('50');
-    ok('prévia acompanha o espaço do menu', (await p.locator('[data-hp-menu]').evaluate(el => el.style.columnGap)) === '50px');
-    ok('prévia acompanha o alinhamento', (await p.locator('[data-hp-menu]').evaluate(el => el.style.margin)) === '0px auto');
+    const ph = await prevHtml();
+    ok('prévia acompanha o espaço do menu', ph.includes('--menu-gap:50px'));
+    ok('prévia acompanha o alinhamento e o efeito', ph.includes('menu-align-center fx-pill'));
     await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
     const home = await pub('/');
     ok('efeito e alinhamento no site', home.includes('main-nav menu-align-center fx-pill') && home.includes('--menu-gap:50px'));
     await p.goto(base + '/');
     await p.hover('.main-nav a:not([aria-current])');
     await p.waitForTimeout(300);
-    ok('ao passar o mouse, o link muda de cor', (await p.evaluate(() => getComputedStyle(document.querySelector('.main-nav a:not([aria-current]):hover')).color)) === 'rgb(255, 255, 255)');
+    // No fundo arredondado o texto fica com a cor do fundo do cabeçalho, para nunca sumir (rodada 9)
+    ok('ao passar o mouse, o link muda de cor', (await p.evaluate(() => getComputedStyle(document.querySelector('.main-nav a:not([aria-current]):hover')).color === getComputedStyle(document.querySelector('.site-header')).backgroundColor)));
     ok('ao passar o mouse, aparece o fundo arredondado', (await p.evaluate(() => getComputedStyle(document.querySelector('.main-nav a:not([aria-current]):hover')).backgroundColor)) !== 'rgba(0, 0, 0, 0)');
     const gap = await p.evaluate(() => { const a = document.querySelectorAll('.main-nav li'); return Math.round(a[1].getBoundingClientRect().left - a[0].getBoundingClientRect().right); });
     ok('espaço entre os itens 50px', gap === 50, String(gap));
@@ -1259,7 +1264,7 @@ let pageRef = null;
     await p.click('[data-search-toggle]');
     ok('lupinha abre a busca', await p.locator('#busca-topo').isVisible() && await p.evaluate(() => document.activeElement.id === 'busca-topo'));
     await p.fill('#busca-topo', 'Mangueira');
-    await submit(p.locator('#busca-topo-form button'));
+    await submit(p.locator('#busca-topo-form button[type=submit]'));
     ok('busca funciona', p.url().includes('/busca?q=Mangueira') && (await p.content()).includes('Mangueira 1988'));
     ok('na página de busca, o campo já vem aberto', await p.locator('#busca-topo').isVisible());
     await p.goto(base + '/blog/mangueira-1988-o-samba-que-contou-a-historia');
@@ -1290,19 +1295,19 @@ let pageRef = null;
   area = 'Nada se perdeu na reorganização';
   await safe('cada ajuste do site tem lugar no painel', async () => {
     const names = new Set();
-    for (const scr of ['cabecalho', 'faixa', 'pagina-inicial', 'rodape', 'blog-posts', 'padrao', 'configuracoes']) {
+    for (const scr of ['cabecalho', 'faixa', 'pagina-inicial', 'rodape', 'blog-posts', 'playlists', 'padrao', 'configuracoes']) {
       await p.goto(base + '/admin/' + scr);
       (await p.evaluate(() => [...document.querySelectorAll('form [name]')].map(el => el.name))).forEach(n => names.add(n));
     }
     const has = n => names.has(n);
-    const colorKeys = ['header_bg','header_text','header_accent','menu_hover','menu_line','menu_current','header_social','ticker_bg','ticker_text','blog_bg','blog_title','card_bg','card_title','card_text','arquivo_bg','arquivo_title','arquivo_text','playlists_bg','playlists_title','playlists_text','acervo_bg','acervo_title','acervo_text','contact_bg','contact_title','contact_text','footer_bg','footer_text','footer_accent','button_bg','button_text','button_hover_bg','button_hover_text','button_all_bg','button_all_text','button_all_hover_bg','button_all_hover_text','button_dark_bg','button_dark_text','button_dark_hover_bg','button_dark_hover_text','post_page_bg','post_box_bg','post_title','post_text','post_link','post_nav_bg','post_nav_text'];
+    const colorKeys = ['header_bg','header_text','header_accent','menu_hover','menu_line','menu_current','header_social','ticker_bg','ticker_text','blog_bg','blog_title','card_bg','card_title','card_text','arquivo_bg','arquivo_title','arquivo_text','playlists_bg','playlists_title','playlists_text','acervo_bg','acervo_title','acervo_text','contact_bg','contact_title','contact_text','footer_bg','footer_text','footer_accent','button_bg','button_text','button_hover_bg','button_hover_text','button_all_bg','button_all_text','button_all_hover_bg','button_all_hover_text','button_dark_bg','button_dark_text','button_dark_hover_bg','button_dark_hover_text','post_page_bg','post_box_bg','post_title','post_text','post_link','post_nav_bg','post_nav_text','pager_bg','pager_text','pager_active_bg','pager_active_text','pl_bar_bg','pl_bar_text','pl_card_bg','pl_year','pl_text','pl_accent'];
     const missingColors = colorKeys.filter(k => !has('colors[' + k + ']'));
-    ok('todas as 48 cores estão em alguma tela', missingColors.length === 0, missingColors.join(', '));
+    ok('todas as ' + colorKeys.length + ' cores estão em alguma tela', missingColors.length === 0, missingColors.join(', '));
     const typeKeys = ['post_title','menu','ticker','blog_title','blog_button','arquivo_title','arquivo_text','arquivo_button','playlists_title','playlists_intro','playlists_names','playlists_outro','playlists_button','acervo_title','acervo_text','acervo_button','historia_title','historia_text','historia_button','contact_title','contact_text','contact_labels','contact_button','footer_titles','footer_texts','footer_links','footer_news_button','footer_email','footer_word','footer_copyright','footer_author'];
     const missingTypes = typeKeys.filter(k => !has('type[' + k + '][padrao]'));
     ok('todas as 31 fontes de texto estão em alguma tela', missingTypes.length === 0, missingTypes.join(', '));
     const fields = ['logo','header_image','size_logo','size_header','header_overlay','header_gradient','menu_effect','menu_align','menu_gap','ticker_items[0][text]','ticker_speed','ticker_gap','ticker_pad','ticker_sep','ticker_sep_text','ticker_sep_image',
-      'blog_title','blog_count','blog_button','arquivo_title','arquivo_text','arquivo_button','arquivo_link','arquivo_new_tab','arquivo_image','arquivo_img[width]','playlists_layout','playlists_title','playlists_intro','playlists_outro','playlists_image','playlists_img[width]','playlists_button','playlists_link','playlists_new_tab','playlists_align','playlists[0][title]',
+      'blog_title','blog_button','split_gap','post_sidebar','sidebar_title','sidebar_count','related_title','page_slug','count_label','arquivo_title','arquivo_text','arquivo_button','arquivo_link','arquivo_new_tab','arquivo_image','arquivo_img[width]','playlists_layout','playlists_title','playlists_intro','playlists_outro','playlists_image','playlists_img[width]','playlists_button','playlists_link','playlists_new_tab','playlists_align','playlists[0][title]',
       'acervo_show','acervo_image','acervo_img[width]','acervo_title','acervo_text','acervo_button','acervo_link','acervo_new_tab','historia_show','historia_image','historia_img[width]','historia_title','historia_text','historia_button','historia_link','historia_new_tab','contact_title','contact_text','contact_labels[nome]','contact_button',
       'nav_title','rss_label','copyright','author_label','email_label','news_title','news_text','news_placeholder','news_button','show_word','word',
       'cards_per_row','cards_layout','card_ratio','card_title_lines','card_excerpt_lines','per_page','comments_enabled','comments_moderate','share_buttons',
@@ -1353,9 +1358,186 @@ let pageRef = null;
   await safe('prévia da faixa no painel', async () => {
     await p.goto(base + '/admin/faixa');
     await p.fill('input[name="ticker_items[0][text]"]', 'Prévia QA');
-    ok('prévia mostra o aviso digitado', (await p.locator('[data-tk-track]').textContent()).includes('Prévia QA'));
+    ok('prévia mostra o aviso digitado', (await prevHtml()).includes('Prévia QA'));
     await p.locator('input[name="colors[ticker_bg]"]').evaluate(el => { el.value = '#003366'; el.dispatchEvent(new Event('input', { bubbles: true })); });
-    ok('prévia muda a cor na hora', (await p.locator('[data-tk-preview]').evaluate(el => el.style.background)).includes('rgb(0, 51, 102)'));
+    ok('prévia muda a cor na hora', (await prevHtml()).includes('--c-ticker-bg:#003366'));
+  });
+
+  area = 'Rodada 9';
+  await safe('1. prévia do topo é o site de verdade, com a fonte escolhida', async () => {
+    await p.goto(base + '/admin/cabecalho');
+    const box = p.locator('[data-type-field]:has(select[name="type[menu][font]"])');
+    await box.locator('xpath=ancestor::details').evaluateAll(ds => ds.forEach(d => { d.open = true; }));
+    await box.locator('[data-type-default]').uncheck();
+    await box.locator('select[name="type[menu][font]"]').selectOption('Anton');
+    const h = await prevHtml();
+    ok('prévia usa a fonte escolhida no menu', h.includes("font-family:'Anton'") && h.includes('family=Anton'));
+    ok('prévia tem os ícones e a lupinha do site', h.includes('class="search-toggle"') && h.includes('class="ticker"'));
+    ok('sem salvar, o site não muda', !(await pub('/')).includes("font-family:'Anton'"));
+    const r = await fetch(base + '/admin/previa/cabecalho', { redirect: 'manual' });
+    ok('prévia não abre para quem não entrou no painel', r.status >= 300 && r.status < 400);
+  });
+  await safe('2. espaço do menu chega a 0 e o item aberto aparece no fundo arredondado', async () => {
+    await p.goto(base + '/admin/cabecalho');
+    ok('régua começa em 0', (await p.getAttribute('input[name=menu_gap]', 'min')) === '0');
+    await p.selectOption('select[name=menu_effect]', 'pill');
+    await p.locator('input[name=menu_gap]').fill('0');
+    await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
+    ok('espaço 0 no site', (await pub('/')).includes('--menu-gap:0px'));
+    await p.goto(base + '/blog');
+    const c = await p.evaluate(() => { const a = document.querySelector('.main-nav ul a[aria-current="page"]'); const cs = getComputedStyle(a); return [cs.color, cs.backgroundColor]; });
+    ok('texto do item aberto é diferente do fundo arredondado', c[0] !== c[1], c.join(' / '));
+    await p.goto(base + '/admin/cabecalho');
+    await p.locator('input[name=menu_gap]').fill('30');
+    await submit(p.locator('.a-sticky-save button:has-text("Salvar")'));
+  });
+  await safe('3. um número de posts para a home e o blog, com páginas na home', async () => {
+    await p.goto(base + '/admin/pagina-inicial');
+    await p.fill('input[name=per_page]', '2');
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/admin/blog-posts');
+    ok('Blog e posts mostra o mesmo número', (await p.inputValue('input[name=per_page]')) === '2');
+    await p.goto(base + '/');
+    const homeTitles = await p.evaluate(() => [...document.querySelector('.sec-blog:not(.sec-custom)').querySelectorAll('h3')].map(x => x.textContent.trim()));
+    const pager = await p.$$eval('.sec-blog:not(.sec-custom) .pager a', e => e.map(a => a.getAttribute('href')));
+    ok('home mostra 2 posts', homeTitles.length === 2, String(homeTitles.length));
+    ok('home tem os números das páginas', pager.includes('/blog?pagina=2'), pager.join(' '));
+    await p.goto(base + '/blog?pagina=2');
+    const b2 = await p.$$eval('main .card h3, main article h3', e => e.map(x => x.textContent.trim()));
+    await p.goto(base + '/blog');
+    const b1 = await p.$$eval('main .card h3, main article h3', e => e.map(x => x.textContent.trim()));
+    ok('página 1 do blog = posts da home', JSON.stringify(b1) === JSON.stringify(homeTitles), b1.join('|'));
+    ok('página 2 começa no post seguinte', b2.length > 0 && !b1.includes(b2[0]));
+  });
+  await safe('4. uma régua para o espaço entre imagem e texto', async () => {
+    await p.goto(base + '/admin/pagina-inicial');
+    await p.locator('input[name=split_gap]').fill('60');
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/');
+    const g = await p.evaluate(() => { const s = document.querySelector('.sec-arquivo .split'); const i = s.querySelector('.split-media img').getBoundingClientRect(); const t = s.querySelector('.split-text').getBoundingClientRect(); return Math.round(t.left - i.right); });
+    ok('espaço muda para 60px', g === 60, String(g));
+    await p.goto(base + '/admin/pagina-inicial');
+    await p.locator('input[name=split_gap]').fill('40');
+    await submit(p.locator('.a-sticky-save button'));
+  });
+  await safe('5. busca flutua embaixo da lupinha', async () => {
+    await p.goto(base + '/');
+    const h0 = await p.$eval('.main-nav ul', u => u.getBoundingClientRect().height);
+    await p.click('[data-search-toggle]');
+    const h1 = await p.$eval('.main-nav ul', u => u.getBoundingClientRect().height);
+    const pos = await p.evaluate(() => { const f = document.getElementById('busca-topo-form').getBoundingClientRect(); const l = document.querySelector('[data-search-toggle]').getBoundingClientRect(); return f.top >= l.bottom; });
+    ok('menu não se mexe ao abrir a busca', h0 === h1, h0 + ' / ' + h1);
+    ok('caixa aparece embaixo da lupinha', pos);
+    await p.keyboard.press('Escape');
+    ok('fecha com Esc', await p.$eval('#busca-topo-form', f => f.hidden));
+    await p.click('[data-search-toggle]'); await p.mouse.click(30, 600);
+    ok('fecha clicando fora', await p.$eval('#busca-topo-form', f => f.hidden));
+    await p.click('[data-search-toggle]'); await p.click('[data-search-close]');
+    ok('fecha no X', await p.$eval('#busca-topo-form', f => f.hidden));
+  });
+  let postUrl = '';
+  await safe('6. contato nas páginas do blog, não dentro do post', async () => {
+    ok('contato no blog', (await pub('/blog')).includes('sec-contact'));
+    await p.goto(base + '/blog');
+    postUrl = await p.$eval('main .card a[href^="/blog/"]', a => a.getAttribute('href'));
+    ok('contato não aparece dentro do post', !(await pub(postUrl)).includes('sec-contact'));
+  });
+  await safe('7. coluna lateral e posts relacionados', async () => {
+    await p.goto(base + postUrl);
+    const side = await p.$$eval('.post-side li a', e => e.map(a => a.getAttribute('href')));
+    ok('coluna com os últimos posts, sem o post aberto', side.length > 0 && side.length <= 5 && !side.includes(postUrl), side.join(' '));
+    await p.goto(base + '/admin/posts');
+    const editHref = await p.$eval('a[href^="/admin/posts/"]:not([href$="novo"])', a => a.getAttribute('href'));
+    await p.goto(base + editHref);
+    const choices = JSON.parse(await p.locator('[data-rel-posts]').textContent());
+    ok('lista de posts para escolher', choices.length > 0);
+    const pick = choices[choices.length - 1];
+    await p.fill('[data-rel-search]', pick.title.slice(0, 6));
+    await p.click('[data-rel-results] button >> nth=0');
+    ok('post escolhido entra na lista', (await p.locator('[data-rel-list] li').count()) === 1);
+    const chosenTitle = await p.locator('[data-rel-list] li span').textContent();
+    await submit(p.locator('button[name=acao][value=publicar], button[value=publicar]').first());
+    await p.goto(base + editHref);
+    ok('escolha fica salva', (await p.locator('[data-rel-list] li').count()) === 1);
+    const slug = await p.inputValue('input[name=slug]');
+    const html = await pub('/blog/' + slug);
+    const rel = (html.match(/<section class="recent">[\s\S]*?<\/section>/) || [''])[0];
+    ok('“Posts relacionados” embaixo do post', rel.includes('Posts relacionados') && rel.includes(chosenTitle.replace(/&/g, '&amp;')), chosenTitle);
+    await p.goto(base + '/admin/blog-posts');
+    await p.uncheck('input[name=post_sidebar]');
+    await submit(p.locator('.a-sticky-save button'));
+    ok('coluna desliga', !(await pub('/blog/' + slug)).includes('post-side'));
+    await p.goto(base + '/admin/blog-posts');
+    await p.check('input[name=post_sidebar]');
+    await submit(p.locator('.a-sticky-save button'));
+  });
+  await safe('8. itálico em cada controle de fonte', async () => {
+    await p.goto(base + '/admin/faixa');
+    const box = p.locator('[data-type-field]:has(select[name="type[ticker][font]"])');
+    await box.locator('xpath=ancestor::details').evaluateAll(ds => ds.forEach(d => { d.open = true; }));
+    await box.locator('[data-type-default]').uncheck();
+    ok('faixa começa em itálico', await box.locator('[data-type-italic]').isChecked());
+    await box.locator('[data-type-italic]').uncheck();
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/');
+    ok('faixa sem itálico no site', (await p.$eval('.ticker-track', e => getComputedStyle(e).fontStyle)) === 'normal');
+    ok('outros controles têm itálico', (await p.goto(base + '/admin/rodape').then(() => p.locator('[data-type-italic]').count())) > 3);
+    await p.goto(base + '/admin/faixa');
+    await box.locator('xpath=ancestor::details').evaluateAll(ds => ds.forEach(d => { d.open = true; }));
+    await box.locator('[data-type-default]').check();
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/');
+    ok('padrão volta ao itálico', (await p.$eval('.ticker-track', e => getComputedStyle(e).fontStyle)) === 'italic');
+  });
+  await safe('9. página de Playlists em sanfona', async () => {
+    const pages = await (await fetch(base + '/sitemap.xml')).text();
+    await p.goto(base + '/admin/playlists');
+    const opts = await p.$$eval('select[name=page_slug] option', o => o.map(x => x.value).filter(Boolean));
+    ok('escolhe a página onde aparecem', opts.length > 0);
+    const slug = opts.find(o => pages.includes('/' + o + '<')) || opts[0];
+    await p.selectOption('select[name=page_slug]', slug);
+    await p.fill('input[name="decades[d0][name]"]', 'Anos 80 QA');
+    for (const y of ['1980', '1981']) {
+      await p.locator('[data-pl-decade]').first().locator('[data-pl-add-item]').click();
+      const it = p.locator('[data-pl-decade]').first().locator('[data-pl-item]').last();
+      await it.locator('input[name$="[year]"]').fill(y); await it.locator('input[name$="[title]"]').fill('Grupo Especial QA');
+      await it.locator('input[name$="[subtitle]"]').fill('Desfiles completos'); await it.locator('input[name$="[link]"]').fill('https://www.youtube.com/playlist?list=QA' + y);
+    }
+    await p.click('[data-pl-add-decade]');
+    await p.locator('[data-pl-decade]').last().locator('input').first().fill('Anos 90 QA');
+    await p.locator('[data-pl-decade]').last().locator('[data-pl-add-item]').click();
+    await p.locator('[data-pl-decade]').last().locator('input[name$="[year]"]').fill('1990');
+    await p.locator('[data-pl-decade]').nth(1).locator('[data-pl-up]').first().click();
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/admin/playlists');
+    ok('ordem das décadas fica salva', (await p.inputValue('[data-pl-decade] >> nth=0 >> input')) === 'Anos 90 QA');
+    await p.locator('[data-pl-decade]').nth(1).locator('[data-pl-up]').first().click();
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/' + slug);
+    const d = await p.$$eval('details.pl-decade', e => e.map(x => [x.querySelector('.pl-dname').textContent, x.open, x.querySelectorAll('.pl-cap').length]));
+    ok('décadas no site, a primeira aberta', d.length === 2 && d[0][0] === 'Anos 80 QA' && d[0][1] && !d[1][1], JSON.stringify(d));
+    ok('capa com ano, título, subtítulo e link', (await p.$eval('.pl-cap', a => a.querySelector('.pl-year').textContent + '|' + a.querySelector('.pl-title').textContent + '|' + a.getAttribute('href'))) === '1980|Grupo Especial QA|https://www.youtube.com/playlist?list=QA1980');
+    await p.click('details.pl-decade >> nth=1 >> summary');
+    ok('clicar abre a outra sem fechar a primeira', await p.$$eval('details.pl-decade', e => e.every(x => x.open)));
+    ok('“1 playlist” no singular', (await p.textContent('details.pl-decade >> nth=1 >> summary small')).trim() === '1 playlist');
+  });
+  await safe('10. números das páginas mudam ao passar o mouse', async () => {
+    await p.goto(base + '/admin/blog-posts');
+    ok('cores dos números no painel', (await p.locator('input[name="colors[pager_active_bg]"]').count()) === 1);
+    await p.goto(base + '/blog');
+    await p.evaluate(() => document.querySelector('[data-cookie-bar]')?.remove());
+    // A revisão abre outra janela antes; numa aba em segundo plano a animação da troca de cor não anda
+    await p.addStyleTag({ content: '.pager a { transition: none !important; }' });
+    const a = p.locator('.pager a:not([aria-current])').first();
+    const before = await a.evaluate(e => getComputedStyle(e).backgroundColor);
+    await a.hover(); await p.waitForTimeout(400);
+    const after = await a.evaluate(e => getComputedStyle(e).backgroundColor);
+    const cur = await p.$eval('.pager a[aria-current]', e => getComputedStyle(e).backgroundColor);
+    const dbg = await a.evaluate(e => { const r = e.getBoundingClientRect(); const t = document.elementFromPoint(r.x + r.width / 2, r.y + r.height / 2); return e.matches(':hover') + ' ' + Math.round(r.y) + ' ' + (t ? t.outerHTML.slice(0, 90) : 'nada') + ' cur=' + document.querySelector('.pager a[aria-current]').textContent + ' n=' + document.querySelectorAll('.pager a').length; });
+    ok('mouse por cima muda a cor (igual à página aberta)', before !== after && after === cur, before + ' → ' + after + ' / ' + dbg);
+    await p.goto(base + '/admin/pagina-inicial');
+    await p.fill('input[name=per_page]', '6');
+    await submit(p.locator('.a-sticky-save button'));
   });
 
   area = 'Geral';

@@ -79,6 +79,20 @@ $ratios = array_map(fn ($r) => $r['label'], image_ratios());
         <small class="a-help">Separe por vírgula.</small>
       </section>
 
+      <section class="a-card" data-related>
+        <h2>Posts relacionados</h2>
+        <ol class="a-rel-list" data-rel-list>
+          <?php foreach ($related as $r): ?>
+            <li data-id="<?= (int) $r['id'] ?>"><input type="hidden" name="related[]" value="<?= (int) $r['id'] ?>"><span><?= e($r['title']) ?></span>
+              <button type="button" class="a-mini" data-rel-up aria-label="Subir">↑</button><button type="button" class="a-mini" data-rel-down aria-label="Descer">↓</button><button type="button" class="a-mini" data-rel-remove aria-label="Tirar">×</button></li>
+          <?php endforeach; ?>
+        </ol>
+        <label>Buscar post pelo título<input type="search" data-rel-search placeholder="Digite parte do título" autocomplete="off"></label>
+        <ul class="a-rel-results" data-rel-results hidden></ul>
+        <script type="application/json" data-rel-posts><?= json_encode($relatedChoices, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
+        <small class="a-help">Aparecem embaixo do post, nesta ordem (até 6). Sem nenhum escolhido, o site mostra sozinho os da mesma categoria.</small>
+      </section>
+
       <section class="a-card" data-cover>
         <h2>Imagem de capa</h2>
         <?= image_field('cover_image', $post['cover_image'], 'Imagem', 'Aparece no topo do post e no card do blog.') ?>

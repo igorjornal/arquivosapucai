@@ -5,15 +5,21 @@
   <nav class="a-toc" aria-label="Nesta página">
     <a href="#g-blog">Blog</a><a href="#g-arquivo">O Arquivo</a><a href="#g-playlists">Playlists</a><a href="#g-acervo">Acervo e História</a><a href="#g-contato">Contato</a>
   </nav>
+    <section class="a-card">
+      <label><span>Espaço entre a imagem e o texto: <output data-range-out><?= (int) ($home['split_gap'] ?? 40) ?></output> px</span>
+        <input type="range" name="split_gap" min="0" max="120" step="4" value="<?= (int) ($home['split_gap'] ?? 40) ?>" data-range>
+      </label>
+      <small class="a-help">Vale igual para O Arquivo, Playlists (em “Imagem + texto”) e as seções “Texto + imagem”, para ficarem uniformes. No celular a imagem fica em cima do texto.</small>
+    </section>
     <section class="a-group" id="g-blog">
       <h2 class="a-group-title">Blog</h2>
       <section class="a-card">
         <div class="a-row-2">
           <label>Título da seção Blog<input name="blog_title" value="<?= e($home['blog_title']) ?>"></label>
-          <label>Quantos posts mostrar na home<input type="number" name="blog_count" min="1" max="24" value="<?= (int) $home['blog_count'] ?>"></label>
+          <label>Quantos posts por vez<input type="number" name="per_page" min="1" max="48" value="<?= (int) $blog['per_page'] ?>"></label>
           <label>Texto do botão que leva ao blog<input name="blog_button" value="<?= e($home['blog_button']) ?>" maxlength="40"></label>
         </div>
-        <small class="a-help">Botão vazio: ele some.</small>
+        <small class="a-help">Botão vazio: ele some. “Quantos posts por vez” vale aqui e na página do blog (é o mesmo número de Blog e posts). Se houver mais posts, aparecem embaixo os números das páginas.</small>
       </section>
       <section class="a-card"><div class="a-label">Cores</div><div class="a-colors-inline"><?= color_fields('blog') ?></div></section>
       <details class="a-adv"><summary>Fontes e tamanhos deste bloco</summary><?= type_fields(['blog_title', 'blog_button']) ?></details>

@@ -207,6 +207,28 @@ function run_migrations(): void
         }
         save_setting_raw('schema_version', 9);
     }
+    if ($version < 10) {
+        // Posts relacionados escolhidos na tela do post
+        if (preg_match('/CREATE TABLE IF NOT EXISTS post_related .*?;/s', (string) file_get_contents(ROOT . '/database/schema.sql'), $m)) {
+            db()->exec($m[0]);
+        }
+        // Números das páginas: o destaque começa com as cores do botão principal, como já aparecia
+        $app = json_decode((string) db_val("SELECT value FROM settings WHERE name = 'appearance'"), true);
+        if (is_array($app) && isset($app['colors']) && !isset($app['colors']['pager_active_bg'])) {
+            $app['colors']['pager_active_bg'] = $app['colors']['button_bg'] ?? '#CDF50D';
+            $app['colors']['pager_active_text'] = $app['colors']['button_text'] ?? '#1E0D06';
+            save_setting('appearance', $app);
+        }
+        // Home e blog passam a usar o mesmo número de posts por vez: fica o que a home mostrava
+        $home = json_decode((string) db_val("SELECT value FROM settings WHERE name = 'home'"), true);
+        $blog = json_decode((string) db_val("SELECT value FROM settings WHERE name = 'blog'"), true);
+        if (is_array($home) && isset($home['blog_count'])) {
+            $blog = (is_array($blog) ? $blog : []);
+            $blog['per_page'] = max(1, min(48, (int) $home['blog_count']));
+            save_setting('blog', $blog);
+        }
+        save_setting_raw('schema_version', 10);
+    }
 }
 
 function save_setting_raw(string $name, $value): void

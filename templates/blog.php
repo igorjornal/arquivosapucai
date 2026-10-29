@@ -27,13 +27,7 @@
       <p class="empty">Nenhum post encontrado por aqui.</p>
     <?php endif; ?>
 
-    <?php if ($pagination['pages'] > 1):
-        $sep = str_contains($baseLink, '?') ? '&' : '?'; ?>
-      <nav class="pager" aria-label="Páginas">
-        <?php for ($i = 1; $i <= $pagination['pages']; $i++): ?>
-          <a href="<?= e($baseLink . ($i > 1 ? $sep . 'pagina=' . $i : '')) ?>"<?= $i === $pagination['page'] ? ' aria-current="page"' : '' ?>><?= $i ?></a>
-        <?php endfor; ?>
-      </nav>
-    <?php endif; ?>
+    <?php partial('pager', ['pagination' => $pagination, 'baseLink' => $baseLink]); ?>
   </div>
 </section>
+<?php partial('contact', ['home' => setting('home'), 'anchor' => 'contato']); ?>

@@ -20,7 +20,47 @@ function latest_posts(int $limit, int $offset = 0, array $filter = []): array
     [$where, $params] = post_filter($filter);
     $params[] = $limit;
     $params[] = $offset;
-    return db_all(POST_SELECT . " WHERE {$where} ORDER BY p.featured DESC, p.published_at DESC LIMIT ? OFFSET ?", $params);
+    $order = empty($filter['newest']) ? 'p.featured DESC, p.published_at DESC' : 'p.published_at DESC';
+    return db_all(POST_SELECT . " WHERE {$where} ORDER BY {$order} LIMIT ? OFFSET ?", $params);
+}
+
+// Posts relacionados: os escolhidos na tela do post, na ordem; se faltar, completa com a mesma categoria e depois com os mais novos
+function related_posts(array $post, int $limit): array
+{
+    $id = (int) $post['id'];
+    $list = [];
+    foreach (related_ids($id) as $rid) {
+        $p = db_one(POST_SELECT . ' WHERE p.id = ? AND ' . published_clause(), [$rid, now()]);
+        if ($p) {
+            $list[$p['id']] = $p;
+        }
+    }
+    if ($list) {
+        return array_values($list);
+    }
+    $fill = function (array $filter) use (&$list, $id, $limit) {
+        foreach (latest_posts($limit + 1, 0, $filter + ['exclude' => $id, 'newest' => true]) as $p) {
+            if (count($list) < $limit && !isset($list[$p['id']])) {
+                $list[$p['id']] = $p;
+            }
+        }
+    };
+    if (!empty($post['category_id'])) {
+        $fill(['category_id' => (int) $post['category_id']]);
+    }
+    if (count($list) < $limit) {
+        $fill([]);
+    }
+    return array_values($list);
+}
+
+function related_ids(int $postId): array
+{
+    try {
+        return array_map('intval', array_column(db_all('SELECT related_id FROM post_related WHERE post_id = ? ORDER BY sort_order', [$postId]), 'related_id'));
+    } catch (PDOException $e) {
+        return [];
+    }
 }
 
 function count_posts(array $filter = []): int

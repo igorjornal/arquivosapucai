@@ -41,8 +41,9 @@ function admin_dispatch(string $path): void
         ['#^/admin/autores/novo$#',                   'admin_user_edit', true],
         ['#^/admin/autores/(\d+)$#',                  'admin_user_edit', true],
         ['#^/admin/perfil$#',                         'admin_profile', true],
-        ['#^/admin/(cabecalho|faixa|pagina-inicial|rodape|blog-posts|padrao|configuracoes)$#', 'admin_screen', true],
+        ['#^/admin/(cabecalho|faixa|pagina-inicial|rodape|blog-posts|playlists|padrao|configuracoes)$#', 'admin_screen', true],
         ['#^/admin/(?:aparencia|conteudo|menu)$#',    'admin_old_redirect', true],
+        ['#^/admin/previa/(cabecalho|faixa)$#',        'admin_preview_top', true],
         ['#^/admin/banners$#',                        'admin_banners', true],
         ['#^/admin/secoes$#',                         'admin_sections', true],
         ['#^/admin/paginas$#',                        'admin_pages', true],
@@ -302,6 +303,8 @@ function admin_post_form(array $post): void
         'tags'       => $tags,
         'categories' => db_all('SELECT id, name FROM categories ORDER BY sort_order, name'),
         'authors'    => db_all('SELECT id, name FROM users WHERE active = 1 ORDER BY name'),
+        'related'    => $post['id'] ? admin_related_list((int) $post['id']) : [],
+        'relatedChoices' => db_all("SELECT id, title FROM posts WHERE status = 'published' AND id <> ? ORDER BY published_at DESC", [(int) $post['id']]),
         'editorAssets' => true,
     ]);
 }
@@ -362,6 +365,7 @@ function admin_post_save(array $post): array
         $id = db_insert('posts', $data);
     }
     save_post_tags($id, (string) ($_POST['tags'] ?? ''));
+    save_post_related($id, (array) ($_POST['related'] ?? []));
     return [db_one('SELECT * FROM posts WHERE id = ?', [$id]), []];
 }
 
@@ -379,11 +383,27 @@ function save_post_tags(int $postId, string $raw): void
     }
 }
 
+// Posts relacionados escolhidos à mão, na ordem da tela (até 6)
+function save_post_related(int $postId, array $ids): void
+{
+    db_exec('DELETE FROM post_related WHERE post_id = ?', [$postId]);
+    $ids = array_slice(array_values(array_unique(array_filter(array_map('intval', $ids), fn ($i) => $i > 0 && $i !== $postId))), 0, 6);
+    foreach ($ids as $order => $rid) {
+        db_exec('INSERT INTO post_related (post_id, related_id, sort_order) VALUES (?, ?, ?)', [$postId, $rid, $order]);
+    }
+}
+
+function admin_related_list(int $postId): array
+{
+    return db_all('SELECT p.id, p.title FROM post_related r JOIN posts p ON p.id = r.related_id WHERE r.post_id = ? ORDER BY r.sort_order', [$postId]);
+}
+
 function admin_post_delete(string $id): void
 {
     $post = db_one('SELECT * FROM posts WHERE id = ?', [(int) $id]);
     if (is_post() && $post && can_edit_post($post)) {
         db_exec('DELETE FROM post_tag WHERE post_id = ?', [$post['id']]);
+        db_exec('DELETE FROM post_related WHERE post_id = ? OR related_id = ?', [$post['id'], $post['id']]);
         db_exec('DELETE FROM comments WHERE post_id = ?', [$post['id']]);
         db_exec('DELETE FROM posts WHERE id = ?', [$post['id']]);
         flash('success', 'Post “' . $post['title'] . '” excluído.');

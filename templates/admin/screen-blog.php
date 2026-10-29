@@ -34,13 +34,27 @@
   </section>
   <section class="a-group" id="g-post">
     <h2 class="a-group-title">2. Página do post</h2>
+    <section class="a-card">
+      <label class="a-check"><input type="checkbox" name="post_sidebar" value="1"<?= $blog['post_sidebar'] ? ' checked' : '' ?>> Coluna à direita com os últimos posts do site</label>
+      <div class="a-row-2">
+        <label>Título da coluna<input name="sidebar_title" value="<?= e($blog['sidebar_title']) ?>" maxlength="60"></label>
+        <label>Quantos posts na coluna
+          <select name="sidebar_count"><?= select_options([3 => '3', 4 => '4', 5 => '5', 6 => '6', 7 => '7', 8 => '8'], (string) $blog['sidebar_count']) ?></select>
+        </label>
+      </div>
+      <small class="a-help">No celular a coluna desce para depois do texto.</small>
+      <label>Título dos posts embaixo do texto<input name="related_title" value="<?= e($blog['related_title']) ?>" maxlength="60"></label>
+      <small class="a-help">Mostra os posts escolhidos em “Posts relacionados”, na tela de cada post. Se nenhum for escolhido, mostra os da mesma categoria.</small>
+    </section>
     <section class="a-card"><div class="a-label">Cores</div><div class="a-colors-inline"><?= color_fields('post') ?></div></section>
     <section class="a-card"><h3>Título dos posts e das páginas</h3><?= type_fields(['post_title']) ?></section>
   </section>
   <section class="a-group" id="g-comentarios">
     <h2 class="a-group-title">3. Blog e comentários</h2>
     <section class="a-card">
-      <label>Posts por página no blog<input type="number" name="per_page" min="3" max="48" value="<?= (int) $blog['per_page'] ?>"></label>
+      <label>Quantos posts por vez<input type="number" name="per_page" min="1" max="48" value="<?= (int) $blog['per_page'] ?>"></label>
+      <small class="a-help">Vale na página do blog e na seção Blog da página inicial (é o mesmo número nas duas telas).</small>
+      <div class="a-label">Cores dos números das páginas (1, 2, 3…)</div><div class="a-colors-inline"><?= color_fields('paginas') ?></div>
       <label class="a-check"><input type="checkbox" name="comments_enabled" value="1"<?= $blog['comments_enabled'] ? ' checked' : '' ?>> Comentários ligados no site</label>
       <label class="a-check"><input type="checkbox" name="comments_moderate" value="1"<?= $blog['comments_moderate'] ? ' checked' : '' ?>> Comentários só aparecem depois de aprovados</label>
       <label class="a-check"><input type="checkbox" name="share_buttons" value="1"<?= $blog['share_buttons'] ? ' checked' : '' ?>> Botões de compartilhar nos posts</label>

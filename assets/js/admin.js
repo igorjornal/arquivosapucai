@@ -118,6 +118,8 @@
       box.querySelector('[data-type-summary]').hidden = !def.checked;
     });
     weight.addEventListener('change', function () { sample.style.fontWeight = weight.value; });
+    var italic = box.querySelector('[data-type-italic]');
+    if (italic) italic.addEventListener('change', function () { sample.style.fontStyle = italic.checked ? 'italic' : 'normal'; });
   });
   document.querySelectorAll('[data-base-weight]').forEach(function (sel) {
     sel.addEventListener('change', function () { sel.closest('fieldset').querySelector('[data-size-sample]').style.fontWeight = sel.value; });
@@ -398,33 +400,6 @@
     });
   }
 
-  // Faixa de avisos: prévia correndo com os avisos, cores, separador, espaço, espessura e velocidade
-  var tk = document.querySelector('[data-tk-preview]');
-  if (tk) {
-    var tkTrack = tk.querySelector('[data-tk-track]');
-    var val = function (n) { var el = document.querySelector('[name="' + n + '"]'); return el ? el.value : ''; };
-    var symbols = { star: '★', dot: '•', diamond: '◆', dash: '—', bar: '|' };
-    var drawTicker = function () {
-      var texts = [].slice.call(document.querySelectorAll('input[name$="[text]"][name^="ticker_items"]')).map(function (i) { return i.value.trim(); }).filter(Boolean);
-      if (!texts.length) texts = ['(sem avisos: a faixa some do site)'];
-      var sep = val('ticker_sep'), sepHtml = '';
-      if (symbols[sep]) sepHtml = '<span>' + symbols[sep] + '</span>';
-      else if (sep === 'text') sepHtml = '<span>' + val('ticker_sep_text').replace(/[<>&]/g, '') + '</span>';
-      else if (sep === 'image' && val('ticker_sep_image')) sepHtml = '<img src="/' + val('ticker_sep_image').replace(/^\//, '') + '" alt="">';
-      else if (sep === 'flag') sepHtml = '<img src="/assets/img/ticker-icone.svg" alt="">';
-      var once = texts.map(function (t) { var s = document.createElement('span'); s.textContent = t; return s.outerHTML + sepHtml; }).join('');
-      tkTrack.innerHTML = new Array(9).join(once);
-      tk.style.background = val('colors[ticker_bg]');
-      tk.style.color = val('colors[ticker_text]');
-      tkTrack.style.gap = val('ticker_gap') + 'px';
-      tkTrack.style.padding = val('ticker_pad') + 'px 0';
-      tkTrack.style.animationDuration = Math.max(5, (tkTrack.scrollWidth / 2) / (20 * (+val('ticker_speed') || 4))) + 's';
-    };
-    tk.closest('form').addEventListener('input', drawTicker);
-    tk.closest('form').addEventListener('change', drawTicker);
-    drawTicker();
-  }
-
   // Faixa de avisos: mostra o campo do separador escolhido (texto ou imagem)
   var sepSel = document.querySelector('[data-sep-select]');
   if (sepSel) {
@@ -435,39 +410,122 @@
     showSep();
   }
 
-  // Aparência: prévia do cabeçalho
-  var hp = document.querySelector('[data-header-preview]');
-  if (hp) {
-    var q = function (sel) { return document.querySelector(sel); };
-    var rgba = function (hex, pct) {
-      var h = hex.replace('#', '');
-      if (h.length === 3) h = h.replace(/./g, '$&$&');
-      var n = parseInt(h, 16);
-      return 'rgba(' + (n >> 16 & 255) + ',' + (n >> 8 & 255) + ',' + (n & 255) + ',' + (pct / 100) + ')';
+  // Tela do post: posts relacionados (buscar pelo título, ordenar e tirar)
+  var rel = document.querySelector('[data-related]');
+  if (rel) {
+    var relList = rel.querySelector('[data-rel-list]');
+    var relSearch = rel.querySelector('[data-rel-search]');
+    var relResults = rel.querySelector('[data-rel-results]');
+    var relPosts = JSON.parse(rel.querySelector('[data-rel-posts]').textContent || '[]');
+    var norm = function (t) { return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
+    var chosen = function () { return [].map.call(relList.children, function (li) { return +li.dataset.id; }); };
+    var addRel = function (p) {
+      if (chosen().indexOf(+p.id) >= 0 || relList.children.length >= 6) return;
+      var li = document.createElement('li');
+      li.dataset.id = p.id;
+      li.innerHTML = '<input type="hidden" name="related[]"><span></span><button type="button" class="a-mini" data-rel-up aria-label="Subir">↑</button><button type="button" class="a-mini" data-rel-down aria-label="Descer">↓</button><button type="button" class="a-mini" data-rel-remove aria-label="Tirar">×</button>';
+      li.querySelector('input').value = p.id;
+      li.querySelector('span').textContent = p.title;
+      relList.appendChild(li);
     };
-    var drawHeader = function () {
-      var bg = q('input[name="colors[header_bg]"]').value;
-      var img = q('input[name="header_image"]').value;
-      var a = +q('input[name="header_overlay"]').value;
-      var b = q('input[name="header_gradient"]').checked ? Math.round(a * 0.55) : a;
-      var url = img ? (/^https?:/.test(img) ? img : '/' + img.replace(/^\//, '')) : '';
-      hp.style.backgroundColor = bg;
-      hp.style.backgroundImage = 'linear-gradient(90deg,' + rgba(bg, a) + ' 0%,' + rgba(bg, b) + ' 100%)' + (url ? ', url("' + url + '")' : '');
-      hp.style.minHeight = q('input[name="size_header"]').value + 'px';
-      var logo = hp.querySelector('[data-hp-logo]');
-      logo.style.width = logo.style.height = q('input[name="size_logo"]').value + 'px';
-      var menu = hp.querySelector('[data-hp-menu]');
-      menu.style.color = q('input[name="colors[header_accent]"]').value;
-      menu.style.columnGap = q('input[name="menu_gap"]').value + 'px';
-      var al = (q('input[name="menu_align"]:checked') || {}).value;
-      menu.style.margin = al === 'center' ? '0 auto' : (al === 'logo' ? '0 auto 0 0' : '0 0 0 auto');
+    var showResults = function () {
+      var term = norm(relSearch.value.trim());
+      relResults.innerHTML = '';
+      if (!term) { relResults.hidden = true; return; }
+      var found = relPosts.filter(function (p) { return chosen().indexOf(+p.id) < 0 && norm(p.title).indexOf(term) >= 0; }).slice(0, 8);
+      found.forEach(function (p) {
+        var li = document.createElement('li'), b = document.createElement('button');
+        b.type = 'button'; b.textContent = p.title;
+        b.addEventListener('click', function () { addRel(p); relSearch.value = ''; showResults(); relSearch.focus(); });
+        li.appendChild(b); relResults.appendChild(li);
+      });
+      if (!found.length) relResults.innerHTML = '<li class="a-muted" style="padding:7px 8px">Nenhum post publicado com esse título.</li>';
+      relResults.hidden = false;
     };
-    ['colors[header_bg]', 'colors[header_accent]', 'header_image', 'header_overlay', 'header_gradient', 'size_header', 'size_logo', 'menu_gap'].forEach(function (n) {
-      var el = q('input[name="' + n + '"]');
-      el.addEventListener('input', drawHeader); el.addEventListener('change', drawHeader);
+    relSearch.addEventListener('input', showResults);
+    relSearch.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); var b = relResults.querySelector('button'); if (b) b.click(); } });
+    relList.addEventListener('click', function (e) {
+      var li = e.target.closest('li');
+      if (!li) return;
+      if (e.target.closest('[data-rel-remove]')) li.remove();
+      else if (e.target.closest('[data-rel-up]') && li.previousElementSibling) relList.insertBefore(li, li.previousElementSibling);
+      else if (e.target.closest('[data-rel-down]') && li.nextElementSibling) relList.insertBefore(li.nextElementSibling, li);
     });
-    document.querySelectorAll('input[name="menu_align"]').forEach(function (r) { r.addEventListener('change', drawHeader); });
-    drawHeader();
+  }
+
+  // Página de Playlists: décadas e playlists (adicionar, mover e tirar)
+  var plForm = document.querySelector('[data-pl-form]');
+  if (plForm) {
+    var plDecades = plForm.querySelector('[data-pl-decades]');
+    var plSeq = Date.now();
+    var fromTpl = function (sel, map) {
+      var html = plForm.querySelector(sel).innerHTML;
+      Object.keys(map).forEach(function (k) { html = html.split(k).join(map[k]); });
+      var box = document.createElement('div'); box.innerHTML = html.trim();
+      return box.firstElementChild;
+    };
+    plForm.addEventListener('click', function (e) {
+      var btn = e.target.closest('button');
+      if (!btn) return;
+      if (btn.hasAttribute('data-pl-add-decade')) {
+        var dec = fromTpl('[data-pl-decade-tpl]', { __D__: 'n' + (plSeq++) });
+        plDecades.appendChild(dec);
+        dec.querySelector('input').focus();
+        return;
+      }
+      if (btn.hasAttribute('data-pl-add-item')) {
+        var d = btn.closest('[data-pl-decade]');
+        var it = fromTpl('[data-pl-item-tpl]', { __D__: d.dataset.key, __I__: 'n' + (plSeq++) });
+        d.querySelector('[data-pl-items]').appendChild(it);
+        it.querySelector('input').focus();
+        return;
+      }
+      var row = btn.closest('[data-pl-item]') || btn.closest('[data-pl-decade]');
+      if (!row) return;
+      if (btn.hasAttribute('data-pl-remove')) {
+        if (row.hasAttribute('data-pl-decade') && row.querySelector('[data-pl-item]') && !confirm('Apagar esta década e as playlists dela?')) return;
+        row.remove();
+      } else if (btn.hasAttribute('data-pl-up') && row.previousElementSibling) {
+        row.parentNode.insertBefore(row, row.previousElementSibling);
+      } else if (btn.hasAttribute('data-pl-down') && row.nextElementSibling) {
+        row.parentNode.insertBefore(row.nextElementSibling, row);
+      }
+    });
+  }
+
+  // Prévia ao vivo do topo: o próprio site desenha o cabeçalho e a faixa com o que está na tela (sem salvar)
+  var live = document.querySelector('[data-live-preview]');
+  if (live) {
+    var frame = live.querySelector('iframe');
+    var liveForm = live.closest('form');
+    var liveTimer = null, liveReq = 0;
+    var fit = function () {
+      var doc = frame.contentDocument;
+      if (!doc || !doc.body) return;
+      var scale = live.clientWidth / 1366;
+      var h = doc.body.scrollHeight;
+      frame.style.height = h + 'px';
+      frame.style.transform = 'scale(' + scale + ')';
+      live.style.height = Math.ceil(h * scale) + 'px';
+    };
+    var refresh = function () {
+      var n = ++liveReq;
+      fetch('/admin/previa/' + live.dataset.livePreview, { method: 'POST', body: new FormData(liveForm), credentials: 'same-origin' })
+        .then(function (r) { return r.ok ? r.text() : null; })
+        .then(function (html) { if (html && n === liveReq) frame.srcdoc = html; });
+    };
+    var later = function () { clearTimeout(liveTimer); liveTimer = setTimeout(refresh, 350); };
+    frame.addEventListener('load', function () {
+      fit();
+      // A busca aberta e as fontes que chegam depois mudam a altura
+      var doc = frame.contentDocument;
+      if (doc.fonts) doc.fonts.ready.then(fit);
+      doc.addEventListener('click', function () { setTimeout(fit, 50); });
+    });
+    liveForm.addEventListener('input', later);
+    liveForm.addEventListener('change', later);
+    window.addEventListener('resize', fit);
+    refresh();
   }
 
   // Página: ponto da foto que aparece na faixa do topo

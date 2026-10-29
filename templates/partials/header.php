@@ -28,6 +28,7 @@ $headerBg = media_url($site['header_bg']);
           <label class="sr" for="busca-topo">Buscar</label>
           <input id="busca-topo" type="search" name="q" placeholder="Buscar no Arquivo" value="<?= e($_GET['q'] ?? '') ?>">
           <button type="submit">Buscar</button>
+          <button class="nav-search-close" type="button" aria-label="Fechar a busca" data-search-close>×</button>
         </form>
         <button class="search-toggle" type="button" aria-label="Buscar no site" aria-controls="busca-topo-form" aria-expanded="<?= ($_GET['q'] ?? '') === '' ? 'false' : 'true' ?>" data-search-toggle><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.4" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg></button>
       </div>

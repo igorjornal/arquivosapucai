@@ -6,9 +6,11 @@ $commentsOpen = $blog['comments_enabled'] && $post['allow_comments'];
 $totalComments = array_sum(array_map('count', $comments));
 ?>
 <div class="post-page">
-  <div class="wrap post-wrap">
+  <div class="wrap post-wrap<?= $sidebar ? ' post-wrap-side' : '' ?>">
     <?php partial('category-bar', ['active' => $post['category_slug']]); ?>
 
+    <div class="post-layout<?= $sidebar ? ' has-side' : '' ?>">
+    <div class="post-main">
     <article class="post-box">
       <header class="post-head">
         <div class="post-meta">
@@ -93,12 +95,29 @@ $totalComments = array_sum(array_map('count', $comments));
       <?php forget_old(); ?>
     </section>
     <?php endif; ?>
+    </div>
 
-    <?php if ($recent): ?>
+    <?php if ($sidebar): ?>
+    <aside class="post-side" aria-label="<?= e($blog['sidebar_title']) ?>">
+      <h2><?= e($blog['sidebar_title']) ?></h2>
+      <ul>
+        <?php foreach ($sidebar as $s): ?>
+          <li><a href="<?= e(post_url($s)) ?>">
+            <?php if ($s['cover_image']): ?><img src="<?= e(media_url($s['cover_image'])) ?>" alt="" loading="lazy"><?php else: ?><span class="side-noimg" aria-hidden="true"></span><?php endif; ?>
+            <span><strong><?= e($s['title']) ?></strong><time datetime="<?= e(date('c', strtotime((string) $s['published_at']))) ?>"><?= e(date_short($s['published_at'])) ?></time></span>
+          </a></li>
+        <?php endforeach; ?>
+      </ul>
+      <a class="side-all" href="/blog">Ver todos os posts →</a>
+    </aside>
+    <?php endif; ?>
+    </div>
+
+    <?php if ($related): ?>
     <section class="recent">
-      <div class="sec-head"><h2>Posts recentes</h2><a href="/blog">Ver tudo</a></div>
+      <div class="sec-head"><h2><?= e($blog['related_title']) ?></h2><a href="/blog">Ver tudo</a></div>
       <div class="cards cards-3">
-        <?php foreach ($recent as $r) partial('post-card', ['post' => $r]); ?>
+        <?php foreach ($related as $r) partial('post-card', ['post' => $r]); ?>
       </div>
     </section>
     <?php endif; ?>

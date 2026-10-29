@@ -302,9 +302,6 @@ body.is-saving::before { content: ""; position: fixed; top: 0; left: 0; height: 
 @media (max-width: 860px) { .a-toc { top: 52px; } .a-group { padding: 14px 12px 2px; } }
 .a-banner-preview { border-radius: 8px; overflow: hidden; background: #000; margin-bottom: 14px; aspect-ratio: 5 / 1; }
 .a-banner-preview img { display: block; width: 100%; height: 100%; object-fit: cover; }
-.a-header-preview { display: flex; align-items: center; gap: 24px; padding: 10px 24px; margin-bottom: 14px; border-radius: 12px; background-size: cover; background-position: center; box-shadow: 0 6px 18px rgba(0,0,0,.18); overflow: hidden; }
-.a-header-preview img { object-fit: contain; flex: none; filter: drop-shadow(0 4px 10px rgba(0,0,0,.45)); }
-.a-hp-menu { margin-left: auto; display: flex; flex-wrap: wrap; gap: 6px 22px; font-weight: 700; font-size: 15px; }
 .a-type-grid.is-single { grid-template-columns: minmax(0, 420px); }
 .a-type.a-type-bare { border: 0; padding: 0; }
 .a-image-field .a-help { margin-top: 6px; }
@@ -318,8 +315,26 @@ details.a-adv[open] > summary { margin-bottom: 12px; }
 .a-menu-row.is-removed { opacity: .35; }
 .a-menu-row .a-order { grid-auto-flow: column; }
 @media (max-width: 860px) { .a-menu-rows .a-menu-row { grid-template-columns: 1fr; } }
-.a-tk-preview { overflow: hidden; white-space: nowrap; border-radius: 10px; box-shadow: 0 6px 18px rgba(0,0,0,.15); }
-.a-tk-track { display: inline-flex; align-items: center; font-style: italic; font-size: 14px; animation: a-tk 30s linear infinite; }
-.a-tk-track img { height: 1.25em; width: auto; }
-@keyframes a-tk { from { transform: translateX(0); } to { transform: translateX(-50%); } }
 .a-colors-inline { display: grid; grid-template-columns: repeat(auto-fill, minmax(230px, 1fr)); gap: 0 18px; }
+
+/* Prévia ao vivo do topo do site (cabeçalho + faixa), desenhada pelo próprio site e reduzida para caber */
+.a-live { position: relative; overflow: hidden; border-radius: 12px; background: #fff; box-shadow: 0 6px 18px rgba(0,0,0,.15); min-height: 60px; }
+.a-live iframe { position: absolute; top: 0; left: 0; width: 1366px; border: 0; transform-origin: 0 0; }
+
+/* Posts relacionados (tela do post) */
+.a-rel-list { margin: 0 0 10px; padding-left: 1.4em; }
+.a-rel-list li { display: flex; align-items: center; gap: 4px; padding: 4px 0; font-size: 14px; }
+.a-rel-list li span { flex: 1; min-width: 0; }
+.a-mini { border: 1px solid rgba(0,0,0,.15); background: #fff; border-radius: 6px; width: 26px; height: 26px; cursor: pointer; line-height: 1; }
+.a-rel-results { list-style: none; margin: -6px 0 8px; padding: 4px; border: 1px solid rgba(0,0,0,.15); border-radius: 8px; background: #fff; max-height: 220px; overflow: auto; }
+.a-rel-results button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 7px 8px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 14px; }
+.a-rel-results button:hover, .a-rel-results button:focus-visible { background: #F1EEE2; }
+
+/* Página de Playlists */
+.a-pl-dhead { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 10px; }
+.a-pl-dhead label { flex: 1; margin: 0; }
+.a-pl-dhead input { font-weight: 700; font-size: 17px; }
+.a-pl-item { display: grid; grid-template-columns: 110px 1fr 1fr 1.6fr auto; gap: 8px; align-items: end; padding: 10px 0; border-top: 1px solid rgba(0,0,0,.08); }
+.a-pl-item label { margin: 0; font-size: 13px; }
+.a-pl-tools { display: flex; gap: 4px; padding-bottom: 6px; }
+@media (max-width: 900px) { .a-pl-item { grid-template-columns: 1fr 1fr; } }

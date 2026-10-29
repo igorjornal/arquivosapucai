@@ -107,11 +107,19 @@
   var sToggle = document.querySelector('[data-search-toggle]');
   if (sToggle) {
     var sForm = document.getElementById('busca-topo-form');
-    sToggle.addEventListener('click', function () {
-      var open = sForm.hidden;
+    var setSearch = function (open) {
       sForm.hidden = !open;
       sToggle.setAttribute('aria-expanded', open ? 'true' : 'false');
       if (open) sForm.querySelector('input').focus();
+    };
+    sToggle.addEventListener('click', function () { setSearch(sForm.hidden); });
+    sForm.querySelector('[data-search-close]').addEventListener('click', function () { setSearch(false); sToggle.focus(); });
+    // Fecha com Esc ou clicando fora (no computador, onde ela flutua)
+    document.addEventListener('keydown', function (e) {
+      if (e.key === 'Escape' && !sForm.hidden) { setSearch(false); sToggle.focus(); }
+    });
+    document.addEventListener('click', function (e) {
+      if (!sForm.hidden && window.innerWidth > 960 && !sForm.contains(e.target) && !sToggle.contains(e.target)) setSearch(false);
     });
   }
 

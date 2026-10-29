@@ -100,7 +100,8 @@ function page_post(string $slug): void
         'post'        => $post,
         'tags'        => post_tags((int) $post['id']),
         'comments'    => approved_comments((int) $post['id']),
-        'recent'      => latest_posts(3, 0, ['exclude' => $post['id']]),
+        'related'     => related_posts($post, 3),
+        'sidebar'     => setting('blog')['post_sidebar'] ? latest_posts((int) setting('blog')['sidebar_count'], 0, ['exclude' => $post['id'], 'newest' => true]) : [],
         'bodyClass'   => 'is-post',
         'jsonLd'      => post_json_ld($post),
     ]);

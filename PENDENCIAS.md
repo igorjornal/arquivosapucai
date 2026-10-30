@@ -35,7 +35,7 @@ Feito: título e texto da página /blog editáveis em Páginas → Blog (com fon
 - Conferir na Hostinger se o post da Viradouro voltou a aparecer na lista. Se não, mandar print.
 
 ## Rodada 10 (coletando; só anotar, fazer quando o Igor mandar)
-1. Topo da página do Blog vira um box (como os cards dos posts: cantos arredondados), editado em Páginas → Blog:
+1. Topo da página do Blog vira um box (como os cards dos posts: cantos arredondados), editado em Páginas → Blog. Ordem da página: box em cima (abertura da página), depois a barra de categorias, depois os posts.
    - título e texto editáveis (já são), com fonte, tamanho, peso e itálico de cada um;
    - cores: fundo do box (ex.: branco), título e texto;
    - largura: o box ocupa a largura toda (igual à barra de categorias) e o texto vai até o fim do box (hoje o texto quebra no meio porque tem largura máxima);

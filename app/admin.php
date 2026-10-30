@@ -48,6 +48,7 @@ function admin_dispatch(string $path): void
         ['#^/admin/secoes$#',                         'admin_sections', true],
         ['#^/admin/paginas$#',                        'admin_pages', true],
         ['#^/admin/paginas/nova$#',                   'admin_page_edit', true],
+        ['#^/admin/paginas/blog$#',                   'admin_blog_page', true],
         ['#^/admin/paginas/(\d+)$#',                 'admin_page_edit', true],
         ['#^/admin/paginas/(\d+)/excluir$#',         'admin_page_delete', true],
         ['#^/admin/secoes/(\d+)$#',                  'admin_section_edit', true],
@@ -241,7 +242,7 @@ function admin_posts(): void
     $posts = db_all(
         'SELECT p.*, c.name AS category_name, u.name AS author_name,
             (SELECT COUNT(*) FROM comments cm WHERE cm.post_id = p.id AND cm.status = \'approved\') AS comments_count
-         FROM posts p LEFT JOIN categories c ON c.id = p.category_id JOIN users u ON u.id = p.author_id
+         FROM posts p LEFT JOIN categories c ON c.id = p.category_id LEFT JOIN users u ON u.id = p.author_id
          WHERE ' . implode(' AND ', $where) . ' ORDER BY COALESCE(p.published_at, p.updated_at) DESC LIMIT ? OFFSET ?',
         [...$params, $pg['per_page'], $pg['offset']]
     );

@@ -10,7 +10,7 @@
         </div>
       </div>
     <?php else: ?>
-      <h1 class="sec-title"><?= e($heading) ?></h1>
+      <h1 class="sec-title"<?= !empty($headingKey) ? type_style($headingKey) : '' ?>><?= e($heading) ?></h1>
       <?php if (!empty($intro)): ?><p class="sec-lead"><?= e($intro) ?></p><?php endif; ?>
     <?php endif; ?>
 

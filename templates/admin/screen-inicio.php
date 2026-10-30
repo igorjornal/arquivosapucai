@@ -58,9 +58,10 @@
           <?= render_to_string('admin/image-options', ['key' => 'playlists_img', 'o' => image_opts($home['playlists_img'] ?? null, ['radius' => 16])]) ?>
           <div class="a-row-2">
             <label>Texto do botão<input name="playlists_button" value="<?= e($home['playlists_button']) ?>" maxlength="60"></label>
-            <label>Link da imagem e do botão<input name="playlists_link" value="<?= e($home['playlists_link']) ?>" placeholder="/playlists"></label>
+            <label>Link do botão (e da imagem)<input name="playlists_link" value="<?= e($home['playlists_link']) ?>" placeholder="/playlists" list="lista-paginas"></label>
           </div>
-          <small class="a-help">Coloque o endereço da página com a lista de playlists. Botão vazio: some.</small>
+          <datalist id="lista-paginas"><?php foreach ($pages as $pgItem): ?><option value="/<?= e($pgItem['slug']) ?>"><?= e($pgItem['title']) ?></option><?php endforeach; ?><option value="/blog">Blog</option></datalist>
+          <small class="a-help">Clique no campo do link para escolher uma das suas páginas, ou cole um endereço (por exemplo, a playlist no YouTube). Botão vazio: some.</small>
           <label class="a-check"><input type="checkbox" name="playlists_new_tab" value="1"<?= !empty($home['playlists_new_tab']) ? ' checked' : '' ?>> Abrir o link em nova aba</label>
           <div class="a-label">Alinhamento do título e do texto</div>
           <div class="a-seg">

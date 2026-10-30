@@ -17,9 +17,12 @@ function page_blog(): void
 {
     $per = (int) setting('blog')['per_page'];
     $pg = paginate(count_posts(), $per, (int) ($_GET['pagina'] ?? 1));
+    $blogPage = setting('blog');
     render('blog', [
-        'title'      => 'Blog',
-        'heading'    => 'Blog',
+        'title'      => $blogPage['page_title'],
+        'heading'    => $blogPage['page_title'],
+        'intro'      => $blogPage['page_intro'],
+        'headingKey' => 'blog_page_title',
         'posts'      => latest_posts($per, $pg['offset']),
         'pagination' => $pg,
         'baseLink'   => '/blog',

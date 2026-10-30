@@ -30,6 +30,10 @@ Feito: prévia do topo no painel é o próprio cabeçalho e faixa do site, mudan
 - Pendente de resposta: a fileira de atalhos ("Logo, Fundo, Itens do menu…") continua fixa no topo; o Igor ainda vai dizer se prefere que role junto.
 - Depois de aplicar: em Painel → Página de Playlists, escolher a página e cadastrar as décadas; tirar da página Playlists o texto/vídeos provisórios que não forem mais necessários.
 
+## Ajustes de 30/10: feitos e revisados (414 itens passando), falta aplicar na Hostinger
+Feito: título e texto da página /blog editáveis em Páginas → Blog (com fonte); fonte e tamanho da coluna "Últimos posts" em Blog e posts; campo do link do botão das Playlists renomeado, com lista das páginas; post com autor inexistente (provável caso do post da Viradouro: aparecia na contagem e sumia da lista) agora aparece e passa para o primeiro administrador ao abrir o painel.
+- Conferir na Hostinger se o post da Viradouro voltou a aparecer na lista. Se não, mandar print.
+
 ## A resolver
 - [ ] **SSL (cadeado) do subdomínio de teste.** Pedir ao suporte da Hostinger que ative o SSL de `novo.arquivosapucai.com.br`. Depois de ativo:
   - tirar o `#` das duas linhas de HTTPS no `.htaccess`;

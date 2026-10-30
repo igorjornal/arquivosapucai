@@ -71,6 +71,8 @@ function settings_defaults(): array
             'contact_button'  => 'Enviar',
         ],
         'blog' => [
+            'page_title'        => 'Blog', // título da página /blog (editado em Páginas → Blog)
+            'page_intro'        => '',
             'per_page'          => 6,      // posts por vez: página do blog e seção Blog da home
             'comments_enabled'  => true,
             'comments_moderate' => true,

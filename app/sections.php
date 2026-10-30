@@ -229,6 +229,14 @@ function run_migrations(): void
         }
         save_setting_raw('schema_version', 10);
     }
+    if ($version < 11) {
+        // Post com autor que não existe mais sumia da lista do painel e do site: passa para o primeiro administrador
+        $admin = (int) db_val("SELECT MIN(id) FROM users WHERE role = 'admin'");
+        if ($admin) {
+            db_exec('UPDATE posts SET author_id = ? WHERE author_id NOT IN (SELECT id FROM users)', [$admin]);
+        }
+        save_setting_raw('schema_version', 11);
+    }
 }
 
 function save_setting_raw(string $name, $value): void

@@ -43,6 +43,7 @@
         </label>
       </div>
       <small class="a-help">No celular a coluna desce para depois do texto.</small>
+      <details class="a-adv"><summary>Fontes e tamanhos da coluna</summary><?= type_fields(['side_title', 'side_posts']) ?></details>
       <label>Título dos posts embaixo do texto<input name="related_title" value="<?= e($blog['related_title']) ?>" maxlength="60"></label>
       <small class="a-help">Mostra os posts escolhidos em “Posts relacionados”, na tela de cada post. Se nenhum for escolhido, mostra os da mesma categoria.</small>
     </section>

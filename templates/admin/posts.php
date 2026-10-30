@@ -35,7 +35,7 @@
       </td>
       <td><?php partial_status($p); ?><?= $p['featured'] ? ' <span class="a-pill">Destaque</span>' : '' ?></td>
       <td><?= e($p['category_name'] ?? '—') ?></td>
-      <td><?= e($p['author_name']) ?></td>
+      <td><?= $p['author_name'] !== null ? e($p['author_name']) : '<span class="a-muted">Sem autor (escolha na tela do post)</span>' ?></td>
       <td class="a-nowrap"><?= $p['published_at'] ? e(date('d/m/Y H:i', strtotime($p['published_at']))) : '—' ?></td>
       <td class="num"><?= (int) $p['views'] ?></td>
       <td class="num"><?= (int) $p['comments_count'] ?></td>

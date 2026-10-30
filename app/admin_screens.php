@@ -212,6 +212,22 @@ function save_ticker_screen(): void
     save_type_from_post(['ticker']);
 }
 
+/* ---------- Página do Blog (fica na lista de Páginas) ---------- */
+function admin_blog_page(): void
+{
+    require_admin();
+    if (is_post()) {
+        $blog = setting('blog');
+        $blog['page_title'] = mb_substr(input('page_title'), 0, 120) ?: 'Blog';
+        $blog['page_intro'] = mb_substr(input('page_intro'), 0, 600);
+        save_setting('blog', $blog);
+        save_type_from_post(['blog_page_title']);
+        flash('success', 'Página do Blog salva.');
+        redirect('/admin/paginas/blog');
+    }
+    admin_render('blog-page', ['title' => 'Página do Blog', 'blog' => setting('blog')]);
+}
+
 /* ---------- Página de Playlists (décadas em sanfona) ---------- */
 function save_playlists_screen(): void
 {
@@ -326,7 +342,7 @@ function save_blog_screen(): void
     $blog['sidebar_count'] = max(3, min(8, (int) input('sidebar_count', 5)));
     $blog['related_title'] = mb_substr(input('related_title'), 0, 60) ?: 'Posts relacionados';
     save_setting('blog', $blog);
-    save_type_from_post(['post_title']);
+    save_type_from_post(['post_title', 'side_title', 'side_posts']);
 }
 
 /* ---------- Padrão do site: fontes base e botões ---------- */

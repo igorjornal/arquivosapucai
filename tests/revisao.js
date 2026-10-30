@@ -1540,6 +1540,37 @@ let pageRef = null;
     await submit(p.locator('.a-sticky-save button'));
   });
 
+  area = 'Ajustes de 30/10';
+  await safe('título da página do Blog em Páginas', async () => {
+    await p.goto(base + '/admin/paginas');
+    ok('Blog aparece na lista de Páginas', (await p.locator('a[href="/admin/paginas/blog"]').count()) > 0);
+    await p.goto(base + '/admin/paginas/blog');
+    await p.fill('input[name=page_title]', 'Blog do Arquivo QA');
+    await p.fill('textarea[name=page_intro]', 'Crônicas e estudos QA');
+    await submit(p.locator('.a-sticky-save button'));
+    const h = await pub('/blog');
+    ok('título novo no /blog', h.includes('>Blog do Arquivo QA</h1>') && h.includes('Crônicas e estudos QA'));
+    ok('título da aba do navegador também', /<title>Blog do Arquivo QA/.test(h));
+  });
+  await safe('fonte da coluna Últimos posts', async () => {
+    await p.goto(base + '/admin/blog-posts');
+    const box = p.locator('[data-type-field]:has(select[name="type[side_posts][font]"])');
+    await box.locator('xpath=ancestor::details').evaluateAll(ds => ds.forEach(d => { d.open = true; }));
+    await box.locator('[data-type-default]').uncheck();
+    await box.locator('select[name="type[side_posts][font]"]').selectOption('Lora');
+    await box.locator('input[name="type[side_posts][size]"]').fill('16');
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/blog');
+    const url = await p.$eval('main .card a[href^="/blog/"]', a => a.getAttribute('href'));
+    const h = await pub(url);
+    ok('posts da coluna com a fonte escolhida', /class="post-side"[\s\S]*<strong style="font-family:&#039;Lora&#039;[^"]*font-size:16px/.test(h));
+    ok('controle do título da coluna existe', (await p.goto(base + '/admin/blog-posts').then(() => p.locator('select[name="type[side_title][font]"]').count())) === 1);
+  });
+  await safe('link do botão das playlists com lista de páginas', async () => {
+    await p.goto(base + '/admin/pagina-inicial');
+    ok('campo com lista das páginas', (await p.locator('#lista-paginas option').count()) > 1 && (await p.getAttribute('input[name=playlists_link]', 'list')) === 'lista-paginas');
+  });
+
   area = 'Geral';
   ok('nenhum erro de JavaScript nas páginas', jsErrors.length === 0, jsErrors.slice(0, 3).join(' | '));
   fs.writeFileSync(shots + '/qa-resultado.json', JSON.stringify(results, null, 1));

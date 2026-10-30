@@ -7,7 +7,8 @@ const POST_SELECT = 'SELECT p.*, c.name AS category_name, c.slug AS category_slu
         u.name AS author_name, u.slug AS author_slug, u.avatar AS author_avatar
     FROM posts p
     LEFT JOIN categories c ON c.id = p.category_id
-    JOIN users u ON u.id = p.author_id';
+    JOIN users u ON u.id = COALESCE((SELECT x.id FROM users x WHERE x.id = p.author_id), (SELECT MIN(y.id) FROM users y WHERE y.role = \'admin\'))';
+// (sem autor válido, o post aparece com o primeiro administrador, em vez de sumir)
 
 // Publicado e com data já alcançada (posts agendados aparecem sozinhos na hora certa)
 function published_clause(): string

@@ -99,12 +99,12 @@ $totalComments = array_sum(array_map('count', $comments));
 
     <?php if ($sidebar): ?>
     <aside class="post-side" aria-label="<?= e($blog['sidebar_title']) ?>">
-      <h2><?= e($blog['sidebar_title']) ?></h2>
-      <ul>
+      <h2<?= type_style('side_title') ?>><?= e($blog['sidebar_title']) ?></h2>
+      <ul><?php $sideStyle = type_style('side_posts'); ?>
         <?php foreach ($sidebar as $s): ?>
           <li><a href="<?= e(post_url($s)) ?>">
             <?php if ($s['cover_image']): ?><img src="<?= e(media_url($s['cover_image'])) ?>" alt="" loading="lazy"><?php else: ?><span class="side-noimg" aria-hidden="true"></span><?php endif; ?>
-            <span><strong><?= e($s['title']) ?></strong><time datetime="<?= e(date('c', strtotime((string) $s['published_at']))) ?>"><?= e(date_short($s['published_at'])) ?></time></span>
+            <span><strong<?= $sideStyle ?>><?= e($s['title']) ?></strong><time datetime="<?= e(date('c', strtotime((string) $s['published_at']))) ?>"><?= e(date_short($s['published_at'])) ?></time></span>
           </a></li>
         <?php endforeach; ?>
       </ul>

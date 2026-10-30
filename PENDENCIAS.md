@@ -44,6 +44,11 @@ Feito: título e texto da página /blog editáveis em Páginas → Blog (com fon
 4. Imagem no meio do texto (janela "Editar imagem" do editor): quando o formato é recorte (banner 3x1 e os outros), clicar na miniatura para marcar com o círculo amarelo a parte da foto que aparece, igual à capa do post e às páginas. A miniatura mostra o recorte na hora. Substitui a lista "Parte que aparece no recorte" (Centro, Topo…).
 5. Imagem de capa (tela do post), em "Dentro do post": caixinha "Mostrar a capa no topo do post" (marcada por padrão, como hoje). Desmarcada: a capa só aparece no card do blog e no compartilhamento (WhatsApp etc.), e o post começa direto no texto, onde o Igor coloca outra imagem pelo editor. Com ela desmarcada, Formato, Tamanho e Alinhamento ficam escondidos. Posts já publicados continuam como estão.
 6. Cor própria do rótulo de cada categoria (ex.: Crônica roxo, Estudo de Caso verde): em Posts → Categorias, cada categoria ganha "Fundo do rótulo" e "Texto do rótulo". Vale no rótulo dos cards (home, blog, relacionados) e no rótulo dentro do post. Categoria sem cor escolhida fica com o roxo de hoje.
+7. Playlists por década passam para dentro de Páginas → Playlists (centralizar, como o Blog):
+   - na tela de edição da página Playlists, depois do texto, entra o bloco "Playlists por década" com tudo o que hoje está na tela "Página de Playlists" (décadas, playlists, ordem, cores); nada se perde;
+   - sai do menu lateral o item "Página de Playlists"; o endereço antigo leva para a página Playlists em Páginas;
+   - some o campo "Página onde aparecem" (as décadas ficam presas à página onde são editadas);
+   - "Palavra depois do número" vira "Texto que vem depois do número", com exemplo: "Anos 80 · 8 playlists". Vazio: o número some.
 2. Proposta feita, aguardando o Igor confirmar: cores próprias da página do Blog em Páginas → Blog (hoje vêm de Página inicial → Blog), e Contato com tela própria em "O site, parte por parte" (aparece na home, nas páginas e no blog).
 
 ## A resolver

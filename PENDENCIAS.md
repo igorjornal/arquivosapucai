@@ -41,6 +41,7 @@ Feito: título e texto da página /blog editáveis em Páginas → Blog (com fon
    - largura: o box ocupa a largura toda (igual à barra de categorias) e o texto vai até o fim do box (hoje o texto quebra no meio porque tem largura máxima);
    - folga interna (régua) para o box ficar mais alto ou mais baixo.
 3. Posts relacionados (tela do post): botão "Escolher posts" abre uma janela com todos os posts publicados (miniatura, título e data, os mais novos primeiro), com uma busca em cima que procura no título e também no texto do post. Marca quantos quiser (até 6) com uma caixinha ao lado, clica OK e eles entram na lista, onde ainda dá para mudar a ordem ou tirar.
+4. Imagem no meio do texto (janela "Editar imagem" do editor): quando o formato é recorte (banner 3x1 e os outros), clicar na miniatura para marcar com o círculo amarelo a parte da foto que aparece, igual à capa do post e às páginas. A miniatura mostra o recorte na hora. Substitui a lista "Parte que aparece no recorte" (Centro, Topo…).
 2. Proposta feita, aguardando o Igor confirmar: cores próprias da página do Blog em Páginas → Blog (hoje vêm de Página inicial → Blog), e Contato com tela própria em "O site, parte por parte" (aparece na home, nas páginas e no blog).
 
 ## A resolver

@@ -51,7 +51,7 @@ Feito: título e texto da página /blog editáveis em Páginas → Blog (com fon
 - [ ] **Trocar a senha do banco de dados.** A senha atual apareceu na conversa. Pedir à Hostinger uma senha nova e atualizar o campo `password` no `config.php` do servidor.
 - [ ] **Forma de atualizar o site.** Decidir entre um zip novo a cada mudança ou ligar o GitHub direto na Hostinger (deploy automático).
 - [ ] **Avisos por e-mail caem no spam.** O teste chegou no Gmail, mas na caixa de spam (29/10). Solução: enviar pelo e-mail de verdade da Hostinger (SMTP com usuário e senha), em vez do envio simples do PHP. A senha fica só no config.php do servidor, nunca na conversa. Enquanto isso: marcar "Não é spam" no Gmail.
-- [ ] **Limpar as pastas com número no nome** em public_html (app.1533, templates.6108 etc.): são cópias antigas criadas pelo Gerenciador de Arquivos ao mover pastas. O site não usa; apagar com calma, uma vez só, quando o Igor quiser.
+- [ ] **Limpar as pastas com número no nome** em public_html (app.1533, templates.6108 etc.): são cópias antigas criadas pelo Gerenciador de Arquivos ao mover pastas. O site não usa; apagar com calma, uma vez só, quando o Igor quiser. Combinado em 30/10: o Igor manda print do public_html (agora usa o FileZilla) e conferimos juntos, pasta por pasta, antes de apagar.
 - [ ] **Testes do Igor.** O Igor está testando e anotando o que mudar. Trazer a lista para a próxima conversa.
 - [ ] **Links das playlists.** Trocar os links das 3 imagens de Playlists pelos links de cada playlist (Painel → Conteúdo do site → Textos da home).
 - [ ] **Redes sociais.** Preencher Instagram e as outras redes (Painel → Conteúdo do site → Site e redes).

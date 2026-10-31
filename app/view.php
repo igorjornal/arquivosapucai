@@ -38,7 +38,8 @@ function type_targets(): array
         'post_title'         => $t('Título dos posts e páginas', 'heading', 50, true),
         'menu'               => $t('Menu do topo', 'ui', 15, true),
         'ticker'             => $t('Texto dos avisos', 'ui', 14, false, true),
-        'blog_page_title'    => $t('Título da página do Blog', 'heading', null, true),
+        'blog_page_title'    => $t('Título do box da página do Blog', 'heading', 40, true),
+        'blog_page_intro'    => $t('Texto do box da página do Blog', 'body', null, false),
         'side_title'         => $t('Título da coluna “Últimos posts”', 'heading', 20, true),
         'side_posts'         => $t('Títulos dos posts na coluna', 'ui', 14, true),
         'blog_title'         => $t('Título', 'heading', 34, true),
@@ -163,6 +164,18 @@ function type_css(string $key): string
     return $css . ';font-weight:' . $c['weight'] . ';font-style:' . ($c['italic'] ? 'italic' : 'normal');
 }
 
+// Cor própria do rótulo da categoria (vazio = roxo padrão do site)
+function chip_style(array $post): string
+{
+    $css = [];
+    foreach (['category_label_bg' => 'background', 'category_label_text' => 'color'] as $k => $prop) {
+        if (!empty($post[$k]) && preg_match('/^#[0-9a-fA-F]{6}$/', (string) $post[$k])) {
+            $css[] = $prop . ':' . $post[$k];
+        }
+    }
+    return $css ? ' style="' . implode(';', $css) . '"' : '';
+}
+
 function type_style(string $key): string
 {
     $css = type_css($key);
@@ -191,6 +204,7 @@ function appearance_css(): string
     $lines[] = '--header-overlay-a:' . $overlay . '%';
     $lines[] = '--header-overlay-b:' . (!empty($a['header']['gradient']) ? (int) round($overlay * .55) : $overlay) . '%';
     $lines[] = '--menu-gap:' . max(0, min(80, (int) ($a['menu']['gap'] ?? 30))) . 'px';
+    $lines[] = '--blogbox-pad:' . max(8, min(100, (int) (setting('blog')['page_box_pad'] ?? 32))) . 'px';
     $lines[] = '--split-gap:' . max(0, min(120, (int) (setting('home')['split_gap'] ?? 40))) . 'px';
     $lines[] = '--ticker-pad:' . max(0, min(40, (int) (setting('home')['ticker_pad'] ?? 9))) . 'px';
     $lines[] = '--logo-size:' . $logo . 'px';

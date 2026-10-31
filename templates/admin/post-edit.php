@@ -75,8 +75,13 @@ $ratios = array_map(fn ($r) => $r['label'], image_ratios());
           </select>
         </label>
         <small class="a-help"><a href="/admin/categorias" target="_blank">Criar ou editar categorias ↗</a></small>
-        <label>Tags <input name="tags" value="<?= e($tags) ?>" placeholder="mangueira, 1988, joãosinho trinta"></label>
-        <small class="a-help">Separe por vírgula.</small>
+        <div data-tags>
+          <div class="a-tag-suggest" data-tag-suggest hidden><div class="a-label">Sugeridas pelo texto <small>(clique para colocar)</small></div><div class="a-tag-chips" data-tag-suggest-list></div></div>
+          <label>Tags <input name="tags" value="<?= e($tags) ?>" placeholder="mangueira, 1988, joãosinho trinta" autocomplete="off" data-tag-input></label>
+          <small class="a-help">Separe por vírgula, ou clique nas tags que você já usa:</small>
+          <div class="a-tag-chips a-tag-all" data-tag-all></div>
+          <script type="application/json" data-tag-list><?= json_encode($allTags, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
+        </div>
       </section>
 
       <section class="a-card" data-related>
@@ -87,9 +92,13 @@ $ratios = array_map(fn ($r) => $r['label'], image_ratios());
               <button type="button" class="a-mini" data-rel-up aria-label="Subir">↑</button><button type="button" class="a-mini" data-rel-down aria-label="Descer">↓</button><button type="button" class="a-mini" data-rel-remove aria-label="Tirar">×</button></li>
           <?php endforeach; ?>
         </ol>
-        <label>Buscar post pelo título<input type="search" data-rel-search placeholder="Digite parte do título" autocomplete="off"></label>
-        <ul class="a-rel-results" data-rel-results hidden></ul>
-        <script type="application/json" data-rel-posts><?= json_encode($relatedChoices, JSON_UNESCAPED_UNICODE | JSON_HEX_TAG | JSON_HEX_AMP) ?></script>
+        <button type="button" class="a-btn a-btn-ghost" data-rel-open data-exclude="<?= (int) $post['id'] ?>">Escolher posts</button>
+        <dialog class="a-rel-dialog" data-rel-dialog>
+          <div class="a-rel-dhead"><strong>Escolher posts relacionados</strong><button type="button" class="a-mini" data-rel-close aria-label="Fechar">×</button></div>
+          <input type="search" data-rel-search placeholder="Buscar no título e no texto (opcional)" autocomplete="off">
+          <ul class="a-rel-pick" data-rel-pick></ul>
+          <div class="a-rel-dfoot"><span class="a-muted" data-rel-count></span><button type="button" class="a-btn" data-rel-ok>OK</button></div>
+        </dialog>
         <small class="a-help">Aparecem embaixo do post, nesta ordem (até 6). Sem nenhum escolhido, o site mostra sozinho os da mesma categoria.</small>
       </section>
 
@@ -98,6 +107,9 @@ $ratios = array_map(fn ($r) => $r['label'], image_ratios());
         <?= image_field('cover_image', $post['cover_image'], 'Imagem', 'Aparece no topo do post e no card do blog.') ?>
         <label>Texto alternativo <input name="cover_alt" value="<?= e($post['cover_alt']) ?>" placeholder="Descreva a foto (acessibilidade)"></label>
         <h3>Dentro do post</h3>
+        <label class="a-check"><input type="checkbox" name="cover_in_post" value="1"<?= ($post['cover_in_post'] ?? 1) ? ' checked' : '' ?> data-cover-inpost-toggle> Mostrar a capa no topo do post</label>
+        <small class="a-help">Desmarcada: a capa continua no card do blog e no compartilhamento (WhatsApp etc.), e o post começa direto no texto.</small>
+        <div data-cover-inpost<?= ($post['cover_in_post'] ?? 1) ? '' : ' hidden' ?>>
         <label>Formato <select name="cover_ratio" data-cover-ratio><?= select_options($ratios, $post['cover_ratio']) ?></select></label>
         <label><span>Tamanho: <output data-cover-width-out><?= (int) $post['cover_width'] ?>%</output></span>
           <input type="range" name="cover_width" min="20" max="100" step="5" value="<?= (int) $post['cover_width'] ?>" data-cover-width>
@@ -117,6 +129,7 @@ $ratios = array_map(fn ($r) => $r['label'], image_ratios());
           <input type="hidden" name="cover_position" value="<?= e($post['cover_position']) ?>" data-focus-value>
         </div>
         <div class="a-cover-preview" data-cover-preview><div class="a-label">Prévia</div><img src="<?= e(media_url($post['cover_image'])) ?>" alt=""></div>
+        </div>
       </section>
 
       <section class="a-card">

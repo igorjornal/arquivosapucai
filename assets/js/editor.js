@@ -112,7 +112,7 @@
           { type: 'htmlpanel', html: '<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">' +
             '<button type="button" class="tox-button" data-arq="pick">Escolher da biblioteca / enviar</button>' +
             '<span data-arq="status" style="font-size:13px;color:#555"></span></div>' +
-            '<div data-arq="thumb" style="margin-top:10px">' + thumbHtml(data.src) + '</div>' },
+            '<div data-arq="thumb" style="margin-top:10px">' + focusHtml(data.src, ratios[data.ratio], data.position) + '</div>' },
           { type: 'input', name: 'src', label: 'Endereço da imagem' },
           { type: 'input', name: 'alt', label: 'Descrição (acessibilidade)' },
           { type: 'input', name: 'caption', label: 'Legenda (opcional)' },
@@ -129,11 +129,6 @@
               { value: 'wide', text: 'Retangular (16x9)' }, { value: 'landscape', text: 'Retangular (4x3)' },
               { value: 'square', text: 'Quadrada' }, { value: 'portrait', text: 'Em pé (4x5)' }
             ] },
-            { type: 'selectbox', name: 'position', label: 'Parte que aparece no recorte', items: [
-              { value: '50% 50%', text: 'Centro' }, { value: '50% 0%', text: 'Topo' }, { value: '50% 100%', text: 'Base' },
-              { value: '0% 50%', text: 'Esquerda' }, { value: '100% 50%', text: 'Direita' },
-              { value: '50% 25%', text: 'Meio-alto' }, { value: '50% 75%', text: 'Meio-baixo' }
-            ] },
             { type: 'selectbox', name: 'radius', label: 'Cantos', items: [
               { value: '0', text: 'Retos' }, { value: '8', text: 'Levemente arredondados' }, { value: '18', text: 'Arredondados' },
               { value: '32', text: 'Bem arredondados' }, { value: '999', text: 'Redondo (use com quadrada)' }
@@ -147,8 +142,13 @@
         { type: 'cancel', text: 'Cancelar' },
         { type: 'submit', text: fig ? 'Atualizar' : 'Inserir', primary: true }
       ],
+      // Trocou o formato ou a imagem: redesenha a foto com o círculo e a prévia do recorte
+      onChange: function (api, details) {
+        if (details.name === 'ratio' || details.name === 'src') redrawFocus(api.getData().src, ratios[api.getData().ratio]);
+      },
       onSubmit: function (api) {
         var d = api.getData();
+        d.position = imagePos;
         if (!d.src) { editor.notificationManager.open({ text: 'Escolha uma imagem.', type: 'warning', timeout: 3000 }); return; }
         var ratio = ratios[d.ratio];
         var imgStyle = [];
@@ -170,7 +170,38 @@
 
     // O botão da biblioteca é atendido por um ouvinte único (abaixo), que precisa saber qual janela está aberta
     openImageDialog = dialog;
+    imagePos = data.position;
   }
+
+  // Ponto do recorte da imagem do texto: clique na foto marca o círculo amarelo (igual à capa do post)
+  var imagePos = '50% 50%';
+  function focusHtml(src, ratio, pos) {
+    if (!src) return '';
+    if (!ratio) return thumbHtml(src);
+    var xy = (pos || '50% 50%').split(' ');
+    return '<div style="display:flex;gap:14px;align-items:flex-start;flex-wrap:wrap">' +
+      '<div data-arq="focus" style="position:relative;display:inline-block;cursor:crosshair;line-height:0">' +
+      '<img src="' + esc(src) + '" style="max-height:150px;max-width:260px;border-radius:8px;display:block" alt="">' +
+      '<span data-arq="dot" style="position:absolute;left:' + xy[0] + ';top:' + xy[1] + ';width:22px;height:22px;margin:-11px 0 0 -11px;border-radius:50%;border:3px solid #CDF50D;box-shadow:0 0 0 2px rgba(0,0,0,.55);pointer-events:none"></span></div>' +
+      '<div style="font-size:13px;color:#555;max-width:240px">Clique na foto para escolher a parte que aparece no recorte.' +
+      '<img data-arq="crop" src="' + esc(src) + '" alt="" style="display:block;margin-top:8px;width:230px;aspect-ratio:' + ratio + ';object-fit:cover;object-position:' + esc(pos || '50% 50%') + ';border-radius:8px"></div></div>';
+  }
+  function redrawFocus(src, ratio) {
+    var thumb = document.querySelector('.tox-dialog [data-arq="thumb"]');
+    if (thumb) thumb.innerHTML = focusHtml(src, ratio, imagePos);
+  }
+  document.addEventListener('click', function (e) {
+    var area = e.target.closest && e.target.closest('.tox-dialog [data-arq="focus"]');
+    if (!area) return;
+    var r = area.getBoundingClientRect();
+    var x = Math.round(Math.max(0, Math.min(100, (e.clientX - r.left) / r.width * 100)));
+    var y = Math.round(Math.max(0, Math.min(100, (e.clientY - r.top) / r.height * 100)));
+    imagePos = x + '% ' + y + '%';
+    var dot = area.querySelector('[data-arq="dot"]');
+    dot.style.left = x + '%'; dot.style.top = y + '%';
+    var crop = area.parentNode.querySelector('[data-arq="crop"]');
+    if (crop) crop.style.objectPosition = imagePos;
+  }, true);
 
   function thumbHtml(src) {
     return src ? '<img src="' + esc(src) + '" style="max-height:120px;border-radius:8px">' : '';
@@ -202,7 +233,7 @@
     var thumb = btn.closest('.tox-dialog').querySelector('[data-arq="thumb"]');
     window.ArquivoMedia.open(function (item) {
       dialog.setData({ src: item.url, alt: dialog.getData().alt || item.alt || '' });
-      if (thumb) thumb.innerHTML = thumbHtml(item.url);
+      if (thumb) thumb.innerHTML = focusHtml(item.url, ratios[dialog.getData().ratio], imagePos);
     });
   }, true);
 

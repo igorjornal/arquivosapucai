@@ -23,7 +23,7 @@ $totalComments = array_sum(array_map('count', $comments));
         <?php endif; ?>
       </header>
 
-      <?php if ($post['cover_image']): ?>
+      <?php if ($post['cover_image'] && ($post['cover_in_post'] ?? 1)): ?>
         <?php
         $coverAlign = in_array($post['cover_align'], ['left', 'center', 'right'], true) ? $post['cover_align'] : 'center';
         $coverWidth = max(20, min(100, (int) $post['cover_width']));
@@ -42,7 +42,7 @@ $totalComments = array_sum(array_map('count', $comments));
 
       <footer class="post-foot">
         <div class="post-tags">
-          <?php if ($post['category_name']): ?><a class="chip" href="/blog/categoria/<?= e($post['category_slug']) ?>"><?= e($post['category_name']) ?></a><?php endif; ?>
+          <?php if ($post['category_name']): ?><a class="chip"<?= chip_style($post) ?> href="/blog/categoria/<?= e($post['category_slug']) ?>"><?= e($post['category_name']) ?></a><?php endif; ?>
           <?php foreach ($tags as $t): ?><a class="tag" href="/blog/tag/<?= e($t['slug']) ?>">#<?= e($t['name']) ?></a><?php endforeach; ?>
         </div>
         <?php if ($blog['share_buttons']): ?>

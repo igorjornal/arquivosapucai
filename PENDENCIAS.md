@@ -34,27 +34,9 @@ Feito: prévia do topo no painel é o próprio cabeçalho e faixa do site, mudan
 Feito: título e texto da página /blog editáveis em Páginas → Blog (com fonte); fonte e tamanho da coluna "Últimos posts" em Blog e posts; campo do link do botão das Playlists renomeado, com lista das páginas; post com autor inexistente (provável caso do post da Viradouro: aparecia na contagem e sumia da lista) agora aparece e passa para o primeiro administrador ao abrir o painel.
 - Conferir na Hostinger se o post da Viradouro voltou a aparecer na lista. Se não, mandar print.
 
-## Rodada 10 (coletando; só anotar, fazer quando o Igor mandar)
-1. Topo da página do Blog vira um box (como os cards dos posts: cantos arredondados), editado em Páginas → Blog. Ordem da página: box em cima (abertura da página), depois a barra de categorias, depois os posts.
-   - título e texto editáveis (já são), com fonte, tamanho, peso e itálico de cada um;
-   - cores: fundo do box (ex.: branco), título e texto;
-   - largura: o box ocupa a largura toda (igual à barra de categorias) e o texto vai até o fim do box (hoje o texto quebra no meio porque tem largura máxima);
-   - folga interna (régua) para o box ficar mais alto ou mais baixo.
-3. Posts relacionados (tela do post): botão "Escolher posts" abre uma janela com todos os posts publicados (miniatura, título e data, os mais novos primeiro), com uma busca em cima que procura no título e também no texto do post. Marca quantos quiser (até 6) com uma caixinha ao lado, clica OK e eles entram na lista, onde ainda dá para mudar a ordem ou tirar.
-4. Imagem no meio do texto (janela "Editar imagem" do editor): quando o formato é recorte (banner 3x1 e os outros), clicar na miniatura para marcar com o círculo amarelo a parte da foto que aparece, igual à capa do post e às páginas. A miniatura mostra o recorte na hora. Substitui a lista "Parte que aparece no recorte" (Centro, Topo…).
-5. Imagem de capa (tela do post), em "Dentro do post": caixinha "Mostrar a capa no topo do post" (marcada por padrão, como hoje). Desmarcada: a capa só aparece no card do blog e no compartilhamento (WhatsApp etc.), e o post começa direto no texto, onde o Igor coloca outra imagem pelo editor. Com ela desmarcada, Formato, Tamanho e Alinhamento ficam escondidos. Posts já publicados continuam como estão.
-6. Cor própria do rótulo de cada categoria (ex.: Crônica roxo, Estudo de Caso verde): em Posts → Categorias, cada categoria ganha "Fundo do rótulo" e "Texto do rótulo". Vale no rótulo dos cards (home, blog, relacionados) e no rótulo dentro do post. Categoria sem cor escolhida fica com o roxo de hoje.
-7. Playlists por década passam para dentro de Páginas → Playlists (centralizar, como o Blog):
-   - na tela de edição da página Playlists, depois do texto, entra o bloco "Playlists por década" com tudo o que hoje está na tela "Página de Playlists" (décadas, playlists, ordem, cores); nada se perde;
-   - sai do menu lateral o item "Página de Playlists"; o endereço antigo leva para a página Playlists em Páginas;
-   - some o campo "Página onde aparecem" (as décadas ficam presas à página onde são editadas);
-   - "Palavra depois do número" vira "Texto que vem depois do número", com exemplo: "Anos 80 · 8 playlists". Vazio: o número some.
-8. Tags na tela do post (mesmo cartão "Categoria e tags"):
-   - as tags que já existem aparecem embaixo do campo como botõezinhos, as mais usadas primeiro; clicou entra, clicou de novo sai;
-   - ao digitar, aparecem sugestões das tags que já existem (evita repetidas);
-   - "Sugeridas pelo texto" em destaque em cima: só tags que JÁ existem e cujo nome aparece no título ou no texto do post; o Igor confirma com um clique;
-   - o painel NÃO cria tags novas sozinho (decisão do Igor).
-2. Proposta feita, aguardando o Igor confirmar: cores próprias da página do Blog em Páginas → Blog (hoje vêm de Página inicial → Blog), e Contato com tela própria em "O site, parte por parte" (aparece na home, nas páginas e no blog).
+## Rodada 10: feita e revisada (442 itens passando), falta aplicar na Hostinger
+Feito: box de abertura da página do Blog acima da barra de categorias (título, texto, fontes, cores, folga) e cores próprias da página do Blog, tudo em Páginas → Blog; Contato com tela própria em "O site, parte por parte"; janela "Escolher posts" para os relacionados (miniatura, título, data, busca no título e no texto); círculo amarelo para o ponto do recorte das imagens do editor; caixinha "Mostrar a capa no topo do post"; cor do rótulo por categoria (Posts → Categorias); playlists por década dentro de Páginas → Playlists (saiu a tela separada); tags em botões, filtradas ao digitar, e "Sugeridas pelo texto" (só tags que já existem).
+- Depois de aplicar: conferir em Páginas → Blog as cores do box (começa com fundo branco) e em Páginas → Playlists o bloco das décadas.
 
 ## A resolver
 - [ ] **SSL (cadeado) do subdomínio de teste.** Pedir ao suporte da Hostinger que ative o SSL de `novo.arquivosapucai.com.br`. Depois de ativo:

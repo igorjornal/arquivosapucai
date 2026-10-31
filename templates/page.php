@@ -28,6 +28,6 @@ $isDraft = $page['status'] !== 'published';
     <?php endif; ?>
     <div class="post-content"><?= $page['content'] /* sanitizado ao salvar */ ?></div>
   </div>
-  <?php $pl = setting('playlist_page'); if ($pl['decades'] && $pl['page_slug'] === $page['slug']) partial('playlist-decades', ['pl' => $pl]); ?>
+  <?php $pl = setting('playlist_page'); if ($pl['decades'] && (int) $page['id'] === playlists_page_id()) partial('playlist-decades', ['pl' => $pl]); ?>
 </article>
 <?php partial('contact', ['home' => setting('home'), 'anchor' => 'contato']); ?>

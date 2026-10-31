@@ -10,9 +10,9 @@ function admin_screens(): array
         'cabecalho'      => ['Cabeçalho e menu', 'screen-cabecalho'],
         'faixa'          => ['Faixa de avisos', 'screen-faixa'],
         'pagina-inicial' => ['Página inicial', 'screen-inicio'],
+        'contato'        => ['Contato', 'screen-contato'],
         'rodape'         => ['Rodapé', 'screen-rodape'],
         'blog-posts'     => ['Blog e posts', 'screen-blog'],
-        'playlists'      => ['Página de Playlists', 'screen-playlists'],
         'padrao'         => ['Padrão do site', 'screen-padrao'],
         'configuracoes'  => ['Configurações', 'screen-config'],
     ];
@@ -34,6 +34,7 @@ function screen_colors(string $screen): array
         'contato'   => ['contact_bg' => 'Fundo', 'contact_title' => 'Título', 'contact_text' => 'Texto'],
         'rodape'    => ['footer_bg' => 'Fundo', 'footer_text' => 'Textos e links', 'footer_accent' => 'Títulos, ícones e destaques'],
         'paginas'   => ['pager_bg' => 'Fundo dos números', 'pager_text' => 'Número', 'pager_active_bg' => 'Fundo em destaque (página aberta e mouse por cima)', 'pager_active_text' => 'Número em destaque'],
+        'pagina_blog' => ['blogpage_bg' => 'Fundo da página', 'blogpage_box_bg' => 'Fundo do box', 'blogpage_title' => 'Título do box', 'blogpage_text' => 'Texto do box'],
         'pl_pagina' => ['pl_bar_bg' => 'Fundo das barras das décadas', 'pl_bar_text' => 'Texto das barras', 'pl_card_bg' => 'Fundo das capas', 'pl_year' => 'Ano nas capas', 'pl_text' => 'Título e subtítulo nas capas', 'pl_accent' => 'Botão de play e destaque da barra aberta'],
         'cards'     => ['card_bg' => 'Fundo do card', 'card_title' => 'Título do card', 'card_text' => 'Texto do card'],
         'post'      => ['post_page_bg' => 'Fundo da página do post', 'post_box_bg' => 'Fundo da caixa do texto', 'post_title' => 'Títulos', 'post_text' => 'Texto',
@@ -84,8 +85,8 @@ function admin_screen(string $screen): void
         }
         if ($screen === 'cabecalho') {
             save_header_screen();
-        } elseif ($screen === 'playlists') {
-            save_playlists_screen();
+        } elseif ($screen === 'contato') {
+            save_contact_screen();
         } elseif ($screen === 'faixa') {
             save_ticker_screen();
         } elseif ($screen === 'pagina-inicial') {
@@ -219,21 +220,43 @@ function admin_blog_page(): void
     if (is_post()) {
         $blog = setting('blog');
         $blog['page_title'] = mb_substr(input('page_title'), 0, 120) ?: 'Blog';
-        $blog['page_intro'] = mb_substr(input('page_intro'), 0, 600);
+        $blog['page_intro'] = mb_substr(input('page_intro'), 0, 1200);
+        $blog['page_box_pad'] = max(8, min(100, (int) input('page_box_pad', 32)));
         save_setting('blog', $blog);
-        save_type_from_post(['blog_page_title']);
+        if (isset($_POST['colors'])) {
+            save_colors_from_post();
+        }
+        save_type_from_post(['blog_page_title', 'blog_page_intro']);
         flash('success', 'Página do Blog salva.');
         redirect('/admin/paginas/blog');
     }
     admin_render('blog-page', ['title' => 'Página do Blog', 'blog' => setting('blog')]);
 }
 
-/* ---------- Página de Playlists (décadas em sanfona) ---------- */
-function save_playlists_screen(): void
+/* ---------- Playlists por década (dentro da tela da página Playlists) ---------- */
+function admin_playlists_redirect(): void
 {
+    require_admin();
+    $id = playlists_page_id();
+    redirect($id ? '/admin/paginas/' . $id . '#playlists-decadas' : '/admin/paginas');
+}
+
+// Salva as décadas junto com a página (só se o bloco estava na tela, ou se a página passou a ser a das playlists)
+function save_page_playlists(int $pageId): void
+{
+    if (post_bool('use_playlists')) {
+        $pl = setting('playlist_page');
+        $pl['page_id'] = $pageId;
+        save_setting('playlist_page', $pl);
+    }
+    if (empty($_POST['pl_block'])) {
+        return;
+    }
+    if (isset($_POST['colors'])) {
+        save_colors_from_post();
+    }
     $pl = setting('playlist_page');
-    $slug = input('page_slug');
-    $pl['page_slug'] = $slug === '' || db_val('SELECT COUNT(*) FROM pages WHERE slug = ?', [$slug]) ? $slug : $pl['page_slug'];
+    $pl['page_id'] = $pageId;
     $pl['count_label'] = mb_substr(input('count_label'), 0, 30);
     $decades = [];
     foreach ((array) ($_POST['decades'] ?? []) as $d) {
@@ -260,7 +283,7 @@ function save_playlists_screen(): void
 function save_home_screen(): void
 {
     $home = setting('home');
-    $text = ['blog_title', 'blog_button', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'arquivo_link', 'playlists_title', 'playlists_intro', 'playlists_outro', 'contact_title', 'contact_text', 'arquivo_image',
+    $text = ['blog_title', 'blog_button', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'arquivo_link', 'playlists_title', 'playlists_intro', 'playlists_outro', 'arquivo_image',
         'playlists_image', 'playlists_button', 'playlists_link'];
     $home['playlists_layout'] = input('playlists_layout') === 'feature' ? 'feature' : 'grid';
     $home['playlists_align'] = in_array(input('playlists_align'), ['left', 'center', 'right', 'justify'], true) ? input('playlists_align') : 'left';
@@ -275,10 +298,6 @@ function save_home_screen(): void
     foreach ($text as $k) {
         $home[$k] = trim(mb_substr((string) ($_POST[$k] ?? ''), 0, 3000));
     }
-    foreach (array_keys(settings_defaults()['home']['contact_labels']) as $f) {
-        $home['contact_labels'][$f] = mb_substr(trim((string) ($_POST['contact_labels'][$f] ?? '')), 0, 60) ?: settings_defaults()['home']['contact_labels'][$f];
-    }
-    $home['contact_button'] = mb_substr(input('contact_button'), 0, 40) ?: 'Enviar';
     $home['split_gap'] = max(0, min(120, (int) input('split_gap', 40)));
     $blog = setting('blog');
     $blog['per_page'] = max(1, min(48, (int) input('per_page', 6)));
@@ -300,7 +319,22 @@ function save_home_screen(): void
     $home['playlists'] = $playlists;
     save_setting('home', $home);
     save_type_from_post(['blog_title', 'blog_button', 'arquivo_title', 'arquivo_text', 'arquivo_button', 'playlists_title', 'playlists_intro', 'playlists_names', 'playlists_outro', 'playlists_button',
-        'acervo_title', 'acervo_text', 'acervo_button', 'historia_title', 'historia_text', 'historia_button', 'contact_title', 'contact_text', 'contact_labels', 'contact_button']);
+        'acervo_title', 'acervo_text', 'acervo_button', 'historia_title', 'historia_text', 'historia_button']);
+}
+
+/* ---------- Contato (aparece na home, nas páginas e no blog) ---------- */
+function save_contact_screen(): void
+{
+    $home = setting('home');
+    foreach (['contact_title', 'contact_text'] as $k) {
+        $home[$k] = trim(mb_substr((string) ($_POST[$k] ?? ''), 0, 3000));
+    }
+    foreach (array_keys(settings_defaults()['home']['contact_labels']) as $f) {
+        $home['contact_labels'][$f] = mb_substr(trim((string) ($_POST['contact_labels'][$f] ?? '')), 0, 60) ?: settings_defaults()['home']['contact_labels'][$f];
+    }
+    $home['contact_button'] = mb_substr(input('contact_button'), 0, 40) ?: 'Enviar';
+    save_setting('home', $home);
+    save_type_from_post(['contact_title', 'contact_text', 'contact_labels', 'contact_button']);
 }
 
 /* ---------- Rodapé ---------- */

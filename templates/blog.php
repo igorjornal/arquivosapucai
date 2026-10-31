@@ -1,7 +1,15 @@
 <section class="sec sec-blog blog-page">
   <div class="wrap">
+    <?php if (!empty($headingKey)): ?>
+      <?php // Página principal do Blog: box de abertura em cima, depois a barra de categorias ?>
+      <header class="blog-box">
+        <h1<?= type_style('blog_page_title') ?>><?= e($heading) ?></h1>
+        <?php if (!empty($intro)): ?><p<?= type_style('blog_page_intro') ?>><?= nl2br(e($intro)) ?></p><?php endif; ?>
+      </header>
+    <?php endif; ?>
     <?php partial('category-bar', ['active' => $activeCategory, 'search' => $search ?? null]); ?>
-    <?php if (!empty($author)): ?>
+    <?php if (!empty($headingKey)): /* o título já está no box de abertura */ ?>
+    <?php elseif (!empty($author)): ?>
       <div class="author-head">
         <img class="avatar avatar-lg" src="<?= e(avatar_url($author['avatar'])) ?>" alt="" width="96" height="96">
         <div>

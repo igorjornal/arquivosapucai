@@ -41,13 +41,15 @@ function admin_dispatch(string $path): void
         ['#^/admin/autores/novo$#',                   'admin_user_edit', true],
         ['#^/admin/autores/(\d+)$#',                  'admin_user_edit', true],
         ['#^/admin/perfil$#',                         'admin_profile', true],
-        ['#^/admin/(cabecalho|faixa|pagina-inicial|rodape|blog-posts|playlists|padrao|configuracoes)$#', 'admin_screen', true],
+        ['#^/admin/(cabecalho|faixa|pagina-inicial|rodape|blog-posts|contato|padrao|configuracoes)$#', 'admin_screen', true],
         ['#^/admin/(?:aparencia|conteudo|menu)$#',    'admin_old_redirect', true],
         ['#^/admin/previa/(cabecalho|faixa)$#',        'admin_preview_top', true],
         ['#^/admin/banners$#',                        'admin_banners', true],
         ['#^/admin/secoes$#',                         'admin_sections', true],
         ['#^/admin/paginas$#',                        'admin_pages', true],
         ['#^/admin/paginas/nova$#',                   'admin_page_edit', true],
+        ['#^/admin/posts/escolher$#',                 'admin_post_picker', true],
+        ['#^/admin/playlists$#',                      'admin_playlists_redirect', true],
         ['#^/admin/paginas/blog$#',                   'admin_blog_page', true],
         ['#^/admin/paginas/(\d+)$#',                 'admin_page_edit', true],
         ['#^/admin/paginas/(\d+)/excluir$#',         'admin_page_delete', true],
@@ -305,7 +307,7 @@ function admin_post_form(array $post): void
         'categories' => db_all('SELECT id, name FROM categories ORDER BY sort_order, name'),
         'authors'    => db_all('SELECT id, name FROM users WHERE active = 1 ORDER BY name'),
         'related'    => $post['id'] ? admin_related_list((int) $post['id']) : [],
-        'relatedChoices' => db_all("SELECT id, title FROM posts WHERE status = 'published' AND id <> ? ORDER BY published_at DESC", [(int) $post['id']]),
+        'allTags'    => array_column(db_all('SELECT t.name, COUNT(pt.post_id) AS n FROM tags t LEFT JOIN post_tag pt ON pt.tag_id = t.id GROUP BY t.id, t.name ORDER BY n DESC, t.name'), 'name'),
         'editorAssets' => true,
     ]);
 }
@@ -323,6 +325,7 @@ function admin_post_save(array $post): array
         'cover_ratio'      => array_key_exists(input('cover_ratio'), image_ratios()) ? input('cover_ratio') : 'original',
         'cover_width'      => max(20, min(100, (int) input('cover_width', 100))),
         'cover_align'      => in_array(input('cover_align'), ['left', 'center', 'right'], true) ? input('cover_align') : 'center',
+        'cover_in_post'    => post_bool('cover_in_post'),
         'cover_position'   => preg_match('/^\d{1,3}% \d{1,3}%$/', input('cover_position')) ? input('cover_position') : '50% 50%',
         'category_id'      => (int) input('category_id') ?: null,
         'featured'         => post_bool('featured'),
@@ -382,6 +385,26 @@ function save_post_tags(int $postId, string $raw): void
         }
         db_exec('INSERT IGNORE INTO post_tag (post_id, tag_id) VALUES (?, ?)', [$postId, $tagId]);
     }
+}
+
+// Janela "Escolher posts": publicados, os mais novos primeiro; a busca olha o título e o texto
+function admin_post_picker(): void
+{
+    $q = trim((string) ($_GET['q'] ?? ''));
+    $where = "status = 'published' AND id <> ?";
+    $params = [(int) ($_GET['sem'] ?? 0)];
+    if ($q !== '') {
+        $like = '%' . addcslashes($q, '%_\\') . '%';
+        $where .= ' AND (title LIKE ? OR content LIKE ?)';
+        array_push($params, $like, $like);
+    }
+    $rows = db_all("SELECT id, title, cover_image, published_at FROM posts WHERE {$where} ORDER BY published_at DESC LIMIT 200", $params);
+    header('Content-Type: application/json; charset=utf-8');
+    echo json_encode(array_map(fn ($r) => [
+        'id' => (int) $r['id'], 'title' => $r['title'],
+        'thumb' => $r['cover_image'] ? media_url($r['cover_image']) : '',
+        'date' => $r['published_at'] ? date('d/m/Y', strtotime($r['published_at'])) : '',
+    ], $rows), JSON_UNESCAPED_UNICODE);
 }
 
 // Posts relacionados escolhidos à mão, na ordem da tela (até 6)
@@ -673,6 +696,8 @@ function admin_categories(): void
             'slug'        => unique_slug('categories', input('slug') ?: $name, $id ?: null),
             'description' => mb_substr(input('description'), 0, 1000) ?: null,
             'sort_order'  => (int) input('sort_order'),
+            'label_bg'    => post_bool('label_custom') ? (valid_color(input('label_bg')) ?: null) : null,
+            'label_text'  => post_bool('label_custom') ? (valid_color(input('label_text')) ?: null) : null,
         ];
         $id ? db_update('categories', $id, $data) : db_insert('categories', $data);
         flash('success', $id ? 'Categoria atualizada.' : 'Categoria criada.');
@@ -875,12 +900,14 @@ function admin_page_edit(?string $id = null): void
                 $data['created_at'] = now();
                 $newId = db_insert('pages', $data);
             }
+            save_page_playlists($newId);
             flash('success', $data['status'] === 'published' ? 'Página publicada.' : 'Rascunho da página salvo.');
             redirect('/admin/paginas/' . $newId);
         }
         $page = array_merge($page, $data, ['slug' => $slug]);
     }
-    admin_render('page-edit', ['title' => $page['id'] ? 'Editar página' : 'Nova página', 'page' => $page, 'errors' => $errors, 'editorAssets' => true]);
+    admin_render('page-edit', ['title' => $page['id'] ? 'Editar página' : 'Nova página', 'page' => $page, 'errors' => $errors, 'editorAssets' => true,
+        'pl' => setting('playlist_page'), 'plPageId' => playlists_page_id()]);
 }
 
 function admin_page_delete(string $id): void

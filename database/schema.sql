@@ -20,7 +20,9 @@ CREATE TABLE IF NOT EXISTS categories (
   name VARCHAR(120) NOT NULL,
   slug VARCHAR(140) NOT NULL UNIQUE,
   description TEXT NULL,
-  sort_order INT NOT NULL DEFAULT 0
+  sort_order INT NOT NULL DEFAULT 0,
+  label_bg VARCHAR(7) NULL,   -- cor do rótulo da categoria (vazio = roxo padrão)
+  label_text VARCHAR(7) NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 CREATE TABLE IF NOT EXISTS tags (
@@ -41,6 +43,7 @@ CREATE TABLE IF NOT EXISTS posts (
   cover_width TINYINT UNSIGNED NOT NULL DEFAULT 100,    -- % da largura do post
   cover_align VARCHAR(10) NOT NULL DEFAULT 'center',    -- left | center | right
   cover_position VARCHAR(20) NOT NULL DEFAULT '50% 50%', -- ponto de foco do recorte
+  cover_in_post TINYINT(1) NOT NULL DEFAULT 1, -- mostrar a capa no topo do post
   category_id INT UNSIGNED NULL,
   author_id INT UNSIGNED NOT NULL,
   status VARCHAR(20) NOT NULL DEFAULT 'draft', -- draft | published

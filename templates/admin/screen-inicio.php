@@ -3,7 +3,7 @@
 <form method="post">
   <?= csrf_field() ?>
   <nav class="a-toc" aria-label="Nesta página">
-    <a href="#g-blog">Blog</a><a href="#g-arquivo">O Arquivo</a><a href="#g-playlists">Playlists</a><a href="#g-acervo">Acervo e História</a><a href="#g-contato">Contato</a>
+    <a href="#g-blog">Blog</a><a href="#g-arquivo">O Arquivo</a><a href="#g-playlists">Playlists</a><a href="#g-acervo">Acervo e História</a>
   </nav>
     <section class="a-card">
       <label><span>Espaço entre a imagem e o texto: <output data-range-out><?= (int) ($home['split_gap'] ?? 40) ?></output> px</span>
@@ -115,22 +115,7 @@
       <details class="a-adv"><summary>Fontes e tamanhos deste bloco</summary><?= type_fields(['acervo_title' => 'Acervo: título', 'acervo_text' => 'Acervo: texto', 'acervo_button' => 'Acervo: botão', 'historia_title' => 'História: título', 'historia_text' => 'História: texto', 'historia_button' => 'História: botão']) ?></details>
     </section>
 
-    <section class="a-group" id="g-contato">
-      <h2 class="a-group-title">Contato</h2>
-      <section class="a-card">
-        <label>Título<input name="contact_title" value="<?= e($home['contact_title']) ?>"></label>
-        <label>Texto<input name="contact_text" value="<?= e($home['contact_text']) ?>"></label>
-        <div class="a-label">Nomes dos campos do formulário</div>
-        <div class="a-row-2">
-          <?php foreach (['nome' => 'Campo 1 (nome)', 'sobrenome' => 'Campo 2 (sobrenome)', 'email' => 'Campo 3 (e-mail)', 'telefone' => 'Campo 4 (telefone)', 'mensagem' => 'Campo 5 (mensagem)'] as $f => $fl): ?>
-            <label><small><?= $fl ?></small><input name="contact_labels[<?= $f ?>]" value="<?= e($home['contact_labels'][$f]) ?>" maxlength="60" required></label>
-          <?php endforeach; ?>
-          <label><small>Botão</small><input name="contact_button" value="<?= e($home['contact_button']) ?>" maxlength="40" required></label>
-        </div>
-      </section>
-      <section class="a-card"><div class="a-label">Cores</div><div class="a-colors-inline"><?= color_fields('contato') ?></div></section>
-      <details class="a-adv"><summary>Fontes e tamanhos deste bloco</summary><?= type_fields(['contact_title', 'contact_text', 'contact_labels', 'contact_button']) ?></details>
-    </section>
+    <p class="a-muted">O Contato tem tela própria, porque aparece também nas páginas e no blog: <a href="/admin/contato">Contato</a>.</p>
 
   <div class="a-sticky-save"><button class="a-btn" type="submit">Salvar página inicial</button></div>
 </form>

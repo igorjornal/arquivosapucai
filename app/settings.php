@@ -73,6 +73,7 @@ function settings_defaults(): array
         'blog' => [
             'page_title'        => 'Blog', // título da página /blog (editado em Páginas → Blog)
             'page_intro'        => '',
+            'page_box_pad'      => 32,     // folga dentro do box de abertura da página do Blog (px)
             'per_page'          => 6,      // posts por vez: página do blog e seção Blog da home
             'comments_enabled'  => true,
             'comments_moderate' => true,
@@ -88,7 +89,8 @@ function settings_defaults(): array
             'related_title'      => 'Posts relacionados',
         ],
         'playlist_page' => [
-            'page_slug'   => 'playlists', // página (de Páginas) onde as décadas aparecem, depois do texto
+            'page_id'     => 0,           // página (de Páginas) onde as décadas aparecem e são editadas
+            'page_slug'   => 'playlists', // só para achar a página na primeira vez
             'count_label' => 'playlists', // "8 playlists" ao lado do nome da década
             'decades'     => [],          // [{name, items: [{year, title, subtitle, link}]}]
         ],
@@ -164,6 +166,10 @@ function settings_defaults(): array
                 'card_bg'       => '#F1F0EC',
                 'card_title'    => '#1E0D06',
                 'card_text'     => '#4A3F3A',
+                'blogpage_bg'       => '#20063A', // página do Blog (Páginas → Blog)
+                'blogpage_box_bg'   => '#FFFFFF',
+                'blogpage_title'    => '#20063A',
+                'blogpage_text'     => '#2B211D',
                 'pl_bar_bg'         => '#FBFAFD', // página de Playlists
                 'pl_bar_text'       => '#20063A',
                 'pl_card_bg'        => '#20063A',

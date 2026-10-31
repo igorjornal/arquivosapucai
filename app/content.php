@@ -3,7 +3,7 @@ declare(strict_types=1);
 
 // Consultas de conteúdo usadas pelo site público
 
-const POST_SELECT = 'SELECT p.*, c.name AS category_name, c.slug AS category_slug,
+const POST_SELECT = 'SELECT p.*, c.name AS category_name, c.slug AS category_slug, c.label_bg AS category_label_bg, c.label_text AS category_label_text,
         u.name AS author_name, u.slug AS author_slug, u.avatar AS author_avatar
     FROM posts p
     LEFT JOIN categories c ON c.id = p.category_id
@@ -297,4 +297,15 @@ function ticker_separator(): string
         return '';
     }
     return '<img class="tk-sep-img" src="' . e(asset('img/ticker-icone.svg')) . '" alt="" width="18" height="18">';
+}
+
+// Página que tem as playlists por década (0 = nenhuma ainda)
+function playlists_page_id(): int
+{
+    $pl = setting('playlist_page');
+    $id = (int) ($pl['page_id'] ?? 0);
+    if ($id && db_val('SELECT COUNT(*) FROM pages WHERE id = ?', [$id])) {
+        return $id;
+    }
+    return (int) db_val('SELECT id FROM pages WHERE slug = ?', [(string) ($pl['page_slug'] ?? '')]);
 }

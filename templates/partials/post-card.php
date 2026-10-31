@@ -15,7 +15,7 @@ $mediaStyle = ' style="aspect-ratio:' . ($ratio ?? 'auto') . '"';
         <img class="avatar" src="<?= e(avatar_url($post['author_avatar'])) ?>" alt="" width="28" height="28">
         <span><?= e($post['author_name']) ?><br><time datetime="<?= e(date('c', strtotime($post['published_at']))) ?>"><?= e(date_short($post['published_at'])) ?></time></span>
       </div>
-      <?php if ($post['category_name']): ?><span class="chip"><?= e($post['category_name']) ?></span><?php endif; ?>
+      <?php if ($post['category_name']): ?><span class="chip"<?= chip_style($post) ?>><?= e($post['category_name']) ?></span><?php endif; ?>
       <h3 class="card-title"><?= e($post['title']) ?></h3>
       <p class="card-excerpt"><?= e(post_excerpt($post, 700)) ?></p>
     </div>

@@ -753,11 +753,12 @@ let pageRef = null;
   area = 'Painel organizado';
   await safe('grupos e atalhos', async () => {
     await p.goto(base + '/admin/pagina-inicial');
-    ok('Página inicial: 5 seções com título', await p.locator('.a-group .a-group-title').count() === 5);
-    ok('Página inicial: atalhos no topo', await p.locator('.a-toc a').count() === 5);
+    ok('Página inicial: 4 seções com título (Contato tem tela própria)', await p.locator('.a-group .a-group-title').count() === 4);
+    ok('Página inicial: atalhos no topo', await p.locator('.a-toc a').count() === 4);
     ok('Página inicial: abas de seções, ordem e banners', await p.locator('.a-tabs a').count() === 3);
-    await p.click('.a-toc a:has-text("Contato")');
-    ok('atalho leva ao grupo Contato', p.url().endsWith('#g-contato'));
+    await p.click('.a-toc a:has-text("Acervo")');
+    ok('atalho leva ao grupo Acervo', p.url().endsWith('#g-acervo'));
+    ok('Contato no menu lateral', (await p.locator('.a-side nav a[href="/admin/contato"]').count()) === 1);
     await p.goto(base + '/admin/rodape');
     ok('Rodapé: grupos e atalhos', await p.locator('.a-group').count() === 2 && await p.locator('.a-toc a').count() === 2);
     for (const [scr, n] of [['padrao', 2], ['cabecalho', 5], ['faixa', 2], ['blog-posts', 3]]) {
@@ -770,11 +771,10 @@ let pageRef = null;
   await safe('fonte, tamanho e negrito em cada texto', async () => {
     await p.goto(base + '/admin/pagina-inicial');
     const boxes = await p.locator('[data-type-field]').count();
-    ok('cada texto da home tem controle de fonte (20)', boxes === 20, String(boxes));
+    ok('cada texto da home tem controle de fonte (16; os 4 do Contato foram para a tela Contato)', boxes === 16, String(boxes));
     await custom('arquivo_text', 'Lora', 20, true);
     await custom('playlists_intro', null, 22, false);
     await custom('playlists_names', 'Oswald', 14, false);
-    await custom('contact_title', 'Anton', 40, false);
     await custom('blog_title', null, 28, true);
     await p.fill('input[name=blog_button]', 'VER TUDO QA');
     await submit(p.locator('.a-sticky-save button'));
@@ -784,7 +784,6 @@ let pageRef = null;
     ok('O Arquivo: texto em Lora e negrito', (await cs('.split-text > div p', 'fontFamily')).includes('Lora') && (await cs('.split-text > div p', 'fontWeight')) === '700');
     ok('Playlists: texto antes 22px', (await cs('.sec-playlists .sec-intro p', 'fontSize')) === '22px');
     ok('Playlists: nomes 14px sem negrito', (await cs('.playlist span', 'fontSize')) === '14px' && (await cs('.playlist span', 'fontWeight')) === '400');
-    ok('Contato: título em Anton sem negrito', (await cs('.sec-contact .sec-title', 'fontFamily')).includes('Anton') && (await cs('.sec-contact .sec-title', 'fontWeight')) === '400');
     ok('Blog: título 28px', (await cs('.sec-blog .sec-title', 'fontSize')) === '28px', await cs('.sec-blog .sec-title', 'fontSize'));
     ok('Blog: texto do botão muda', (await p.content()).includes('VER TUDO QA'));
     ok('textos sem mudança seguem o padrão', (await cs('.sec-arquivo .sec-title', 'fontSize')) === '44px', await cs('.sec-arquivo .sec-title', 'fontSize'));
@@ -836,14 +835,17 @@ let pageRef = null;
 
   area = 'Contato e rodapé';
   await safe('textos e fontes do contato', async () => {
-    await p.goto(base + '/admin/pagina-inicial');
+    await p.goto(base + '/admin/contato');
+    ok('tela Contato com 4 controles de fonte', (await p.locator('[data-type-field]').count()) === 4);
     await p.fill('input[name="contact_labels[nome]"]', 'Seu nome QA'); await p.fill('input[name=contact_button]', 'Mandar QA');
     await custom('contact_labels', null, 18, false);
+    await custom('contact_title', 'Anton', 40, false);
     await submit(p.locator('.a-sticky-save button'));
     await p.goto(base + '/');
     const html = await p.content();
     ok('nome do campo muda', html.includes('Seu nome QA'));
     ok('texto do botão muda', html.includes('Mandar QA'));
+    ok('Contato: título em Anton sem negrito', (await cs('.sec-contact .sec-title', 'fontFamily')).includes('Anton') && (await cs('.sec-contact .sec-title', 'fontWeight')) === '400');
     ok('nomes dos campos com 18px', (await cs('.contact-form .row label', 'fontSize')) === '18px', await cs('.contact-form .row label', 'fontSize'));
     await p.fill('.contact-form input[name=nome]', 'Leitor QA'); await p.fill('.contact-form input[name=email]', 'leitor@teste.com');
     await p.fill('.contact-form textarea[name=mensagem]', 'Mensagem depois da troca dos nomes dos campos.');
@@ -1295,19 +1297,20 @@ let pageRef = null;
   area = 'Nada se perdeu na reorganização';
   await safe('cada ajuste do site tem lugar no painel', async () => {
     const names = new Set();
-    for (const scr of ['cabecalho', 'faixa', 'pagina-inicial', 'rodape', 'blog-posts', 'playlists', 'padrao', 'configuracoes']) {
+    for (const scr of ['cabecalho', 'faixa', 'pagina-inicial', 'contato', 'rodape', 'blog-posts', 'paginas/blog', 'padrao', 'configuracoes']) {
       await p.goto(base + '/admin/' + scr);
       (await p.evaluate(() => [...document.querySelectorAll('form [name]')].map(el => el.name))).forEach(n => names.add(n));
     }
     const has = n => names.has(n);
-    const colorKeys = ['header_bg','header_text','header_accent','menu_hover','menu_line','menu_current','header_social','ticker_bg','ticker_text','blog_bg','blog_title','card_bg','card_title','card_text','arquivo_bg','arquivo_title','arquivo_text','playlists_bg','playlists_title','playlists_text','acervo_bg','acervo_title','acervo_text','contact_bg','contact_title','contact_text','footer_bg','footer_text','footer_accent','button_bg','button_text','button_hover_bg','button_hover_text','button_all_bg','button_all_text','button_all_hover_bg','button_all_hover_text','button_dark_bg','button_dark_text','button_dark_hover_bg','button_dark_hover_text','post_page_bg','post_box_bg','post_title','post_text','post_link','post_nav_bg','post_nav_text','pager_bg','pager_text','pager_active_bg','pager_active_text','pl_bar_bg','pl_bar_text','pl_card_bg','pl_year','pl_text','pl_accent'];
+    const colorKeys = ['header_bg','header_text','header_accent','menu_hover','menu_line','menu_current','header_social','ticker_bg','ticker_text','blog_bg','blog_title','card_bg','card_title','card_text','arquivo_bg','arquivo_title','arquivo_text','playlists_bg','playlists_title','playlists_text','acervo_bg','acervo_title','acervo_text','contact_bg','contact_title','contact_text','footer_bg','footer_text','footer_accent','button_bg','button_text','button_hover_bg','button_hover_text','button_all_bg','button_all_text','button_all_hover_bg','button_all_hover_text','button_dark_bg','button_dark_text','button_dark_hover_bg','button_dark_hover_text','post_page_bg','post_box_bg','post_title','post_text','post_link','post_nav_bg','post_nav_text','pager_bg','pager_text','pager_active_bg','pager_active_text','blogpage_bg','blogpage_box_bg','blogpage_title','blogpage_text'];
+    // (as cores e o texto das playlists por década ficam na tela da página Playlists; conferidos no teste da rodada 9)
     const missingColors = colorKeys.filter(k => !has('colors[' + k + ']'));
     ok('todas as ' + colorKeys.length + ' cores estão em alguma tela', missingColors.length === 0, missingColors.join(', '));
     const typeKeys = ['post_title','menu','ticker','blog_title','blog_button','arquivo_title','arquivo_text','arquivo_button','playlists_title','playlists_intro','playlists_names','playlists_outro','playlists_button','acervo_title','acervo_text','acervo_button','historia_title','historia_text','historia_button','contact_title','contact_text','contact_labels','contact_button','footer_titles','footer_texts','footer_links','footer_news_button','footer_email','footer_word','footer_copyright','footer_author'];
     const missingTypes = typeKeys.filter(k => !has('type[' + k + '][padrao]'));
     ok('todas as 31 fontes de texto estão em alguma tela', missingTypes.length === 0, missingTypes.join(', '));
     const fields = ['logo','header_image','size_logo','size_header','header_overlay','header_gradient','menu_effect','menu_align','menu_gap','ticker_items[0][text]','ticker_speed','ticker_gap','ticker_pad','ticker_sep','ticker_sep_text','ticker_sep_image',
-      'blog_title','blog_button','split_gap','post_sidebar','sidebar_title','sidebar_count','related_title','page_slug','count_label','arquivo_title','arquivo_text','arquivo_button','arquivo_link','arquivo_new_tab','arquivo_image','arquivo_img[width]','playlists_layout','playlists_title','playlists_intro','playlists_outro','playlists_image','playlists_img[width]','playlists_button','playlists_link','playlists_new_tab','playlists_align','playlists[0][title]',
+      'blog_title','blog_button','split_gap','post_sidebar','sidebar_title','sidebar_count','related_title','page_title','page_intro','page_box_pad','arquivo_title','arquivo_text','arquivo_button','arquivo_link','arquivo_new_tab','arquivo_image','arquivo_img[width]','playlists_layout','playlists_title','playlists_intro','playlists_outro','playlists_image','playlists_img[width]','playlists_button','playlists_link','playlists_new_tab','playlists_align','playlists[0][title]',
       'acervo_show','acervo_image','acervo_img[width]','acervo_title','acervo_text','acervo_button','acervo_link','acervo_new_tab','historia_show','historia_image','historia_img[width]','historia_title','historia_text','historia_button','historia_link','historia_new_tab','contact_title','contact_text','contact_labels[nome]','contact_button',
       'nav_title','rss_label','copyright','author_label','email_label','news_title','news_text','news_placeholder','news_button','show_word','word',
       'cards_per_row','cards_layout','card_ratio','card_title_lines','card_excerpt_lines','per_page','comments_enabled','comments_moderate','share_buttons',
@@ -1449,11 +1452,11 @@ let pageRef = null;
     await p.goto(base + '/admin/posts');
     const editHref = await p.$eval('a[href^="/admin/posts/"]:not([href$="novo"])', a => a.getAttribute('href'));
     await p.goto(base + editHref);
-    const choices = JSON.parse(await p.locator('[data-rel-posts]').textContent());
-    ok('lista de posts para escolher', choices.length > 0);
-    const pick = choices[choices.length - 1];
-    await p.fill('[data-rel-search]', pick.title.slice(0, 6));
-    await p.click('[data-rel-results] button >> nth=0');
+    await p.click('[data-rel-open]');
+    await p.locator('[data-rel-pick] input[type=checkbox]').first().waitFor();
+    ok('janela com posts para escolher', (await p.locator('[data-rel-pick] li').count()) > 0);
+    await p.locator('[data-rel-pick] input[type=checkbox]').last().check();
+    await p.click('[data-rel-ok]');
     ok('post escolhido entra na lista', (await p.locator('[data-rel-list] li').count()) === 1);
     const chosenTitle = await p.locator('[data-rel-list] li span').textContent();
     await submit(p.locator('button[name=acao][value=publicar], button[value=publicar]').first());
@@ -1490,12 +1493,19 @@ let pageRef = null;
     ok('padrão volta ao itálico', (await p.$eval('.ticker-track', e => getComputedStyle(e).fontStyle)) === 'italic');
   });
   await safe('9. página de Playlists em sanfona', async () => {
-    const pages = await (await fetch(base + '/sitemap.xml')).text();
     await p.goto(base + '/admin/playlists');
-    const opts = await p.$$eval('select[name=page_slug] option', o => o.map(x => x.value).filter(Boolean));
-    ok('escolhe a página onde aparecem', opts.length > 0);
-    const slug = opts.find(o => pages.includes('/' + o + '<')) || opts[0];
-    await p.selectOption('select[name=page_slug]', slug);
+    ok('endereço antigo leva a Páginas', p.url().includes('/admin/paginas'));
+    ok('item “Página de Playlists” saiu do menu lateral', (await p.locator('.a-side nav a[href="/admin/playlists"]').count()) === 0);
+    await p.goto(base + '/admin/paginas');
+    const pageHref = await p.$eval('a.a-strong[href^="/admin/paginas/"]:not([href$="blog"])', a => a.getAttribute('href'));
+    await p.goto(base + pageHref);
+    const slug = await p.inputValue('input[name=slug]');
+    await p.check('input[name=use_playlists]');
+    await submit(p.locator('button[name=acao][value=publicar]'));
+    ok('bloco das décadas aparece dentro da página', (await p.locator('[data-pl-form]').count()) === 1);
+    ok('sem o campo “Página onde aparecem”', (await p.locator('select[name=page_slug]').count()) === 0);
+    ok('“Texto que vem depois do número” com exemplo', (await p.content()).includes('Anos 80 · 8 playlists'));
+    ok('cores das playlists na tela da página', (await p.locator('input[name="colors[pl_card_bg]"]').count()) === 1);
     await p.fill('input[name="decades[d0][name]"]', 'Anos 80 QA');
     for (const y of ['1980', '1981']) {
       await p.locator('[data-pl-decade]').first().locator('[data-pl-add-item]').click();
@@ -1508,11 +1518,11 @@ let pageRef = null;
     await p.locator('[data-pl-decade]').last().locator('[data-pl-add-item]').click();
     await p.locator('[data-pl-decade]').last().locator('input[name$="[year]"]').fill('1990');
     await p.locator('[data-pl-decade]').nth(1).locator('[data-pl-up]').first().click();
-    await submit(p.locator('.a-sticky-save button'));
+    await submit(p.locator('button[name=acao][value=publicar]'));
     await p.goto(base + '/admin/playlists');
     ok('ordem das décadas fica salva', (await p.inputValue('[data-pl-decade] >> nth=0 >> input')) === 'Anos 90 QA');
     await p.locator('[data-pl-decade]').nth(1).locator('[data-pl-up]').first().click();
-    await submit(p.locator('.a-sticky-save button'));
+    await submit(p.locator('button[name=acao][value=publicar]'));
     await p.goto(base + '/' + slug);
     const d = await p.$$eval('details.pl-decade', e => e.map(x => [x.querySelector('.pl-dname').textContent, x.open, x.querySelectorAll('.pl-cap').length]));
     ok('décadas no site, a primeira aberta', d.length === 2 && d[0][0] === 'Anos 80 QA' && d[0][1] && !d[1][1], JSON.stringify(d));
@@ -1569,6 +1579,101 @@ let pageRef = null;
   await safe('link do botão das playlists com lista de páginas', async () => {
     await p.goto(base + '/admin/pagina-inicial');
     ok('campo com lista das páginas', (await p.locator('#lista-paginas option').count()) > 1 && (await p.getAttribute('input[name=playlists_link]', 'list')) === 'lista-paginas');
+  });
+
+  area = 'Rodada 10';
+  await safe('1 e 2. box de abertura e cores da página do Blog', async () => {
+    await p.goto(base + '/admin/paginas/blog');
+    await p.fill('textarea[name=page_intro]', 'A Avenida é um lugar cheio de histórias incríveis! Aqui você encontra notícias, crônicas e estudos de caso, tudo contado de um jeito leve e descontraído. É um espaço especial para a gente conversar sobre o Carnaval.');
+    await p.locator('input[name=page_box_pad]').fill('60');
+    await p.locator('input[name="colors[blogpage_box_bg]"]').evaluate(el => { el.value = '#ffffff'; });
+    await p.locator('input[name="colors[blogpage_bg]"]').evaluate(el => { el.value = '#003366'; });
+    await submit(p.locator('.a-sticky-save button'));
+    await p.goto(base + '/blog');
+    const r = await p.evaluate(() => {
+      const box = document.querySelector('.blog-box'), bar = document.querySelector('.cat-bar'), para = box.querySelector('p');
+      const b = box.getBoundingClientRect(), c = bar.getBoundingClientRect(), t = para.getBoundingClientRect(), cs = getComputedStyle(box);
+      return { before: !!(box.compareDocumentPosition(bar) & Node.DOCUMENT_POSITION_FOLLOWING), sameWidth: Math.abs(b.width - c.width) < 2,
+        textFull: t.width > b.width - 2 * parseFloat(cs.paddingLeft) - 4, pad: cs.paddingTop, bg: cs.backgroundColor,
+        page: getComputedStyle(document.querySelector('.blog-page')).backgroundColor };
+    });
+    ok('box em cima, depois a barra de categorias', r.before);
+    ok('box com a largura da barra e texto até o fim', r.sameWidth && r.textFull, JSON.stringify(r));
+    ok('folga do box (60px) e fundo branco', r.pad === '60px' && r.bg === 'rgb(255, 255, 255)', JSON.stringify(r));
+    ok('fundo próprio da página do Blog', r.page === 'rgb(0, 51, 102)', r.page);
+    ok('seção Blog da home continua com a cor dela', (await p.goto(base + '/').then(() => p.$eval('.sec-blog', e => getComputedStyle(e).backgroundColor))) !== 'rgb(0, 51, 102)');
+  });
+  await safe('4. círculo amarelo no recorte da imagem do texto', async () => {
+    await p.goto(base + '/admin/posts/novo');
+    await p.waitForFunction(() => window.tinymce && tinymce.activeEditor && tinymce.activeEditor.initialized);
+    await p.click('button[aria-label="Imagem (formato, tamanho, alinhamento)"]');
+    await p.waitForSelector('.tox-dialog');
+    ok('sem a lista “Parte que aparece no recorte”', (await p.locator('.tox-dialog').getByLabel('Parte que aparece no recorte').count()) === 0);
+    await p.click('.tox-dialog [data-arq="pick"]');
+    await p.waitForSelector('[data-media-grid] button'); await p.locator('[data-media-grid] button').first().click();
+    const d = p.locator('.tox-dialog');
+    await d.getByLabel('Formato (recorte)').selectOption('banner');
+    await p.waitForSelector('.tox-dialog [data-arq="focus"]');
+    const box = await p.locator('.tox-dialog [data-arq="focus"]').boundingBox();
+    await p.mouse.click(box.x + box.width * 0.2, box.y + box.height * 0.8);
+    ok('prévia do recorte acompanha o clique', /^(19|20|21)% (79|80|81)%$/.test(await p.$eval('.tox-dialog [data-arq="crop"]', e => e.style.objectPosition)));
+    await d.locator('button:has-text("Inserir")').click();
+    const html = await p.evaluate(() => tinymce.activeEditor.getContent());
+    ok('imagem guarda o ponto escolhido', /object-position: (19|20|21)% (79|80|81)%/.test(html) && html.includes('aspect-ratio: 3 / 1'));
+  });
+  let capaPost = '';
+  await safe('5. capa fora do post', async () => {
+    await p.goto(base + '/admin/posts');
+    const href = await p.$eval('a[href^="/admin/posts/"]:not([href$="novo"])', a => a.getAttribute('href'));
+    await p.goto(base + href);
+    if (!(await p.inputValue('input[name=cover_image]'))) { await p.click('[data-image-field]:has(input[name=cover_image]) button:has-text("Escolher")'); await p.waitForSelector('[data-media-grid] button'); await p.locator('[data-media-grid] button').first().click(); }
+    capaPost = await p.inputValue('input[name=slug]');
+    await p.uncheck('input[name=cover_in_post]');
+    ok('formato, tamanho e alinhamento somem', await p.locator('[data-cover-inpost]').isHidden());
+    await submit(p.locator('button[name=acao][value=publicar]'));
+    const h = await pub('/blog/' + capaPost);
+    ok('post sem a capa no topo', !h.includes('class="post-cover'));
+    ok('capa continua no compartilhamento', /property="og:image" content="[^"]*uploads|property="og:image" content="[^"]*sample/.test(h));
+    await p.goto(base + href);
+    await p.check('input[name=cover_in_post]');
+    await submit(p.locator('button[name=acao][value=publicar]'));
+    ok('marcada de novo, a capa volta', (await pub('/blog/' + capaPost)).includes('class="post-cover'));
+  });
+  await safe('6. cor do rótulo por categoria', async () => {
+    await p.goto(base + '/admin/categorias');
+    await p.locator('a.a-strong').first().click(); await p.waitForLoadState();
+    await p.check('input[name=label_custom]');
+    await p.locator('input[name=label_bg]').evaluate(el => { el.value = '#1b8a3a'; });
+    await p.locator('input[name=label_text]').evaluate(el => { el.value = '#ffffff'; });
+    await submit(p.locator('button:has-text("Salvar")'));
+    const h = await pub('/blog');
+    ok('rótulo com a cor da categoria nos cards', h.includes('class="chip" style="background:#1B8A3A;color:#FFFFFF"'));
+    ok('outras categorias continuam roxas', /class="chip">/.test(h) || !h.includes('class="chip"'));
+  });
+  await safe('7. playlists por década dentro de Páginas', async () => {
+    await p.goto(base + '/admin/playlists');
+    ok('endereço antigo abre a página com as décadas', (await p.locator('[data-pl-form]').count()) === 1, p.url());
+  });
+  await safe('8. tags em botões e sugeridas pelo texto', async () => {
+    await p.goto(base + '/admin/tags');
+    await p.goto(base + '/admin/posts/novo');
+    await p.waitForFunction(() => window.tinymce && tinymce.activeEditor && tinymce.activeEditor.initialized);
+    const tags = JSON.parse(await p.locator('[data-tag-list]').textContent());
+    ok('tags que já existem aparecem como botões', tags.length > 0 && (await p.locator('[data-tag-all] .a-tag-chip').count()) === tags.length, String(tags.length));
+    await p.locator('[data-tag-all] .a-tag-chip').first().click();
+    ok('clicar coloca a tag', (await p.inputValue('[data-tag-input]')).trim() === tags[0]);
+    await p.locator('[data-tag-all] .a-tag-chip').first().click();
+    ok('clicar de novo tira', (await p.inputValue('[data-tag-input]')).trim() === '');
+    await p.fill('[data-tag-input]', tags[0].slice(0, 2));
+    ok('ao digitar, mostra só as parecidas', (await p.locator('[data-tag-all] .a-tag-chip').count()) <= tags.length && (await p.locator('[data-tag-all] .a-tag-chip').count()) > 0);
+    await p.fill('[data-tag-input]', '');
+    await p.evaluate(t => tinymce.activeEditor.setContent('<p>Texto que fala de ' + t + ' na avenida.</p>'), tags[0]);
+    await p.waitForTimeout(2600);
+    ok('“Sugeridas pelo texto” mostra a tag que está no texto', (await p.locator('[data-tag-suggest-list] .a-tag-chip').allTextContents()).includes(tags[0]));
+    const before = tags.length;
+    await p.evaluate(() => tinymce.activeEditor.setContent('<p>Palavra inventada Xyzqwe</p>'));
+    await p.waitForTimeout(2600);
+    ok('não inventa tag nova', (await p.locator('[data-tag-all] .a-tag-chip').count()) === before && (await p.locator('[data-tag-suggest]').isHidden()));
   });
 
   area = 'Geral';

@@ -326,9 +326,6 @@ details.a-adv[open] > summary { margin-bottom: 12px; }
 .a-rel-list li { display: flex; align-items: center; gap: 4px; padding: 4px 0; font-size: 14px; }
 .a-rel-list li span { flex: 1; min-width: 0; }
 .a-mini { border: 1px solid rgba(0,0,0,.15); background: #fff; border-radius: 6px; width: 26px; height: 26px; cursor: pointer; line-height: 1; }
-.a-rel-results { list-style: none; margin: -6px 0 8px; padding: 4px; border: 1px solid rgba(0,0,0,.15); border-radius: 8px; background: #fff; max-height: 220px; overflow: auto; }
-.a-rel-results button { display: block; width: 100%; text-align: left; border: 0; background: none; padding: 7px 8px; border-radius: 6px; cursor: pointer; font: inherit; font-size: 14px; }
-.a-rel-results button:hover, .a-rel-results button:focus-visible { background: #F1EEE2; }
 
 /* Página de Playlists */
 .a-pl-dhead { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 10px; }
@@ -338,3 +335,29 @@ details.a-adv[open] > summary { margin-bottom: 12px; }
 .a-pl-item label { margin: 0; font-size: 13px; }
 .a-pl-tools { display: flex; gap: 4px; padding-bottom: 6px; }
 @media (max-width: 900px) { .a-pl-item { grid-template-columns: 1fr 1fr; } }
+
+/* Prévia do rótulo da categoria */
+.a-chip-preview { display: inline-block; margin-left: 8px; padding: 1px 8px; border-radius: 999px; background: #7B2FF7; color: #fff; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .05em; vertical-align: middle; }
+.a-rel-dialog { width: min(640px, 94vw); max-height: 86vh; padding: 0; border: 0; border-radius: 14px; box-shadow: 0 20px 60px rgba(0,0,0,.35); }
+.a-rel-dialog[open] { display: flex; flex-direction: column; }
+.a-rel-dialog::backdrop { background: rgba(20,6,30,.55); }
+.a-rel-dhead, .a-rel-dfoot { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 18px; }
+.a-rel-dialog input[type=search] { margin: 0 18px 10px; width: auto; }
+.a-rel-pick { list-style: none; margin: 0; padding: 0 18px; overflow: auto; flex: 1; }
+.a-rel-pick li { border-top: 1px solid rgba(0,0,0,.08); }
+.a-rel-pick label { display: flex; align-items: center; gap: 12px; padding: 8px 0; margin: 0; cursor: pointer; font-weight: 400; }
+.a-rel-pick input[type=checkbox] { width: 20px; height: 20px; flex: none; }
+.a-rel-thumb { flex: none; width: 72px; height: 48px; border-radius: 6px; overflow: hidden; background: #EDEAE0; }
+.a-rel-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+.a-rel-info { display: flex; flex-direction: column; min-width: 0; }
+.a-rel-info strong { font-size: 14px; line-height: 1.3; }
+.a-rel-info small { color: #776; font-size: 12px; }
+.a-rel-dfoot { border-top: 1px solid rgba(0,0,0,.1); }
+
+/* Tags em botõezinhos (tela do post) */
+.a-tag-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 10px; }
+.a-tag-all { max-height: 170px; overflow: auto; }
+.a-tag-chip { border: 1px solid rgba(0,0,0,.18); background: #fff; border-radius: 999px; padding: 4px 11px; font: inherit; font-size: 13px; cursor: pointer; }
+.a-tag-chip:hover { border-color: #20063A; }
+.a-tag-chip.is-on { background: #20063A; color: #CDF50D; border-color: #20063A; }
+.a-tag-suggest { background: #F7FBDD; border: 1px solid #CDF50D; border-radius: 10px; padding: 8px 10px 2px; margin-bottom: 10px; }

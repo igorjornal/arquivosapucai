@@ -25,6 +25,13 @@
         <label>Título para o Google<input name="meta_title" value="<?= e($page['meta_title']) ?>" maxlength="255" placeholder="Se vazio, usa o título da página"></label>
         <label>Descrição para o Google<textarea name="meta_description" rows="2" maxlength="300" placeholder="1 ou 2 frases com as palavras que as pessoas pesquisam"><?= e($page['meta_description']) ?></textarea></label>
       </details>
+      <div id="playlists-decadas">
+      <?php if ($page['id'] && (int) $page['id'] === $plPageId): ?>
+        <?= render_to_string('admin/playlist-decades-field', ['pl' => $pl]) ?>
+      <?php elseif (!$plPageId): ?>
+        <label class="a-check a-card"><input type="checkbox" name="use_playlists" value="1"> Mostrar nesta página as playlists por década (depois de salvar, o quadro para cadastrar as décadas aparece aqui)</label>
+      <?php endif; ?>
+      </div>
     </div>
     <aside class="a-editor-side">
       <section class="a-card">

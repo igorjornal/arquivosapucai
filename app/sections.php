@@ -237,6 +237,29 @@ function run_migrations(): void
         }
         save_setting_raw('schema_version', 11);
     }
+    if ($version < 12) {
+        // Rodada 10: cor do rótulo por categoria e opção de não mostrar a capa dentro do post
+        $col = fn (string $t, string $c) => (int) db_val('SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?', [$t, $c]);
+        if (!$col('categories', 'label_bg')) {
+            db()->exec('ALTER TABLE categories ADD COLUMN label_bg VARCHAR(7) NULL, ADD COLUMN label_text VARCHAR(7) NULL');
+        }
+        if (!$col('posts', 'cover_in_post')) {
+            db()->exec("ALTER TABLE posts ADD COLUMN cover_in_post TINYINT(1) NOT NULL DEFAULT 1 AFTER cover_position");
+        }
+        // Página do Blog com cores próprias: o fundo começa igual ao que já aparecia (o da seção Blog da home)
+        $app = json_decode((string) db_val("SELECT value FROM settings WHERE name = 'appearance'"), true);
+        if (is_array($app) && isset($app['colors']) && !isset($app['colors']['blogpage_bg'])) {
+            $app['colors']['blogpage_bg'] = $app['colors']['blog_bg'] ?? '#20063A';
+            save_setting('appearance', $app);
+        }
+        // Playlists por década ficam presas à página onde aparecem (antes: escolhida pelo endereço)
+        $pl = json_decode((string) db_val("SELECT value FROM settings WHERE name = 'playlist_page'"), true);
+        if (is_array($pl) && empty($pl['page_id']) && !empty($pl['page_slug'])) {
+            $pl['page_id'] = (int) db_val('SELECT id FROM pages WHERE slug = ?', [$pl['page_slug']]);
+            save_setting('playlist_page', $pl);
+        }
+        save_setting_raw('schema_version', 12);
+    }
 }
 
 function save_setting_raw(string $name, $value): void

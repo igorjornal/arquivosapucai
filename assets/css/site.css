@@ -273,6 +273,11 @@ input:focus, textarea:focus { outline: 2px solid var(--c-button-bg); outline-off
 .cat-bar a:hover, .cat-bar a[aria-current="page"] { border-bottom-color: currentColor; }
 .cat-search input { padding: 6px 12px; border-radius: 999px; border-width: 1px; width: 180px; font-size: 14px; background: #fff; }
 .blog-page .sec-title { margin-bottom: 28px; }
+.blog-page { background: var(--c-blogpage-bg, var(--c-blog-bg)); }
+/* Box de abertura da página do Blog (Páginas → Blog): largura toda, texto até o fim */
+.blog-box { background: var(--c-blogpage-box-bg); color: var(--c-blogpage-text); border-radius: 16px; padding: var(--blogbox-pad, 32px) clamp(18px, 4vw, var(--blogbox-pad, 32px)); margin-bottom: 22px; }
+.blog-box h1 { margin: 0; color: var(--c-blogpage-title); font-family: var(--f-heading); font-stretch: var(--fst-heading, 100%); font-weight: var(--fw-heading, 800); font-size: clamp(26px, 5vw, 40px); line-height: 1.1; }
+.blog-box p { margin: 14px 0 0; max-width: none; font-size: var(--fs-body, 17px); line-height: 1.6; }
 .author-head { display: flex; gap: 22px; align-items: center; margin-bottom: 30px; color: var(--c-card-bg); }
 .big-search { display: flex; gap: 10px; max-width: 640px; }
 .pager { display: flex; justify-content: center; gap: 8px; margin-top: 40px; font-family: var(--f-ui); font-stretch: var(--fst-ui, 100%); }

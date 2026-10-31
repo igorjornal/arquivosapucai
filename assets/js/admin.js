@@ -410,17 +410,19 @@
     showSep();
   }
 
-  // Tela do post: posts relacionados (buscar pelo título, ordenar e tirar)
+  // Tela do post: posts relacionados. "Escolher posts" abre a janela com caixinhas; a lista ainda ordena e tira
   var rel = document.querySelector('[data-related]');
   if (rel) {
     var relList = rel.querySelector('[data-rel-list]');
+    var relDialog = rel.querySelector('[data-rel-dialog]');
+    var relPick = rel.querySelector('[data-rel-pick]');
     var relSearch = rel.querySelector('[data-rel-search]');
-    var relResults = rel.querySelector('[data-rel-results]');
-    var relPosts = JSON.parse(rel.querySelector('[data-rel-posts]').textContent || '[]');
-    var norm = function (t) { return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, ''); };
-    var chosen = function () { return [].map.call(relList.children, function (li) { return +li.dataset.id; }); };
-    var addRel = function (p) {
-      if (chosen().indexOf(+p.id) >= 0 || relList.children.length >= 6) return;
+    var relCount = rel.querySelector('[data-rel-count]');
+    var relOpen = rel.querySelector('[data-rel-open]');
+    var picked = [];   // [{id, title}] na ordem em que foram marcados
+    var relTimer = null;
+    var MAX = 6;
+    var addRow = function (p) {
       var li = document.createElement('li');
       li.dataset.id = p.id;
       li.innerHTML = '<input type="hidden" name="related[]"><span></span><button type="button" class="a-mini" data-rel-up aria-label="Subir">↑</button><button type="button" class="a-mini" data-rel-down aria-label="Descer">↓</button><button type="button" class="a-mini" data-rel-remove aria-label="Tirar">×</button>';
@@ -428,22 +430,52 @@
       li.querySelector('span').textContent = p.title;
       relList.appendChild(li);
     };
-    var showResults = function () {
-      var term = norm(relSearch.value.trim());
-      relResults.innerHTML = '';
-      if (!term) { relResults.hidden = true; return; }
-      var found = relPosts.filter(function (p) { return chosen().indexOf(+p.id) < 0 && norm(p.title).indexOf(term) >= 0; }).slice(0, 8);
-      found.forEach(function (p) {
-        var li = document.createElement('li'), b = document.createElement('button');
-        b.type = 'button'; b.textContent = p.title;
-        b.addEventListener('click', function () { addRel(p); relSearch.value = ''; showResults(); relSearch.focus(); });
-        li.appendChild(b); relResults.appendChild(li);
-      });
-      if (!found.length) relResults.innerHTML = '<li class="a-muted" style="padding:7px 8px">Nenhum post publicado com esse título.</li>';
-      relResults.hidden = false;
+    var countText = function () { relCount.textContent = picked.length + ' de ' + MAX + ' escolhidos'; };
+    var isPicked = function (id) { return picked.some(function (p) { return p.id === id; }); };
+    var load = function () {
+      relPick.innerHTML = '<li class="a-muted">Carregando…</li>';
+      fetch('/admin/posts/escolher?sem=' + relOpen.dataset.exclude + '&q=' + encodeURIComponent(relSearch.value.trim()), { credentials: 'same-origin' })
+        .then(function (r) { return r.json(); })
+        .then(function (rows) {
+          relPick.innerHTML = '';
+          if (!rows.length) { relPick.innerHTML = '<li class="a-muted">Nenhum post publicado encontrado.</li>'; return; }
+          rows.forEach(function (p) {
+            var li = document.createElement('li');
+            li.innerHTML = '<label><input type="checkbox"><span class="a-rel-thumb"></span><span class="a-rel-info"><strong></strong><small></small></span></label>';
+            var box = li.querySelector('input');
+            box.checked = isPicked(p.id);
+            li.querySelector('strong').textContent = p.title;
+            li.querySelector('small').textContent = p.date;
+            if (p.thumb) { var im = document.createElement('img'); im.src = p.thumb; im.alt = ''; im.loading = 'lazy'; li.querySelector('.a-rel-thumb').appendChild(im); }
+            box.addEventListener('change', function () {
+              if (box.checked) {
+                if (picked.length >= MAX) { box.checked = false; alert('Dá para escolher até ' + MAX + ' posts.'); return; }
+                picked.push({ id: p.id, title: p.title });
+              } else {
+                picked = picked.filter(function (x) { return x.id !== p.id; });
+              }
+              countText();
+            });
+            relPick.appendChild(li);
+          });
+        });
     };
-    relSearch.addEventListener('input', showResults);
-    relSearch.addEventListener('keydown', function (e) { if (e.key === 'Enter') { e.preventDefault(); var b = relResults.querySelector('button'); if (b) b.click(); } });
+    relOpen.addEventListener('click', function () {
+      picked = [].map.call(relList.children, function (li) { return { id: +li.dataset.id, title: li.querySelector('span').textContent }; });
+      relSearch.value = '';
+      countText();
+      relDialog.showModal();
+      load();
+    });
+    relSearch.addEventListener('input', function () { clearTimeout(relTimer); relTimer = setTimeout(load, 300); });
+    relSearch.addEventListener('keydown', function (e) { if (e.key === 'Enter') e.preventDefault(); });
+    rel.querySelector('[data-rel-close]').addEventListener('click', function () { relDialog.close(); });
+    rel.querySelector('[data-rel-ok]').addEventListener('click', function () {
+      relList.innerHTML = '';
+      picked.forEach(addRow);
+      relDialog.close();
+      relList.dispatchEvent(new Event('change', { bubbles: true }));
+    });
     relList.addEventListener('click', function (e) {
       var li = e.target.closest('li');
       if (!li) return;
@@ -451,6 +483,69 @@
       else if (e.target.closest('[data-rel-up]') && li.previousElementSibling) relList.insertBefore(li, li.previousElementSibling);
       else if (e.target.closest('[data-rel-down]') && li.nextElementSibling) relList.insertBefore(li.nextElementSibling, li);
     });
+  }
+
+  // Tela do post: tags em botõezinhos (as mais usadas primeiro), filtradas pelo que se digita,
+  // e "Sugeridas pelo texto": só tags que já existem e aparecem no título ou no texto. Nenhuma tag é criada sozinha.
+  var tagsBox = document.querySelector('[data-tags]');
+  if (tagsBox) {
+    var tagInput = tagsBox.querySelector('[data-tag-input]');
+    var allTags = JSON.parse(tagsBox.querySelector('[data-tag-list]').textContent || '[]');
+    var tagAll = tagsBox.querySelector('[data-tag-all]');
+    var sugBox = tagsBox.querySelector('[data-tag-suggest]');
+    var sugList = tagsBox.querySelector('[data-tag-suggest-list]');
+    var fold = function (t) { return t.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').trim(); };
+    var parts = function () { return tagInput.value.split(',').map(function (t) { return t.trim(); }); };
+    var current = function () { return parts().filter(Boolean).map(fold); };
+    var typing = function () { var p = parts(); return /,\s*$/.test(tagInput.value) ? '' : fold(p[p.length - 1] || ''); };
+    var toggleTag = function (name) {
+      var list = parts().filter(Boolean);
+      var i = list.map(fold).indexOf(fold(name));
+      if (i >= 0) list.splice(i, 1);
+      else {
+        // Se estava digitando o começo dessa tag, troca o pedaço pela tag inteira
+        var t = typing();
+        if (t && fold(name).indexOf(t) === 0 && list.length && fold(list[list.length - 1]) === t) list.pop();
+        list.push(name);
+      }
+      tagInput.value = list.join(', ');
+      tagInput.dispatchEvent(new Event('input', { bubbles: true }));
+    };
+    var chip = function (name, on) {
+      var b = document.createElement('button');
+      b.type = 'button'; b.className = 'a-tag-chip' + (on ? ' is-on' : ''); b.textContent = (on ? '✓ ' : '') + name;
+      b.addEventListener('click', function () { toggleTag(name); });
+      return b;
+    };
+    var postText = function () {
+      var ed = window.tinymce && tinymce.activeEditor;
+      var body = ed ? ed.getContent({ format: 'text' }) : '';
+      var title = document.querySelector('[data-title]');
+      return fold((title ? title.value : '') + ' ' + body);
+    };
+    var hasWord = function (text, tag) {
+      var w = fold(tag).replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      return w !== '' && new RegExp('(^|[^a-z0-9])' + w + '([^a-z0-9]|$)').test(text);
+    };
+    var drawTags = function () {
+      var cur = current(), t = typing();
+      tagAll.innerHTML = '';
+      allTags.filter(function (n) { return !t || cur.indexOf(fold(n)) >= 0 || fold(n).indexOf(t) >= 0; })
+        .forEach(function (n) { tagAll.appendChild(chip(n, cur.indexOf(fold(n)) >= 0)); });
+      if (!allTags.length) tagAll.innerHTML = '<span class="a-muted">Nenhuma tag criada ainda.</span>';
+      var text = postText();
+      var sug = allTags.filter(function (n) { return cur.indexOf(fold(n)) < 0 && hasWord(text, n); });
+      sugList.innerHTML = '';
+      sug.forEach(function (n) { sugList.appendChild(chip(n, false)); });
+      sugBox.hidden = !sug.length;
+    };
+    tagInput.addEventListener('input', drawTags);
+    var titleField = document.querySelector('[data-title]');
+    if (titleField) titleField.addEventListener('change', drawTags);
+    // O texto do editor chega depois: confere de tempos em tempos (só quando muda)
+    var lastText = '';
+    setInterval(function () { var t = postText(); if (t !== lastText) { lastText = t; drawTags(); } }, 2000);
+    drawTags();
   }
 
   // Página de Playlists: décadas e playlists (adicionar, mover e tirar)
@@ -491,6 +586,18 @@
         row.parentNode.insertBefore(row.nextElementSibling, row);
       }
     });
+  }
+
+  // Tela do post: capa dentro do post liga/desliga (esconde formato, tamanho e alinhamento)
+  var inPost = document.querySelector('[data-cover-inpost-toggle]');
+  if (inPost) {
+    inPost.addEventListener('change', function () { document.querySelector('[data-cover-inpost]').hidden = !inPost.checked; });
+  }
+
+  // Categorias: mostra as cores do rótulo só quando a caixinha está marcada
+  var labelCustom = document.querySelector('[data-label-custom]');
+  if (labelCustom) {
+    labelCustom.addEventListener('change', function () { document.querySelector('[data-label-colors]').hidden = !labelCustom.checked; });
   }
 
   // Prévia ao vivo do topo: o próprio site desenha o cabeçalho e a faixa com o que está na tela (sem salvar)

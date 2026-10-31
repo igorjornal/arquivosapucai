@@ -49,6 +49,11 @@ Feito: título e texto da página /blog editáveis em Páginas → Blog (com fon
    - sai do menu lateral o item "Página de Playlists"; o endereço antigo leva para a página Playlists em Páginas;
    - some o campo "Página onde aparecem" (as décadas ficam presas à página onde são editadas);
    - "Palavra depois do número" vira "Texto que vem depois do número", com exemplo: "Anos 80 · 8 playlists". Vazio: o número some.
+8. Tags na tela do post (mesmo cartão "Categoria e tags"):
+   - as tags que já existem aparecem embaixo do campo como botõezinhos, as mais usadas primeiro; clicou entra, clicou de novo sai;
+   - ao digitar, aparecem sugestões das tags que já existem (evita repetidas);
+   - "Sugeridas pelo texto" em destaque em cima: só tags que JÁ existem e cujo nome aparece no título ou no texto do post; o Igor confirma com um clique;
+   - o painel NÃO cria tags novas sozinho (decisão do Igor).
 2. Proposta feita, aguardando o Igor confirmar: cores próprias da página do Blog em Páginas → Blog (hoje vêm de Página inicial → Blog), e Contato com tela própria em "O site, parte por parte" (aparece na home, nas páginas e no blog).
 
 ## A resolver

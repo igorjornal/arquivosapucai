@@ -328,10 +328,7 @@ details.a-adv[open] > summary { margin-bottom: 12px; }
 .a-mini { border: 1px solid rgba(0,0,0,.15); background: #fff; border-radius: 6px; width: 26px; height: 26px; cursor: pointer; line-height: 1; }
 
 /* Página de Playlists */
-.a-pl-dhead { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 10px; }
-.a-pl-dhead label { flex: 1; margin: 0; }
-.a-pl-dhead input { font-weight: 700; font-size: 17px; }
-.a-pl-item { display: grid; grid-template-columns: 110px 1fr 1fr 1.6fr auto; gap: 8px; align-items: end; padding: 10px 0; border-top: 1px solid rgba(0,0,0,.08); }
+.a-pl-item { display: grid; grid-template-columns: auto 110px 1fr 1fr 1.6fr auto; gap: 8px; align-items: end; padding: 10px 0; border-top: 1px solid rgba(0,0,0,.08); }
 .a-pl-item label { margin: 0; font-size: 13px; }
 .a-pl-tools { display: flex; gap: 4px; padding-bottom: 6px; }
 @media (max-width: 900px) { .a-pl-item { grid-template-columns: 1fr 1fr; } }
@@ -361,3 +358,18 @@ details.a-adv[open] > summary { margin-bottom: 12px; }
 .a-tag-chip:hover { border-color: #20063A; }
 .a-tag-chip.is-on { background: #20063A; color: #CDF50D; border-color: #20063A; }
 .a-tag-suggest { background: #F7FBDD; border: 1px solid #CDF50D; border-radius: 10px; padding: 8px 10px 2px; margin-bottom: 10px; }
+
+/* Décadas recolhidas no painel, com alça para arrastar */
+.a-pl-decade { border: 1px solid rgba(0,0,0,.14); border-radius: 12px; margin-bottom: 10px; background: #fff; }
+.a-pl-decade[open] { border-color: #20063A; }
+.a-pl-dsum { display: flex; align-items: center; gap: 10px; padding: 12px 14px; cursor: pointer; list-style: none; }
+.a-pl-dsum::-webkit-details-marker { display: none; }
+.a-pl-dsum strong { font-size: 17px; }
+.a-pl-dsum small { color: #776; }
+.a-pl-dsum .a-mini { margin-left: auto; }
+.a-pl-dsum::after { content: "+"; font-weight: 700; font-size: 20px; width: 26px; text-align: center; }
+.a-pl-decade[open] > .a-pl-dsum::after { content: "−"; }
+.a-pl-dbody { padding: 0 14px 14px; }
+.a-drag { cursor: grab; color: #998; font-weight: 700; letter-spacing: -2px; padding: 4px 2px; user-select: none; }
+.a-drag:active { cursor: grabbing; }
+.is-dragging { opacity: .45; }

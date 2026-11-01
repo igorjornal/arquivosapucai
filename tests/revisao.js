@@ -1517,11 +1517,11 @@ let pageRef = null;
     await p.locator('[data-pl-decade]').last().locator('input').first().fill('Anos 90 QA');
     await p.locator('[data-pl-decade]').last().locator('[data-pl-add-item]').click();
     await p.locator('[data-pl-decade]').last().locator('input[name$="[year]"]').fill('1990');
-    await p.locator('[data-pl-decade]').nth(1).locator('[data-pl-up]').first().click();
+    await p.$$eval('details[data-pl-decade]', e => e.forEach(x => { x.open = false; })); await p.locator('[data-pl-decade]').nth(1).locator('.a-pl-dsum [data-drag]').dragTo(p.locator('[data-pl-decade]').nth(0).locator('.a-pl-dsum'), { targetPosition: { x: 30, y: 4 } });
     await submit(p.locator('button[name=acao][value=publicar]'));
     await p.goto(base + '/admin/playlists');
     ok('ordem das décadas fica salva', (await p.inputValue('[data-pl-decade] >> nth=0 >> input')) === 'Anos 90 QA');
-    await p.locator('[data-pl-decade]').nth(1).locator('[data-pl-up]').first().click();
+    await p.$$eval('details[data-pl-decade]', e => e.forEach(x => { x.open = false; })); await p.locator('[data-pl-decade]').nth(1).locator('.a-pl-dsum [data-drag]').dragTo(p.locator('[data-pl-decade]').nth(0).locator('.a-pl-dsum'), { targetPosition: { x: 30, y: 4 } });
     await submit(p.locator('button[name=acao][value=publicar]'));
     await p.goto(base + '/' + slug);
     const d = await p.$$eval('details.pl-decade', e => e.map(x => [x.querySelector('.pl-dname').textContent, x.open, x.querySelectorAll('.pl-cap').length]));
@@ -1530,6 +1530,19 @@ let pageRef = null;
     await p.click('details.pl-decade >> nth=1 >> summary');
     ok('clicar abre a outra sem fechar a primeira', await p.$$eval('details.pl-decade', e => e.every(x => x.open)));
     ok('“1 playlist” no singular', (await p.textContent('details.pl-decade >> nth=1 >> summary small')).trim() === '1 playlist');
+    // Painel: décadas recolhidas, Enter não salva, ordenar pelo ano
+    await p.goto(base + '/admin/playlists');
+    ok('décadas aparecem fechadas no painel', await p.$$eval('details[data-pl-decade]', e => e.length === 2 && e.every(x => !x.open)));
+    ok('barra mostra nome e número', (await p.textContent('details[data-pl-decade] >> nth=0 >> .a-pl-dsum')).includes('Anos 80 QA') && (await p.textContent('details[data-pl-decade] >> nth=0 >> .a-pl-dsum')).includes('2 playlists'));
+    await p.click('details[data-pl-decade] >> nth=0 >> .a-pl-dsum strong');
+    const yr = p.locator('details[data-pl-decade]').nth(0).locator('input[name$="[year]"]');
+    await yr.nth(0).fill('1989');
+    await yr.nth(0).press('Enter');
+    await p.waitForTimeout(800);
+    ok('Enter num campo não salva a página', p.url().includes('/admin/paginas/') && (await yr.nth(0).inputValue()) === '1989' && !(await notice()).includes('salv'));
+    await p.click('details[data-pl-decade] >> nth=0 >> [data-pl-sort]');
+    ok('ordenar pelo ano', (await yr.nth(0).inputValue()) === '1981' && (await yr.nth(1).inputValue()) === '1989');
+
   });
   await safe('10. números das páginas mudam ao passar o mouse', async () => {
     await p.goto(base + '/admin/blog-posts');

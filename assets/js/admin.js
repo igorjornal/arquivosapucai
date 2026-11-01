@@ -548,7 +548,7 @@
     drawTags();
   }
 
-  // Página de Playlists: décadas e playlists (adicionar, mover e tirar)
+  // Playlists por década (tela da página Playlists): décadas recolhidas, arrastar para ordenar, ordenar pelo ano
   var plForm = document.querySelector('[data-pl-form]');
   if (plForm) {
     var plDecades = plForm.querySelector('[data-pl-decades]');
@@ -559,33 +559,94 @@
       var box = document.createElement('div'); box.innerHTML = html.trim();
       return box.firstElementChild;
     };
+    // Nome e número de playlists na barra da década
+    var refreshBar = function (dec) {
+      var name = dec.querySelector('[data-pl-dinput]').value.trim();
+      dec.querySelector('[data-pl-dname]').textContent = name || 'Nova década';
+      var n = dec.querySelectorAll('[data-pl-item]').length;
+      dec.querySelector('[data-pl-dcount]').textContent = n + (n === 1 ? ' playlist' : ' playlists');
+    };
+    plForm.querySelectorAll('[data-pl-decade]').forEach(refreshBar);
+    plForm.addEventListener('input', function (e) {
+      if (e.target.matches('[data-pl-dinput]')) refreshBar(e.target.closest('[data-pl-decade]'));
+    });
     plForm.addEventListener('click', function (e) {
       var btn = e.target.closest('button');
       if (!btn) return;
       if (btn.hasAttribute('data-pl-add-decade')) {
         var dec = fromTpl('[data-pl-decade-tpl]', { __D__: 'n' + (plSeq++) });
         plDecades.appendChild(dec);
-        dec.querySelector('input').focus();
+        refreshBar(dec);
+        dec.querySelector('[data-pl-dinput]').focus();
         return;
       }
+      var d = btn.closest('[data-pl-decade]');
       if (btn.hasAttribute('data-pl-add-item')) {
-        var d = btn.closest('[data-pl-decade]');
         var it = fromTpl('[data-pl-item-tpl]', { __D__: d.dataset.key, __I__: 'n' + (plSeq++) });
         d.querySelector('[data-pl-items]').appendChild(it);
+        refreshBar(d);
         it.querySelector('input').focus();
         return;
       }
-      var row = btn.closest('[data-pl-item]') || btn.closest('[data-pl-decade]');
-      if (!row) return;
+      if (btn.hasAttribute('data-pl-sort')) {
+        var list = d.querySelector('[data-pl-items]');
+        var num = function (row) { var m = (row.querySelector('input[name$="[year]"]').value.match(/\d+/) || [])[0]; return m ? +m : Infinity; };
+        [].slice.call(list.children).sort(function (x, y) { return num(x) - num(y); }).forEach(function (row) { list.appendChild(row); });
+        return;
+      }
       if (btn.hasAttribute('data-pl-remove')) {
-        if (row.hasAttribute('data-pl-decade') && row.querySelector('[data-pl-item]') && !confirm('Apagar esta década e as playlists dela?')) return;
-        row.remove();
-      } else if (btn.hasAttribute('data-pl-up') && row.previousElementSibling) {
-        row.parentNode.insertBefore(row, row.previousElementSibling);
-      } else if (btn.hasAttribute('data-pl-down') && row.nextElementSibling) {
-        row.parentNode.insertBefore(row.nextElementSibling, row);
+        e.preventDefault(); // o × fica na barra: não abre nem fecha a década
+        var row = btn.closest('[data-pl-item]');
+        if (row) { row.remove(); refreshBar(d); return; }
+        if (d.querySelector('[data-pl-item]') && !confirm('Apagar esta década e as playlists dela?')) return;
+        d.remove();
       }
     });
+    // Arrastar pela alça ⋮⋮: décadas entre décadas, playlists dentro da mesma década
+    var dragging = null;
+    plForm.addEventListener('mousedown', function (e) {
+      var h = e.target.closest('[data-drag]');
+      if (!h) return;
+      var row = h.closest('[data-pl-item]') || h.closest('[data-pl-decade]');
+      row.draggable = true;
+    });
+    plForm.addEventListener('dragstart', function (e) {
+      dragging = e.target.closest('[data-pl-item]') || e.target.closest('[data-pl-decade]');
+      if (!dragging || !dragging.draggable) { dragging = null; return; }
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/plain', '');
+      setTimeout(function () {
+        if (!dragging) return;
+        dragging.classList.add('is-dragging');
+        // Arrastando uma década: todas se fecham, para a lista ficar curta e caber na tela
+        if (dragging.hasAttribute('data-pl-decade')) plForm.querySelectorAll('details[data-pl-decade]').forEach(function (d) { d.open = false; });
+      }, 0);
+    });
+    plForm.addEventListener('dragover', function (e) {
+      if (!dragging) return;
+      var box = dragging.parentNode;
+      if (!box.contains(e.target)) return;
+      e.preventDefault();
+      var sel = dragging.hasAttribute('data-pl-item') ? ':scope > [data-pl-item]' : ':scope > [data-pl-decade]';
+      var after = null;
+      [].slice.call(box.querySelectorAll(sel)).some(function (el) {
+        if (el === dragging) return false;
+        var r = el.getBoundingClientRect();
+        if (e.clientY < r.top + r.height / 2) { after = el; return true; }
+        return false;
+      });
+      if (after) box.insertBefore(dragging, after); else box.appendChild(dragging);
+    });
+    var endDrag = function () {
+      if (!dragging) return;
+      dragging.classList.remove('is-dragging');
+      dragging.draggable = false;
+      dragging = null;
+    };
+    plForm.addEventListener('dragend', endDrag);
+    // Só a alça arrasta: soltou o mouse sem arrastar, a linha volta ao normal (para selecionar texto nos campos)
+    document.addEventListener('mouseup', function () { if (!dragging) plForm.querySelectorAll('[draggable=true]').forEach(function (el) { el.draggable = false; }); });
+    plForm.addEventListener('drop', function (e) { if (dragging) e.preventDefault(); endDrag(); });
   }
 
   // Tela do post: capa dentro do post liga/desliga (esconde formato, tamanho e alinhamento)
@@ -599,6 +660,16 @@
   if (labelCustom) {
     labelCustom.addEventListener('change', function () { document.querySelector('[data-label-colors]').hidden = !labelCustom.checked; });
   }
+
+  // Enter num campo de texto ou link não salva a página (só o botão salva). Buscas continuam com Enter.
+  document.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' || e.isComposing) return;
+    var el = e.target;
+    if (!el.matches || !el.matches('input') || el.matches('[type=search], [type=submit], [type=button], [type=checkbox], [type=radio], [type=file]')) return;
+    var form = el.form;
+    if (!form || (form.method || '').toLowerCase() !== 'post') return;
+    e.preventDefault();
+  });
 
   // Prévia ao vivo do topo: o próprio site desenha o cabeçalho e a faixa com o que está na tela (sem salvar)
   var live = document.querySelector('[data-live-preview]');

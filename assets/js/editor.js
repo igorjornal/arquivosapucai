@@ -419,7 +419,9 @@
     quickbars_selection_toolbar: 'bold italic underline | forecolor backcolor | fontsizeinput | link',
     quickbars_insert_toolbar: false,
     min_height: 520,
-    max_height: 1400,
+    // Cresce até a altura da tela e, a partir daí, rola por dentro (com 1400px a rolagem ficava fora da tela)
+    max_height: Math.max(560, window.innerHeight - 120),
+    toolbar_sticky: true,
     autoresize_bottom_margin: 40,
     font_size_input_default_unit: 'px',
     line_height_formats: '1 1.2 1.4 1.6 1.8 2 2.4 3',

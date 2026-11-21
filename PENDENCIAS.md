@@ -54,4 +54,5 @@ Feito: box de abertura da página do Blog acima da barra de categorias (título,
   - escolher o efeito da troca (sumir/aparecer ou deslizar para o lado);
   - título e botão por cima da imagem, escritos no painel (opcional por banner; o Igor ainda vai avaliar).
 - [ ] **Animações GSAP.** Montar uma demonstração com efeitos na própria home para o Igor aprovar.
+- [ ] **Na mudança para o endereço oficial, levar também a pasta `estudos`** (estudos de caso do Igor, feitos em outra sessão; fica em public_html e o site não deve apagá-la).
 - [ ] **Publicação final.** Depois dos testes aprovados, apontar `arquivosapucai.com.br` para o site novo (substituindo o Builder).

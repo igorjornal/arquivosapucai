@@ -42,7 +42,7 @@ Feito: box de abertura da página do Blog acima da barra de categorias (título,
 - [ ] **SSL (cadeado) do subdomínio de teste.** Pedir ao suporte da Hostinger que ative o SSL de `novo.arquivosapucai.com.br`. Depois de ativo:
   - tirar o `#` das duas linhas de HTTPS no `.htaccess`;
   - trocar `base_url` para `https://` no `config.php` do servidor.
-- [ ] **Trocar a senha do banco de dados.** A senha atual apareceu na conversa. Pedir à Hostinger uma senha nova e atualizar o campo `password` no `config.php` do servidor.
+- [ ] **Trocar a senha do banco de dados** (decisão do Igor em 21/11: deixar para o final, depois do site no ar). A senha atual apareceu na conversa. Pedir à Hostinger uma senha nova e atualizar o campo `password` no `config.php` do servidor.
 - [ ] **Forma de atualizar o site.** Decidir entre um zip novo a cada mudança ou ligar o GitHub direto na Hostinger (deploy automático).
 - [ ] **Avisos por e-mail caem no spam.** O teste chegou no Gmail, mas na caixa de spam (29/10). Solução: enviar pelo e-mail de verdade da Hostinger (SMTP com usuário e senha), em vez do envio simples do PHP. A senha fica só no config.php do servidor, nunca na conversa. Enquanto isso: marcar "Não é spam" no Gmail.
 - [ ] **Limpar as pastas com número no nome** em public_html (app.1533, templates.6108 etc.): são cópias antigas criadas pelo Gerenciador de Arquivos ao mover pastas. O site não usa; apagar com calma, uma vez só, quando o Igor quiser. Combinado em 30/10: o Igor manda print do public_html (agora usa o FileZilla) e conferimos juntos, pasta por pasta, antes de apagar.

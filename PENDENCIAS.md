@@ -38,6 +38,12 @@ Feito: título e texto da página /blog editáveis em Páginas → Blog (com fon
 Feito: box de abertura da página do Blog acima da barra de categorias (título, texto, fontes, cores, folga) e cores próprias da página do Blog, tudo em Páginas → Blog; Contato com tela própria em "O site, parte por parte"; janela "Escolher posts" para os relacionados (miniatura, título, data, busca no título e no texto); círculo amarelo para o ponto do recorte das imagens do editor; caixinha "Mostrar a capa no topo do post"; cor do rótulo por categoria (Posts → Categorias); playlists por década dentro de Páginas → Playlists (saiu a tela separada); tags em botões, filtradas ao digitar, e "Sugeridas pelo texto" (só tags que já existem).
 - Depois de aplicar: conferir em Páginas → Blog as cores do box (começa com fundo branco) e em Páginas → Playlists o bloco das décadas.
 
+## Site no ar (21/11/2026)
+O site novo está em https://arquivosapucai.com.br (domínio trocado pelo assistente da Hostinger; o Builder antigo ficou em endereço temporário e foi duplicado em arquivosapucai-builder-565.hostingersite.com). SSL ativo. O endereço oficial já sai certo (canonical, og:url, sitemap com https://arquivosapucai.com.br) e o aviso do Google desligou sozinho.
+- [ ] Quando a Hostinger terminar "Mudando de domínio": limpar o cache da CDN (a home com www ainda mostrava o Builder antigo: x-hcdn-cache-status HIT).
+- [ ] Igor quer o www como principal: trocar base_url para https://www.arquivosapucai.com.br e redirecionar quem entrar sem www para o com www (.htaccess). Conferir antes se a Hostinger já força HTTPS, para não duplicar regra.
+- [ ] FileZilla: pegar os novos dados de conexão em hPanel → Contas FTP (o endereço mudou com o domínio).
+
 ## A resolver
 - [ ] **SSL (cadeado) do subdomínio de teste.** Pedir ao suporte da Hostinger que ative o SSL de `novo.arquivosapucai.com.br`. Depois de ativo:
   - tirar o `#` das duas linhas de HTTPS no `.htaccess`;
